@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Backgrounds: warm cream fading to tan -->
+    <color name="cream">#FBF3E3</color>
+    <color name="tan">#F5E6C8</color>
+
+    <!-- Primary accent, used for main action buttons -->
+    <color name="amber">#E8A94F</color>
+    <color name="amber_dark">#C98B36</color>
+
+    <!-- Card surfaces -->
+    <color name="card_white">#FFFFFF</color>
+    <color name="card_border">#E8D6AE</color>
+
+    <!-- Text -->
+    <color name="text_primary">#6B4A1E</color>
+    <color name="text_muted">#8A7255</color>
+
+    <!-- Status accents, kept warm so they sit inside the palette -->
+    <color name="shiny_gold">#D9A425</color>
+    <color name="disabled_fill">#EDE2CC</color>
+
+    <!-- Dismiss actions: warm terracotta rather than a clashing red -->
+    <color name="terracotta">#C1673F</color>
+</resources>

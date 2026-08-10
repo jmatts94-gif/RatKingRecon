@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Material Symbols "hexagon" (outlined), from google/material-design-icons.
+  Converted from viewBox "0 -960 960 960" - the same transform Studio's Vector Asset
+  tool applies.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960"
+    android:tint="@color/text_primary">
+    <group android:translateX="-0" android:translateY="960">
+        <path
+            android:fillColor="@color/text_primary"
+            android:pathData="M272-120 64-480l208-360h416l208 360-208 360H272Zm46-80h324l161-280-161-280H318L156-480l162 280Zm162-280Z" />
+    </group>
+</vector>

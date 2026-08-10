@@ -1,0 +1,20 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      Pinned to a Light parent on purpose. The palette is hardcoded warm cream,
+      which does not invert, so a DayNight parent would mix our light surfaces
+      with dark Material chrome in night mode.
+    -->
+    <style name="Base.Theme.RatKingRecon" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/amber</item>
+        <item name="colorOnPrimary">@color/text_primary</item>
+        <item name="colorSurface">@color/cream</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:colorBackground">@color/cream</item>
+        <item name="android:statusBarColor">@color/cream</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/tan</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="Theme.RatKingRecon" parent="Base.Theme.RatKingRecon" />
+</resources>

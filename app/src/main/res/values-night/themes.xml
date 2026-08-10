@@ -1,0 +1,18 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      Deliberately identical to the light theme. The redesign is a single warm
+      cream palette; letting night mode swap surfaces would break it. Replace
+      this with a real dark palette if a night variant is ever designed.
+    -->
+    <style name="Base.Theme.RatKingRecon" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/amber</item>
+        <item name="colorOnPrimary">@color/text_primary</item>
+        <item name="colorSurface">@color/cream</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:colorBackground">@color/cream</item>
+        <item name="android:statusBarColor">@color/cream</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/tan</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

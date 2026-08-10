@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The large rounded amber-gradient square the egg sits on. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#F2C578"
+        android:endColor="@color/amber"
+        android:type="linear" />
+    <corners android:radius="24dp" />
+</shape>

@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name" translatable="false">Rat King Recon</string>
+
+    <!-- Binder sorting -->
+    <string name="btn_all">All</string>
+    <string name="btn_power">Sort Power</string>
+    <string name="btn_shiny">Shiny Only</string>
+
+    <!-- The Rat Ledger (the collection screen) -->
+    <string name="workshop_title">The Rat Ledger</string>
+    <string name="collection_default_text">Collection: 0 / 50 Rats Found</string>
+    <string name="btn_back_to_workshop">Back to the Workshop</string>
+    <string name="splicing_vat_text">The Fusion Pot: Fuse 2 Weakest (Cost: 5 Scrap)</string>
+
+    <!-- Consumables -->
+    <string name="btn_mutagen">Tinkerer\'s Serum</string>
+    <string name="btn_shiny_polish">Gleam-in-a-Bottle</string>
+    <string name="btn_polish_buy">Gleam-in-a-Bottle (5)</string>
+    <string name="btn_premium">The Wobbly Hatchery (50 Scrap)</string>
+
+    <!-- Home screen navigation -->
+    <string name="btn_open_ledger">The Rat Ledger</string>
+    <string name="btn_send_to_ledger">Send to the Ledger</string>
+    <string name="btn_contract_board">Contract Board</string>
+    <string name="btn_expedition_board">Expedition Board</string>
+    <string name="btn_shop">Shop</string>
+    <string name="btn_dev_reset">Dev Reset</string>
+    <string name="shop_coming_soon">The Shop is still being built.</string>
+
+    <!-- Expeditions and contracts -->
+    <string name="btn_deploy_scrap_run">Send on a Scrap Run\n(4 Hours)</string>
+    <string name="btn_shut_the_board">Shut the Board</string>
+    <string name="btn_close">Close</string>
+    <string name="expedition_board_title">Daily Scavenge Board</string>
+    <string name="contract_board_title">Contract Board</string>
+    <string name="contract_board_subtitle">Select a physical bounty to earn scrap.</string>
+    <string name="mission_checking_roster">Checking Roster…</string>
+    <string name="expedition_status">Rat Scavenging… (Tap Status)</string>
+
+    <!-- Long-press explainers -->
+    <string name="tooltip_hatchery_title">The Wobbly Hatchery</string>
+    <string name="tooltip_hatchery_body">Spend 50 Scrap to hatch a rat on the spot, without walking for it.</string>
+    <string name="tooltip_polish_title">Gleam-in-a-Bottle</string>
+    <string name="tooltip_polish_body">Spend 5 Scrap to guarantee your next hatch comes out shiny.</string>
+
+    <!-- Level 5 unlock -->
+    <string name="unlock_title">New Gear Unlocked!</string>
+    <string name="unlock_intro">Level 5 opens up the workbench. Long-press either button any time to see what it does.</string>
+    <string name="unlock_cta">Got It</string>
+
+    <!-- Background step tracking -->
+    <string name="channel_tracking_name">Step Tracking</string>
+    <string name="channel_tracking_desc">Keeps counting your steps while the app is closed.</string>
+    <string name="channel_hatch_name">Hatch Alerts</string>
+    <string name="channel_hatch_desc">Tells you the moment an egg hatches.</string>
+    <string name="notif_tracking_title">Counting your steps</string>
+    <string name="notif_tracking_text">Your egg keeps growing while you walk.</string>
+    <string name="notif_hatch_title">Your egg hatched!</string>
+    <string name="notif_hatch_text">%1$s joined the Ledger.</string>
+    <string name="notif_hatch_text_level">%1$s joined the Ledger. You are now Level %2$d.</string>
+
+    <!-- Header stats -->
+    <string name="header_level_default">Lvl 1</string>
+    <string name="header_steps_default">0</string>
+    <string name="header_scrap_default">0</string>
+</resources>
