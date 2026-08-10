@@ -42,15 +42,33 @@ class GalleryActivity : AppCompatActivity() {
         updateCollectionProgress()
     }
 
+    /**
+     * Shows how much of the roster has been discovered.
+     *
+     * Counts distinct species rather than cards held: duplicates and spliced
+     * mutants are real rats but not new discoveries, and counting them could
+     * put the total above the roster size. Anything whose art is not in the
+     * roster - a card recovered from a pre-key save, say - is skipped for the
+     * same reason. The denominator comes from [Roster] so it tracks the roster
+     * growing.
+     */
     private fun updateCollectionProgress() {
         val sharedPreferences = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
-        val count = Vault.load(sharedPreferences).size
 
-        val collectionText = findViewById<TextView>(R.id.collectionText)
-        val collectionProgress = findViewById<ProgressBar>(R.id.collectionProgress)
+        val rosterKeys = Roster.all.map { it.artKey }.toSet()
+        val found = Vault.load(sharedPreferences)
+            .map { it.artKey }
+            .filter { it in rosterKeys }
+            .distinct()
+            .size
 
-        collectionText.text = "Collection: $count / 50 Rats Found"
-        collectionProgress.progress = count
+        findViewById<TextView>(R.id.collectionText).text =
+            getString(R.string.collection_progress, found, Roster.all.size)
+
+        findViewById<ProgressBar>(R.id.collectionProgress).apply {
+            max = Roster.all.size
+            progress = found
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

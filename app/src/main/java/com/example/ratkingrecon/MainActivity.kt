@@ -259,6 +259,12 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.shopButton).setOnClickListener {
             Toast.makeText(this, R.string.shop_coming_soon, Toast.LENGTH_SHORT).show()
         }
+
+        // Placeholder until instant hatching is built. Charges nothing, and the
+        // label and tooltip quote no price, so the two cannot contradict.
+        buyPremiumButton.setOnClickListener {
+            Toast.makeText(this, R.string.hatchery_coming_soon, Toast.LENGTH_SHORT).show()
+        }
         findViewById<Button>(R.id.activeExpeditionButton).setOnClickListener {
             checkExpedition()
         }

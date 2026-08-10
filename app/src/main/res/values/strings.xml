@@ -8,7 +8,10 @@
 
     <!-- The Rat Ledger (the collection screen) -->
     <string name="workshop_title">The Rat Ledger</string>
-    <string name="collection_default_text">Collection: 0 / 50 Rats Found</string>
+    <!-- Placeholder only; replaced with real counts as soon as the Ledger loads. -->
+    <string name="collection_default_text">Collection: …</string>
+    <!-- unique species found, total species in the roster -->
+    <string name="collection_progress">Collection: %1$d / %2$d Rats Found</string>
     <string name="btn_back_to_workshop">Back to the Workshop</string>
     <string name="splicing_vat_text">The Fusion Pot: Fuse 2 Weakest (Cost: 5 Scrap)</string>
 
@@ -16,7 +19,7 @@
     <string name="btn_mutagen">Tinkerer\'s Serum</string>
     <string name="btn_shiny_polish">Gleam-in-a-Bottle</string>
     <string name="btn_polish_buy">Gleam-in-a-Bottle (5)</string>
-    <string name="btn_premium">The Wobbly Hatchery (50 Scrap)</string>
+    <string name="btn_premium">The Wobbly Hatchery (Coming Soon)</string>
 
     <!-- Home screen navigation -->
     <string name="btn_open_ledger">The Rat Ledger</string>
@@ -26,6 +29,7 @@
     <string name="btn_shop">Shop</string>
     <string name="btn_dev_reset">Dev Reset</string>
     <string name="shop_coming_soon">The Shop is still being built.</string>
+    <string name="hatchery_coming_soon">The Wobbly Hatchery is still being built.</string>
 
     <!-- Expeditions and contracts -->
     <string name="btn_deploy_scrap_run">Send on a Scrap Run\n(4 Hours)</string>
@@ -41,7 +45,8 @@
 
     <!-- Long-press explainers -->
     <string name="tooltip_hatchery_title">The Wobbly Hatchery</string>
-    <string name="tooltip_hatchery_body">Spend 50 Scrap to hatch a rat on the spot, without walking for it.</string>
+    <!-- No price quoted until the feature exists and actually charges one. -->
+    <string name="tooltip_hatchery_body">Hatch a rat on the spot, without walking for it. Still being built.</string>
     <string name="tooltip_polish_title">Gleam-in-a-Bottle</string>
     <string name="tooltip_polish_body">Spend 5 Scrap to guarantee your next hatch comes out shiny.</string>
 
