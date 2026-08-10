@@ -43,11 +43,11 @@
         android:layout_marginBottom="20dp" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnQuickHaul"
+        android:id="@+id/btnBountyShort"
         android:maxLines="3"
         android:layout_width="match_parent"
         android:layout_height="76dp"
-        android:text="Quick Haul (50 Steps / 2m)\nReward: 50 Scrap"
+        android:text="@string/mission_checking_roster"
         android:textAllCaps="false"
         android:textSize="13sp"
         android:textColor="@color/text_primary"
@@ -58,11 +58,11 @@
         android:layout_marginBottom="10dp" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnCopperWire"
+        android:id="@+id/btnBountyMedium"
         android:maxLines="3"
         android:layout_width="match_parent"
         android:layout_height="76dp"
-        android:text="Copper Wire Raid (250 Steps / 10m)\nReward: 300 Scrap"
+        android:text="@string/mission_checking_roster"
         android:textAllCaps="false"
         android:textSize="13sp"
         android:textColor="@color/text_primary"
@@ -73,11 +73,11 @@
         android:layout_marginBottom="10dp" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnIndustrial"
+        android:id="@+id/btnBountyLong"
         android:maxLines="3"
         android:layout_width="match_parent"
         android:layout_height="76dp"
-        android:text="Industrial Scavenge (1000 Steps / 30m)\nReward: 1500 Scrap"
+        android:text="@string/mission_checking_roster"
         android:textAllCaps="false"
         android:textSize="13sp"
         android:textColor="@color/text_primary"

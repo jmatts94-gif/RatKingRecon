@@ -138,40 +138,45 @@ class MainActivity : AppCompatActivity() {
         // Optional: Make the background behind the popup slightly transparent dark
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        // 2. Find the buttons INSIDE the dialog
-        val btnQuickHaul = dialog.findViewById<Button>(R.id.btnQuickHaul)
-        val btnCopperWire = dialog.findViewById<Button>(R.id.btnCopperWire)
-        val btnIndustrial = dialog.findViewById<Button>(R.id.btnIndustrial)
-        val btnCancel = dialog.findViewById<Button>(R.id.btnCancelBounty)
-
-        // Hold on to the dialog's step readout so onSensorChanged can keep it
-        // live, and let go of it again once the dialog is gone.
+        // Hold on to the dialog's step readout so the service's updates can keep
+        // it live, and let go of it again once the dialog is gone.
         bountyStepText = dialog.findViewById<TextView>(R.id.bountyStepCountText)
         bountyStepText?.text = stepsSinceLaunch.toString()
         dialog.setOnDismissListener { bountyStepText = null }
 
-        // 3. Wire up the clicks
-        btnQuickHaul.setOnClickListener {
-            startActiveBounty(50f, 2, 25)
-            dialog.dismiss() // Closes the pop-up
-        }
+        // 2. Roll a fresh offer per tier. Opening the board again re-rolls, so
+        //    the names and payouts change each visit.
+        bindBounty(dialog, R.id.btnBountyShort, Bounties.SHORT.roll())
+        bindBounty(dialog, R.id.btnBountyMedium, Bounties.MEDIUM.roll())
+        bindBounty(dialog, R.id.btnBountyLong, Bounties.LONG.roll())
 
-        btnCopperWire.setOnClickListener {
-            startActiveBounty(250f, 10, 50)
-            dialog.dismiss()
-        }
-
-        btnIndustrial.setOnClickListener {
-            startActiveBounty(1000f, 30, 100)
-            dialog.dismiss()
-        }
-
-        btnCancel.setOnClickListener {
+        dialog.findViewById<Button>(R.id.btnCancelBounty).setOnClickListener {
             dialog.dismiss() // Just closes the pop-up without doing anything
         }
 
-        // 4. Show it on screen!
+        // 3. Show it on screen!
         dialog.show()
+    }
+
+    /**
+     * Puts a rolled offer on a button, label and payout in step.
+     *
+     * The reward shown here is the same value handed to [startActiveBounty], so
+     * the board can no longer advertise a figure it does not pay.
+     */
+    private fun bindBounty(dialog: android.app.Dialog, buttonId: Int, offer: BountyOffer) {
+        val button = dialog.findViewById<Button>(buttonId)
+        button.text = getString(
+            R.string.bounty_label,
+            offer.name,
+            offer.steps.toInt(),
+            offer.minutes,
+            offer.reward
+        )
+        button.setOnClickListener {
+            startActiveBounty(offer.steps, offer.minutes, offer.reward)
+            dialog.dismiss()
+        }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
