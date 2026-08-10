@@ -14,11 +14,15 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class GalleryActivity : AppCompatActivity() {
 
     private var isExpeditionActive = false
-    private var deployedRatKey: String? = null
+    private var deployedRatId: Long = -1L
     private var expeditionEndTime: Long = 0L
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
@@ -53,21 +57,20 @@ class GalleryActivity : AppCompatActivity() {
      * growing.
      */
     private fun updateCollectionProgress() {
-        val sharedPreferences = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
+        val rosterKeys = Roster.all.map { it.artKey }
 
-        val rosterKeys = Roster.all.map { it.artKey }.toSet()
-        val found = Vault.load(sharedPreferences)
-            .map { it.artKey }
-            .filter { it in rosterKeys }
-            .distinct()
-            .size
+        lifecycleScope.launch {
+            val found = withContext(Dispatchers.IO) {
+                RatRepository.dao(this@GalleryActivity).distinctSpeciesFound(rosterKeys)
+            }
 
-        findViewById<TextView>(R.id.collectionText).text =
-            getString(R.string.collection_progress, found, Roster.all.size)
+            findViewById<TextView>(R.id.collectionText).text =
+                getString(R.string.collection_progress, found, rosterKeys.size)
 
-        findViewById<ProgressBar>(R.id.collectionProgress).apply {
-            max = Roster.all.size
-            progress = found
+            findViewById<ProgressBar>(R.id.collectionProgress).apply {
+                max = rosterKeys.size
+                progress = found
+            }
         }
     }
 
@@ -85,7 +88,7 @@ class GalleryActivity : AppCompatActivity() {
         // Load the Idle Expedition (So this one doesn't get amnesia either!)
         isExpeditionActive = sharedPreferences.getBoolean("EXPEDITION_ACTIVE", false)
         if (isExpeditionActive) {
-            deployedRatKey = sharedPreferences.getString("DEPLOYED_RAT_KEY", null)
+            deployedRatId = sharedPreferences.getLong("DEPLOYED_RAT_ID", -1L)
             expeditionEndTime = sharedPreferences.getLong("EXPEDITION_END_TIME", 0L)
         }
 
@@ -122,68 +125,76 @@ class GalleryActivity : AppCompatActivity() {
      * Works on list positions rather than values, so two identical rats still
      * count as two separate pieces of fodder.
      */
+    /**
+     * Burns 5 Scrap and the two weakest rats to mint one stronger mutant.
+     *
+     * The delete-and-insert runs inside a Room transaction, so a crash mid-splice
+     * cannot consume the parents without producing the mutant. Fodder is chosen
+     * by row id, so two identical rats are still two separate pieces of fodder.
+     */
     private fun spliceWeakestPair(sharedPreferences: SharedPreferences) {
-        val scrap = sharedPreferences.getInt("SCRAP", 0)
-        val cards = Vault.load(sharedPreferences)
+        lifecycleScope.launch {
+            val scrap = sharedPreferences.getInt("SCRAP", 0)
+            val dao = withContext(Dispatchers.IO) { RatRepository.dao(this@GalleryActivity) }
+            val parents = withContext(Dispatchers.IO) { dao.weakest(2) }
 
-        if (scrap < 5 || cards.size < 2) {
-            Toast.makeText(this, "Need 5 Scrap and at least 2 rats!", Toast.LENGTH_SHORT).show()
-            return
+            if (scrap < 5 || parents.size < 2) {
+                Toast.makeText(this@GalleryActivity, "Need 5 Scrap and at least 2 rats!", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            // --- THE RARITY ENGINE (Booster Pack Logic) ---
+            val diceRoll = (1..100).random()
+            val mutantArt: String = when {
+                diceRoll <= 5 -> listOf(
+                    "forman_pic", "foundry_pic", "blaze_pic", "glowtail_pic", "beacon_pic"
+                ).random()
+
+                diceRoll <= 30 -> listOf(
+                    "wrencher_pic", "welder_pic", "rivet_pic", "cogtail_pic", "anchor_pic", "flux_pic"
+                ).random()
+
+                else -> listOf("bolt_pic", "boop_pic", "sooty_pic").random()
+            }
+
+            val mutant = RatEntity(
+                artKey = mutantArt,
+                power = maxOf(parents[0].power, parents[1].power) + 1,
+                toughness = maxOf(parents[0].toughness, parents[1].toughness) + 1,
+                name = "Spliced Mutant",
+                shiny = (1..5).random() == 1,
+                isSpliced = true
+            )
+
+            withContext(Dispatchers.IO) { dao.splice(parents, mutant) }
+            sharedPreferences.edit().putInt("SCRAP", scrap - 5).apply()
+
+            Toast.makeText(this@GalleryActivity, "Fusion Complete! Mutant Created.", Toast.LENGTH_SHORT).show()
+            recreate()
         }
-
-        val weakestFirst = cards.indices.sortedBy { cards[it].score }
-        val parent1 = cards[weakestFirst[0]]
-        val parent2 = cards[weakestFirst[1]]
-
-        // --- THE RARITY ENGINE (Booster Pack Logic) ---
-        val diceRoll = (1..100).random()
-        val mutantArt: String = when {
-            diceRoll <= 5 -> listOf(
-                "forman_pic", "foundry_pic", "blaze_pic", "glowtail_pic", "beacon_pic"
-            ).random()
-
-            diceRoll <= 30 -> listOf(
-                "wrencher_pic", "welder_pic", "rivet_pic", "cogtail_pic", "anchor_pic", "flux_pic"
-            ).random()
-
-            else -> listOf("bolt_pic", "boop_pic", "sooty_pic").random()
-        }
-
-        val mutant = RatCard(
-            artKey = mutantArt,
-            power = maxOf(parent1.power, parent2.power) + 1,
-            toughness = maxOf(parent1.toughness, parent2.toughness) + 1,
-            name = "Spliced Mutant",
-            shiny = (1..5).random() == 1
-        )
-
-        // Drop the higher index first so the lower one does not shift under us.
-        listOf(weakestFirst[0], weakestFirst[1]).sortedDescending().forEach { cards.removeAt(it) }
-        cards.add(mutant)
-
-        Vault.save(sharedPreferences, cards)
-        sharedPreferences.edit().putInt("SCRAP", scrap - 5).apply()
-
-        Toast.makeText(this, "Fusion Complete! Mutant Created.", Toast.LENGTH_SHORT).show()
-        recreate()
     }
 
     private fun renderGrid(filter: String) {
         val petGrid = findViewById<GridLayout>(R.id.petGrid)
         petGrid.removeAllViews() // Wipe the grid clean
 
-        val sharedPreferences = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
-        val allPets = Vault.load(sharedPreferences)
-
-        // Apply filters
-        val filteredList = when (filter) {
-            "POWER" -> allPets.sortedByDescending { it.power }
-            "SHINY" -> allPets.filter { it.shiny }
-            else -> allPets
+        // Sorting and filtering happen in SQL rather than in memory.
+        lifecycleScope.launch {
+            val filteredList = withContext(Dispatchers.IO) {
+                val dao = RatRepository.dao(this@GalleryActivity)
+                when (filter) {
+                    "POWER" -> dao.byPowerDesc()
+                    "SHINY" -> dao.shinyOnly()
+                    else -> dao.all()
+                }
+            }
+            populateGrid(petGrid, filteredList)
         }
+    }
 
+    private fun populateGrid(petGrid: GridLayout, pets: List<RatEntity>) {
         val layoutInflater = LayoutInflater.from(this)
-        for (pet in filteredList) {
+        for (pet in pets) {
             val cardView = layoutInflater.inflate(R.layout.item_rat_card, petGrid, false)
             val cardImage = cardView.findViewById<ImageView>(R.id.cardImage)
             val cardName = cardView.findViewById<TextView>(R.id.cardName)
@@ -211,7 +222,7 @@ class GalleryActivity : AppCompatActivity() {
         }
     }
 
-    private fun showEnlargedRat(pet: RatCard) {
+    private fun showEnlargedRat(pet: RatEntity) {
         val dialog = android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog.setContentView(R.layout.dialog_enlarged_rat)
 
@@ -255,7 +266,7 @@ class GalleryActivity : AppCompatActivity() {
             // Save it to the exact same file the Home Screen checks
             prefs.edit()
                 .putBoolean("EXPEDITION_ACTIVE", true)
-                .putString("DEPLOYED_RAT_KEY", pet.artKey) // Remembering who we sent
+                .putLong("DEPLOYED_RAT_ID", pet.id) // Remembering exactly which rat we sent
                 .putLong("EXPEDITION_END_TIME", endTime)
                 .apply()
 

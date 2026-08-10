@@ -35,7 +35,7 @@ object GameEngine {
 
     /** What a batch of steps produced. All fields are "nothing happened" by default. */
     data class Outcome(
-        val hatched: RatCard? = null,
+        val hatched: RatEntity? = null,
         val newLevel: Int = 0,
         val bountyReward: Int = 0,
         val bountyFailed: Boolean = false,
@@ -55,7 +55,7 @@ object GameEngine {
      * and resets to zero on reboot - handled below by re-baselining rather than
      * subtracting into a negative.
      */
-    fun onSteps(prefs: SharedPreferences, totalSteps: Float): Outcome {
+    fun onSteps(dao: RatDao, prefs: SharedPreferences, totalSteps: Float): Outcome {
         val baseline = prefs.getFloat(KEY_BASELINE, -1f)
 
         // First reading ever, or the device rebooted and the counter restarted.
@@ -78,12 +78,13 @@ object GameEngine {
 
         var level = levelOf(prefs)
         var exp = expOf(prefs) + gained
-        var hatched: RatCard? = null
+        var hatched: RatEntity? = null
         var newLevel = 0
 
         if (exp >= maxExpFor(level)) {
             hatched = rollRat(prefs, editor)
-            Vault.add(prefs, hatched)
+            // Room assigns the instance id; keep the stored copy so callers see it.
+            hatched = hatched.copy(id = dao.insert(hatched))
             level += 1
             newLevel = level
             exp = 0
@@ -103,12 +104,12 @@ object GameEngine {
     }
 
     /** Rolls a rat, consuming any active consumables. */
-    private fun rollRat(prefs: SharedPreferences, editor: SharedPreferences.Editor): RatCard {
+    private fun rollRat(prefs: SharedPreferences, editor: SharedPreferences.Editor): RatEntity {
         val mutagen = prefs.getBoolean(KEY_MUTAGEN, false)
         val polish = prefs.getBoolean(KEY_POLISH, false)
 
         val species = Roster.all.random()
-        val card = RatCard(
+        val card = RatEntity(
             artKey = species.artKey,
             power = if (mutagen) (6..10).random() else (1..5).random(),
             toughness = if (mutagen) (6..10).random() else (1..5).random(),

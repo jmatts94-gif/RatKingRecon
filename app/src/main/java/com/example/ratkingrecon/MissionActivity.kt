@@ -8,6 +8,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MissionActivity : AppCompatActivity() {
 
@@ -30,12 +34,21 @@ class MissionActivity : AppCompatActivity() {
         // 1. Run the Daily Reroll Check
         checkDailyReroll()
 
-        // 2. Scan the Vault for stats
-        val unlockedPets = Vault.load(sharedPreferences)
-        val maxPower = unlockedPets.maxOfOrNull { it.power } ?: 0
-        val maxToughness = unlockedPets.maxOfOrNull { it.toughness } ?: 0
-        val ownsShiny = unlockedPets.any { it.shiny }
+        // 6. Wire up the back button first, so it works while stats load
+        findViewById<Button>(R.id.btnBack).setOnClickListener { finish() }
 
+        // 2. Scan the collection for stats. Aggregated in SQL rather than by
+        //    loading every rat, and off the main thread because Room says so.
+        lifecycleScope.launch {
+            val stats = withContext(Dispatchers.IO) {
+                val dao = RatRepository.dao(this@MissionActivity)
+                Triple(dao.maxPower(), dao.maxToughness(), dao.ownsShiny())
+            }
+            bindMissions(stats.first, stats.second, stats.third)
+        }
+    }
+
+    private fun bindMissions(maxPower: Int, maxToughness: Int, ownsShiny: Boolean) {
         // 3. Load M1 (Quick Scout)
         setupMission(
             "M1", maxPower, timeM1,
@@ -56,12 +69,6 @@ class MissionActivity : AppCompatActivity() {
             findViewById(R.id.titleM3), findViewById(R.id.reqM3), findViewById(R.id.rewardM3), findViewById(R.id.btnMission3),
             "Shiny"
         )
-
-        // 6. Wire up the back button
-        val backButton = findViewById<Button>(R.id.btnBack)
-        backButton.setOnClickListener {
-            finish()
-        }
     }
 
     private fun checkDailyReroll() {

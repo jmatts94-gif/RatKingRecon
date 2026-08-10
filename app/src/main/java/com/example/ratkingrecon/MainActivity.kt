@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
     private var maxExp = 50
 
     private var isExpeditionActive = false
-    private var deployedRatKey: String? = null // null means "no rat selected"
+    private var deployedRatId: Long = -1L // -1 means "no rat selected"
     private var expeditionEndTime: Long = 0L
 
     private fun startActiveBounty(stepsRequired: Float, minutesAllowed: Int, rewardAmount: Int) {
@@ -78,9 +78,9 @@ class MainActivity : AppCompatActivity() {
     private var launchBaselineSteps = 0f
     private var stepsSinceLaunch = 0
 
-    private fun deployRat(artKey: String, hoursToScavenge: Int) {
+    private fun deployRat(ratId: Long, hoursToScavenge: Int) {
         isExpeditionActive = true
-        deployedRatKey = artKey
+        deployedRatId = ratId
 
         // Math: hours * 60 mins * 60 secs * 1000 milliseconds
         val msToAdd = hoursToScavenge * 60 * 60 * 1000L
@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         // Save to SharedPreferences so it survives the app closing!
         with(sharedPreferences.edit()) {
             putBoolean("EXPEDITION_ACTIVE", isExpeditionActive)
-            putString("DEPLOYED_RAT_KEY", deployedRatKey)
+            putLong("DEPLOYED_RAT_ID", deployedRatId)
             putLong("EXPEDITION_END_TIME", expeditionEndTime)
             apply()
         }
@@ -282,7 +282,7 @@ class MainActivity : AppCompatActivity() {
             bountyTargetSteps = 0f
             bountyEndTime = 0L
             isExpeditionActive = false
-            deployedRatKey = null
+            deployedRatId = -1L
             expeditionEndTime = 0L
 
             updateScreen()

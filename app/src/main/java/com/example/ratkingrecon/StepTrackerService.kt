@@ -15,6 +15,8 @@ import android.hardware.SensorManager
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -81,8 +83,15 @@ class StepTrackerService : Service(), SensorEventListener {
     }
 
     private lateinit var prefs: SharedPreferences
+    private lateinit var dao: RatDao
     private var sensorManager: SensorManager? = null
     private var stepSensor: Sensor? = null
+
+    /**
+     * Sensor events are delivered here rather than on the main thread, because
+     * hatching now writes to Room and Room refuses main-thread I/O.
+     */
+    private var sensorThread: HandlerThread? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -99,10 +108,16 @@ class StepTrackerService : Service(), SensorEventListener {
         createChannels()
         startInForeground()
 
+        sensorThread = HandlerThread("step-sensor").apply { start() }
+
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         stepSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        stepSensor?.let {
-            sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        stepSensor?.let { sensor ->
+            val handler = Handler(sensorThread!!.looper)
+            // Opening the database and running the legacy import both block, so
+            // they happen on the sensor thread, not here.
+            handler.post { dao = RatRepository.dao(this) }
+            sensorManager?.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL, handler)
         }
     }
 
@@ -113,6 +128,8 @@ class StepTrackerService : Service(), SensorEventListener {
 
     override fun onDestroy() {
         sensorManager?.unregisterListener(this)
+        sensorThread?.quitSafely()
+        sensorThread = null
         super.onDestroy()
     }
 
@@ -126,7 +143,11 @@ class StepTrackerService : Service(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null || event.sensor.type != Sensor.TYPE_STEP_COUNTER) return
 
-        val outcome = GameEngine.onSteps(prefs, event.values[0])
+        // Guards the window between registering the listener and the posted
+        // initialisation above completing.
+        if (!::dao.isInitialized) return
+
+        val outcome = GameEngine.onSteps(dao, prefs, event.values[0])
         if (!outcome.changed) return
 
         // Stay quiet if the player is already looking at the app - MainActivity
@@ -200,7 +221,7 @@ class StepTrackerService : Service(), SensorEventListener {
         }
     }
 
-    private fun notifyHatch(card: RatCard, newLevel: Int) {
+    private fun notifyHatch(card: RatEntity, newLevel: Int) {
         val body = if (newLevel > 0) {
             getString(R.string.notif_hatch_text_level, card.name, newLevel)
         } else {
