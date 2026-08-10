@@ -40,12 +40,29 @@ data class RatEntity(
     /** Spliced mutants are minted by the Fusion Pot rather than hatched. */
     val isSpliced: Boolean = false,
 
-    // --- combat, not yet used ---
+    // --- combat ---
     val wins: Int = 0,
     val losses: Int = 0,
     val battleExp: Int = 0,
-    val ratLevel: Int = 1
+    val ratLevel: Int = 1,
+
+    /** Epoch millis until which this rat is knocked out. 0 means ready. */
+    val recoveringUntil: Long = 0,
+
+    /**
+     * Flat HP on top of the Toughness-derived base.
+     *
+     * Max HP is deliberately *not* stored: it is a function of Toughness, and a
+     * stored copy would drift the moment the Fusion Pot changes that. This
+     * column exists so future upgrades can add HP without duplicating the base.
+     */
+    val bonusHp: Int = 0
 ) {
+    /** Battle HP. Derived, so existing rats are correct with no backfill. */
+    val maxHp: Int get() = toughness * 10 + bonusHp
+
+    fun isRecovering(now: Long = System.currentTimeMillis()): Boolean = recoveringUntil > now
+
     /** Resolved at render time; see [artKey]. */
     val imageRes: Int get() = RatArt.resId(artKey)
 

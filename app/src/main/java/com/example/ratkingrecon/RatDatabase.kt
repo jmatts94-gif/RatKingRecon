@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * The rat collection.
@@ -14,7 +16,7 @@ import androidx.room.RoomDatabase
  */
 @Database(
     entities = [RatEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class RatDatabase : RoomDatabase() {
@@ -23,6 +25,20 @@ abstract class RatDatabase : RoomDatabase() {
 
     companion object {
         private const val NAME = "ratking.db"
+
+        /**
+         * Adds the combat columns.
+         *
+         * Both are defaulted, so existing rats need no backfill: a rat that has
+         * never fought is simply ready with no bonus HP. Max HP stays derived
+         * from Toughness rather than stored.
+         */
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE rats ADD COLUMN recoveringUntil INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE rats ADD COLUMN bonusHp INTEGER NOT NULL DEFAULT 0")
+            }
+        }
 
         @Volatile
         private var instance: RatDatabase? = null
@@ -33,7 +49,8 @@ abstract class RatDatabase : RoomDatabase() {
                     context.applicationContext,
                     RatDatabase::class.java,
                     NAME
-                ).build().also { instance = it }
+                ).addMigrations(MIGRATION_1_2)
+                    .build().also { instance = it }
             }
     }
 }

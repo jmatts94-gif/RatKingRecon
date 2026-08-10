@@ -56,6 +56,28 @@ interface RatDao {
     @Query("SELECT * FROM rats ORDER BY (power + toughness) ASC, id ASC LIMIT :limit")
     fun weakest(limit: Int): List<RatEntity>
 
+    /** The best rat that is not knocked out, used to pick a fighter. */
+    @Query("""
+        SELECT * FROM rats
+        WHERE recoveringUntil <= :now
+        ORDER BY (power + toughness) DESC, id ASC
+        LIMIT 1
+    """)
+    fun strongestAvailable(now: Long): RatEntity?
+
+    @Query("SELECT COUNT(*) FROM rats WHERE recoveringUntil <= :now")
+    fun availableCount(now: Long): Int
+
+    @Query("UPDATE rats SET wins = wins + 1 WHERE id = :id")
+    fun recordWin(id: Long)
+
+    /** Loses a fight: the rat is knocked out until [until]. */
+    @Query("UPDATE rats SET losses = losses + 1, recoveringUntil = :until WHERE id = :id")
+    fun recordLoss(id: Long, until: Long)
+
+    @Query("UPDATE rats SET recoveringUntil = 0 WHERE id = :id")
+    fun revive(id: Long)
+
     @Insert
     fun insert(rat: RatEntity): Long
 

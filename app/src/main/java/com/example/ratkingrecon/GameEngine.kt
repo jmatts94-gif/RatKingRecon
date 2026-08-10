@@ -33,12 +33,23 @@ object GameEngine {
 
     private const val EXP_PER_LEVEL = 50
 
+    // --- combat encounters, entirely separate from hatching ---
+
+    /** Per-step chance of meeting a Rustbot; ~1 encounter per 400 steps. */
+    private const val ENCOUNTER_CHANCE_PER_STEP = 0.0025
+
+    /** Minimum steps between encounters, so they cannot cluster. */
+    private const val ENCOUNTER_MIN_GAP_STEPS = 150f
+
+    private const val KEY_LAST_ENCOUNTER_STEPS = "LAST_ENCOUNTER_STEPS"
+
     /** What a batch of steps produced. All fields are "nothing happened" by default. */
     data class Outcome(
         val hatched: RatEntity? = null,
         val newLevel: Int = 0,
         val bountyReward: Int = 0,
         val bountyFailed: Boolean = false,
+        val encounter: Encounter? = null,
         val changed: Boolean = false
     )
 
@@ -94,13 +105,57 @@ object GameEngine {
         editor.putInt(KEY_EXP, exp)
         editor.apply()
 
+        // Rolled after EXP is banked so a hatch and an encounter can both land
+        // from one batch of steps without competing for it.
+        val encounter = maybeTriggerEncounter(dao, prefs, totalSteps, gained, level)
+
         return Outcome(
             hatched = hatched,
             newLevel = newLevel,
             bountyReward = bounty.first,
             bountyFailed = bounty.second,
+            encounter = encounter,
             changed = true
         )
+    }
+
+    /**
+     * Decides whether these steps ran into a Rustbot.
+     *
+     * Independent of hatching: its own probability, its own spacing, and it
+     * consumes no EXP. Skipped when an encounter is already waiting, when the
+     * last one was too recent, or when every rat is knocked out.
+     */
+    private fun maybeTriggerEncounter(
+        dao: RatDao,
+        prefs: SharedPreferences,
+        totalSteps: Float,
+        gained: Int,
+        playerLevel: Int
+    ): Encounter? {
+        if (Encounter.isPending(prefs)) return null
+
+        val lastAt = prefs.getFloat(KEY_LAST_ENCOUNTER_STEPS, -ENCOUNTER_MIN_GAP_STEPS)
+        if (totalSteps - lastAt < ENCOUNTER_MIN_GAP_STEPS) return null
+
+        // Probability that at least one of the steps in this batch triggered.
+        val chance = 1.0 - Math.pow(1.0 - ENCOUNTER_CHANCE_PER_STEP, gained.toDouble())
+        if (Math.random() >= chance) return null
+
+        val fighter = dao.strongestAvailable(System.currentTimeMillis()) ?: return null
+        val bot = RustbotFactory.forEncounter(playerLevel, fighter)
+
+        val encounter = Encounter(
+            ratId = fighter.id,
+            botName = bot.name,
+            botPower = bot.power,
+            botToughness = bot.toughness,
+            reward = RustbotFactory.rewardFor(playerLevel)
+        )
+
+        Encounter.save(prefs, encounter)
+        prefs.edit().putFloat(KEY_LAST_ENCOUNTER_STEPS, totalSteps).apply()
+        return encounter
     }
 
     /** Rolls a rat, consuming any active consumables. */

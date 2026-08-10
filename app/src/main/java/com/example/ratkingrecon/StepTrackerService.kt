@@ -156,6 +156,10 @@ class StepTrackerService : Service(), SensorEventListener {
             if (!AppVisibility.isForeground) notifyHatch(it, outcome.newLevel)
         }
 
+        // An encounter is always announced, even with the app open: it needs a
+        // decision from the player, unlike a hatch which is just news.
+        outcome.encounter?.let { notifyEncounter(it) }
+
         sendBroadcast(
             Intent(ACTION_STATE_CHANGED)
                 .setPackage(packageName)
@@ -182,6 +186,17 @@ class StepTrackerService : Service(), SensorEventListener {
             ).apply {
                 description = getString(R.string.channel_tracking_desc)
                 setShowBadge(false)
+            }
+        )
+
+        manager.createNotificationChannel(
+            NotificationChannel(
+                EncounterActionReceiver.CHANNEL_ENCOUNTER,
+                getString(R.string.channel_encounter_name),
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = getString(R.string.channel_encounter_desc)
+                enableVibration(true)
             }
         )
 
@@ -242,6 +257,49 @@ class StepTrackerService : Service(), SensorEventListener {
 
         getSystemService(NotificationManager::class.java)
             .notify(NOTIF_HATCH, notification)
+    }
+
+    /**
+     * Offers the two ways to settle an encounter.
+     *
+     * Auto-Resolve is a broadcast rather than an activity so it works from the
+     * lock screen without the phone ever being unlocked.
+     */
+    private fun notifyEncounter(encounter: Encounter) {
+        val fight = PendingIntent.getActivity(
+            this,
+            1,
+            Intent(this, BattleActivity::class.java)
+                .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val auto = PendingIntent.getBroadcast(
+            this,
+            2,
+            Intent(this, EncounterActionReceiver::class.java)
+                .setAction(EncounterActionReceiver.ACTION_AUTO_RESOLVE)
+                .setPackage(packageName),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val ratName = RatRepository.dao(this).byId(encounter.ratId)?.name ?: "Your rat"
+
+        val notification = NotificationCompat.Builder(this, EncounterActionReceiver.CHANNEL_ENCOUNTER)
+            .setContentTitle(getString(R.string.notif_encounter_title))
+            .setContentText(getString(R.string.notif_encounter_text, ratName, encounter.botName))
+            .setSmallIcon(R.drawable.ic_power)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_EVENT)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(true)
+            .setContentIntent(fight)
+            .addAction(0, getString(R.string.notif_action_fight), fight)
+            .addAction(0, getString(R.string.notif_action_auto), auto)
+            .build()
+
+        getSystemService(NotificationManager::class.java)
+            .notify(EncounterActionReceiver.NOTIF_ENCOUNTER, notification)
     }
 
     private fun openAppIntent(): PendingIntent = PendingIntent.getActivity(

@@ -39,6 +39,16 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".BattleActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+        <!-- Auto-Resolve from the notification; internal only. -->
+        <receiver
+            android:name=".EncounterActionReceiver"
+            android:exported="false" />
+
         <!--
           Resumes tracking after a reboot or an app update. Both broadcasts are
           exempt from the background foreground-service restriction; exported
