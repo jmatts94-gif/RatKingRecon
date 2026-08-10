@@ -1,6 +1,7 @@
 package com.example.ratkingrecon
 
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -125,6 +126,8 @@ class BattleActivity : AppCompatActivity() {
         ratStats.text = getString(R.string.battle_stats, battle.attackDamage(), battle.ratHp, battle.ratMaxHp)
         botHpBar.progress = battle.botHp
         ratHpBar.progress = battle.ratHp
+        // Stays hidden until round 1, so the screen never shows an empty card.
+        logView.visibility = if (lines.isEmpty()) View.GONE else View.VISIBLE
         logView.text = lines.takeLast(8).joinToString("\n")
 
         val over = battle.outcome != BattleOutcome.ONGOING
