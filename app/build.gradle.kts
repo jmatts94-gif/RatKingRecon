@@ -36,8 +36,15 @@ android {
             // install on the machine and identifies nobody.
             signingConfig = signingConfigs.getByName("debug")
 
+            // R8: shrink, optimise and obfuscate. Safe to turn on here because
+            // nothing in the app reaches for a class by name - no reflection, no
+            // reflective JSON (SaveTransfer builds org.json by hand), and Room
+            // ships its own keep rules for the code KSP generates.
+            //
+            // Project rules live in src/main/keepRules; AGP combines everything
+            // there and hands it to R8.
             optimization {
-                enable = false
+                enable = true
             }
         }
     }
