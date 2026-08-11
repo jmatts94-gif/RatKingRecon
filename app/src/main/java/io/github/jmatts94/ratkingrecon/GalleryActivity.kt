@@ -110,12 +110,6 @@ class GalleryActivity : AppCompatActivity() {
     /**
      * Burns 5 Scrap and the two weakest rats to mint one stronger mutant.
      *
-     * Works on list positions rather than values, so two identical rats still
-     * count as two separate pieces of fodder.
-     */
-    /**
-     * Burns 5 Scrap and the two weakest rats to mint one stronger mutant.
-     *
      * The delete-and-insert runs inside a Room transaction, so a crash mid-splice
      * cannot consume the parents without producing the mutant. Fodder is chosen
      * by row id, so two identical rats are still two separate pieces of fodder.
@@ -131,22 +125,8 @@ class GalleryActivity : AppCompatActivity() {
                 return@launch
             }
 
-            // --- THE RARITY ENGINE (Booster Pack Logic) ---
-            val diceRoll = (1..100).random()
-            val mutantArt: String = when {
-                diceRoll <= 5 -> listOf(
-                    "forman_pic", "foundry_pic", "blaze_pic", "glowtail_pic", "beacon_pic"
-                ).random()
-
-                diceRoll <= 30 -> listOf(
-                    "wrencher_pic", "welder_pic", "rivet_pic", "cogtail_pic", "anchor_pic", "flux_pic"
-                ).random()
-
-                else -> listOf("bolt_pic", "boop_pic", "sooty_pic").random()
-            }
-
             val mutant = RatEntity(
-                artKey = mutantArt,
+                artKey = Fusion.roll().artKey,
                 power = maxOf(parents[0].power, parents[1].power) + 1,
                 toughness = maxOf(parents[0].toughness, parents[1].toughness) + 1,
                 name = "Spliced Mutant",

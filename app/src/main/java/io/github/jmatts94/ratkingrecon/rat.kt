@@ -19,6 +19,20 @@ data class Rat(
  * rat while the app is closed.
  */
 object Roster {
+
+    /**
+     * The three rarity tiers.
+     *
+     * [Rat.rarity] is free text and inconsistently cased below - five species
+     * are tagged "common" rather than "Common" - so every lookup through
+     * [withRarity] matches without case. The tags are left as they are rather
+     * than normalised: MasterworkTest pins the inconsistency on purpose, as the
+     * thing a case-sensitive filter would leak.
+     */
+    const val COMMON = "Common"
+    const val RARE = "Rare"
+    const val LEGENDARY = "Legendary"
+
     val all: List<Rat> = listOf(
         Rat("flux_pic", "Flux", "Rare"),
         Rat("glowtail_pic", "Glowtail", "Legendary"),
@@ -53,4 +67,19 @@ object Roster {
         Rat("sparkplug_pic", "Sparkplug", "Legendary"),
         Rat("nutkin_pic", "Nutkin", "common")
     )
+
+    /**
+     * Every species at [rarity], matched without case.
+     *
+     * The one way to ask the roster about a tier. Anything that instead keeps
+     * its own list of which species are Legendary drifts the moment a species is
+     * added - which is exactly what happened to the Fusion Pot, where three
+     * hand-written lists had fallen 18 species behind this one.
+     */
+    fun withRarity(rarity: String): List<Rat> =
+        all.filter { it.rarity.equals(rarity, ignoreCase = true) }
+
+    val common: List<Rat> = withRarity(COMMON)
+    val rare: List<Rat> = withRarity(RARE)
+    val legendary: List<Rat> = withRarity(LEGENDARY)
 }
