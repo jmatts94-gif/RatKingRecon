@@ -18,8 +18,24 @@
     <!-- Consumables -->
     <string name="btn_mutagen">Tinkerer\'s Serum</string>
     <string name="btn_shiny_polish">Gleam-in-a-Bottle</string>
-    <string name="btn_polish_buy">Gleam-in-a-Bottle (5)</string>
     <string name="btn_premium">The Wobbly Hatchery (Coming Soon)</string>
+
+    <!-- Shop -->
+    <string name="shop_title">The Scrap Shop</string>
+    <string name="shop_subtitle">Spend Scrap on gear for your next hatch.</string>
+    <string name="shop_cat_hatching">Hatching Boosts</string>
+    <string name="shop_cat_hatching_sub">Applied to your next hatch. Rats already in the Ledger are unaffected.</string>
+    <string name="shop_cat_soon">Coming Soon</string>
+    <string name="shop_cat_soon_sub">Still on the workbench.</string>
+    <string name="shop_cat_soon_empty">Repairs and other gear will appear here.</string>
+    <!-- price in Scrap -->
+    <string name="shop_price">%1$d Scrap</string>
+    <string name="shop_active">Active</string>
+    <!-- item name -->
+    <string name="shop_activated">%1$s Activated!</string>
+    <string name="shop_too_poor">Not enough Scrap.</string>
+    <string name="shop_desc_mutagen">Guarantees 6-10 Power and Toughness.</string>
+    <string name="shop_desc_polish">Guarantees a shiny variant.</string>
 
     <!-- Home screen navigation -->
     <string name="btn_open_ledger">The Rat Ledger</string>
@@ -28,7 +44,6 @@
     <string name="btn_expedition_board">Expedition Board</string>
     <string name="btn_shop">Shop</string>
     <string name="btn_dev_reset">Dev Reset</string>
-    <string name="shop_coming_soon">The Shop is still being built.</string>
     <string name="hatchery_coming_soon">The Wobbly Hatchery is still being built.</string>
 
     <!-- Expeditions and contracts -->
@@ -52,7 +67,7 @@
 
     <!-- Level 5 unlock -->
     <string name="unlock_title">New Gear Unlocked!</string>
-    <string name="unlock_intro">Level 5 opens up the workbench. Long-press either button any time to see what it does.</string>
+    <string name="unlock_intro">Level 5 opens up the workbench. Here is what you have to work with.</string>
     <string name="unlock_cta">Got It</string>
 
     <!-- Background step tracking -->

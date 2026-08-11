@@ -105,33 +105,34 @@
                 android:src="@drawable/egg_stage_0" />
         </FrameLayout>
 
+        <!--
+          The Shop takes the slot the two consumables used to occupy, but is
+          deliberately NOT inside shopLayout: it is now the only way in to those
+          items, so inheriting their level gate would hide them outright.
+        -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/shopButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_shop"
+            app:icon="@drawable/ic_store"
+            app:iconGravity="textStart"
+            app:iconPadding="10dp"
+            app:iconTint="@color/text_primary"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            app:backgroundTint="@color/card_white"
+            app:strokeColor="@color/card_border"
+            app:strokeWidth="1dp"
+            app:cornerRadius="16dp"
+            android:layout_marginBottom="8dp" />
+
         <LinearLayout
             android:id="@+id/shopLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginBottom="20dp">
-
-            <!--
-              Tinkerer's Serum has moved to the future Shop screen. Its purchase
-              logic still exists in MainActivity but is unreachable until then.
-            -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buyPolishButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_polish_buy"
-                app:icon="@drawable/ic_sparkle"
-                app:iconGravity="textStart"
-                app:iconPadding="10dp"
-                app:iconTint="@color/text_primary"
-                android:textAllCaps="false"
-                android:textColor="@color/text_primary"
-                app:backgroundTint="@color/card_white"
-                app:strokeColor="@color/card_border"
-                app:strokeWidth="1dp"
-                app:cornerRadius="16dp"
-                android:layout_marginBottom="8dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buyPremiumButton"
@@ -206,24 +207,6 @@
             android:layout_height="wrap_content"
             android:text="@string/btn_open_ledger"
             app:icon="@drawable/ic_book"
-            app:iconGravity="textStart"
-            app:iconPadding="10dp"
-            app:iconTint="@color/text_primary"
-            android:textAllCaps="false"
-            android:textColor="@color/text_primary"
-            app:backgroundTint="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cornerRadius="16dp"
-            android:layout_marginBottom="8dp" />
-
-        <!-- Placeholder: there is no ShopActivity yet, so this only explains itself. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/shopButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_shop"
-            app:icon="@drawable/ic_store"
             app:iconGravity="textStart"
             app:iconPadding="10dp"
             app:iconTint="@color/text_primary"

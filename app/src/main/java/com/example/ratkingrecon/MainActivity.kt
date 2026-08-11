@@ -50,7 +50,6 @@ class MainActivity : AppCompatActivity() {
 
         Toast.makeText(this, "Contract Accepted! You have $minutesAllowed mins.", Toast.LENGTH_LONG).show()
     }
-    private lateinit var buyPolishButton: Button
     private lateinit var buyPremiumButton: Button
     private lateinit var shopLayout: View
     private lateinit var missionButton: Button
@@ -200,7 +199,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 2. Initialize UI (We do this FIRST so the buttons exist before we click them)
-        buyPolishButton = findViewById(R.id.buyPolishButton)
         buyPremiumButton = findViewById(R.id.buyPremiumButton)
         shopLayout = findViewById(R.id.shopLayout)
         missionButton = findViewById(R.id.scavengeMissionsButton)
@@ -228,21 +226,9 @@ class MainActivity : AppCompatActivity() {
 
         // 5. Button Listeners
         //
-        // Tinkerer's Serum moved to the future Shop screen, so nothing sets
-        // MUTAGEN_ACTIVE any more. GameEngine still honours the flag, so a Shop
-        // purchase writing it is all that is needed to re-enable 6-10 rolls.
-        buyPolishButton.setOnClickListener {
-            val scrap = sharedPreferences.getInt("SCRAP", 0)
-            if (scrap >= 5 && !sharedPreferences.getBoolean(GameEngine.KEY_POLISH, false)) {
-                sharedPreferences.edit()
-                    .putInt("SCRAP", scrap - 5)
-                    .putBoolean(GameEngine.KEY_POLISH, true)
-                    .apply()
-                Toast.makeText(this, "Gleam-in-a-Bottle Activated!", Toast.LENGTH_SHORT).show()
-                updateScreen()
-            }
-        }
-
+        // Both consumables are bought in the Shop now. Nothing on this screen
+        // writes MUTAGEN_ACTIVE or POLISH_ACTIVE any more; GameEngine still
+        // reads and clears them at the hatch exactly as before.
         findViewById<Button>(R.id.scavengeMissionsButton).setOnClickListener {
             showBountyBoard()
         }
@@ -255,9 +241,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(android.content.Intent(this, GalleryActivity::class.java))
         }
 
-        // No ShopActivity yet - this is where Tinkerer's Serum will live.
         findViewById<Button>(R.id.shopButton).setOnClickListener {
-            Toast.makeText(this, R.string.shop_coming_soon, Toast.LENGTH_SHORT).show()
+            startActivity(android.content.Intent(this, ShopActivity::class.java))
         }
 
         // Placeholder until instant hatching is built. Charges nothing, and the
@@ -292,7 +277,6 @@ class MainActivity : AppCompatActivity() {
         // Long-press explainers. Tooltip is generic, so adding one to any other
         // button later is a single call like these.
         Tooltip.attachTo(buyPremiumButton, R.string.tooltip_hatchery_title, R.string.tooltip_hatchery_body)
-        Tooltip.attachTo(buyPolishButton, R.string.tooltip_polish_title, R.string.tooltip_polish_body)
 
         // Load the rest of the game data
         loadGame()

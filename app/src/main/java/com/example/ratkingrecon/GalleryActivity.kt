@@ -96,18 +96,6 @@ class GalleryActivity : AppCompatActivity() {
         // Colours now come from the layout so they stay in step with the palette.
         val spliceButton = findViewById<Button>(R.id.spliceButton)
 
-        // Restore the Mutagen tooltip
-        findViewById<Button>(R.id.mutagenButton).setOnLongClickListener {
-            Toast.makeText(this, "Tinkerer's Serum: Guarantees high Power & Toughness (6-10)!", Toast.LENGTH_SHORT).show()
-            true // The 'true' tells Android we successfully handled the long press
-        }
-
-        // Restore the Shiny Polish tooltip
-        findViewById<Button>(R.id.shinyButton).setOnLongClickListener {
-            Toast.makeText(this, "Gleam-in-a-Bottle: Guarantees a Shiny variant!", Toast.LENGTH_SHORT).show()
-            true
-        }
-
         spliceButton.setOnClickListener { spliceWeakestPair(sharedPreferences) }
 
         // --- SORTING LOGIC ---

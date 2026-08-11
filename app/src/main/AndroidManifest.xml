@@ -40,6 +40,10 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".ShopActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".BattleActivity"
             android:exported="false"
             android:launchMode="singleTop" />
