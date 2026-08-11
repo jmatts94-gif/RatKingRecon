@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rat King Recon — Testing Feedback</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3E7;
+    --panel: #FFF8EC;
+    --brass: #C08A3E;
+    --brass-dark: #9C6C2A;
+    --rust: #B8592E;
+    --ink: #3A2A1E;
+    --ink-soft: #6B5744;
+    --mint: #6FA576;
+    --line: #E4D3B8;
+    --shadow: 0 4px 0 rgba(58, 42, 30, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Nunito', sans-serif;
+    line-height: 1.6;
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(192,138,62,0.06) 0%, transparent 45%),
+      radial-gradient(circle at 85% 75%, rgba(184,89,46,0.06) 0%, transparent 45%);
+  }
+
+  h1, h2, h3, .display {
+    font-family: 'Baloo 2', sans-serif;
+    color: var(--ink);
+  }
+
+  a { color: inherit; }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(251, 243, 231, 0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 3px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--rust);
+  }
+  .brand .gear { font-size: 1.1rem; }
+  .nav-links {
+    display: flex;
+    gap: 22px;
+    list-style: none;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding: 6px 2px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .nav-links a:hover { color: var(--rust); border-color: var(--rust); }
+
+  /* RIVET DIVIDER — signature element */
+  .rivet-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 36px 0;
+    opacity: 0.85;
+  }
+  .rivet-divider .track {
+    flex: 1;
+    max-width: 220px;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--brass) 0 8px, transparent 8px 14px);
+    border-radius: 2px;
+  }
+  .rivet-divider .cog {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brass-dark);
+    font-size: 1.3rem;
+    animation: spin 14s linear infinite;
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .rivet-divider .cog { animation: none; }
+  }
+
+  /* HERO */
+  .hero {
+    padding: 88px 0 56px;
+    text-align: center;
+    position: relative;
+  }
+  .hero .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    color: var(--rust);
+    font-weight: 800;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    border-radius: 999px;
+    margin-bottom: 26px;
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.08;
+    margin-bottom: 18px;
+  }
+  .hero h1 span { color: var(--rust); }
+  .hero p.sub {
+    max-width: 520px;
+    margin: 0 auto 34px;
+    font-size: 1.1rem;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .hero-art {
+    margin: 0 auto 8px;
+    width: 128px;
+    height: 128px;
+    border-radius: 28px;
+    background: linear-gradient(160deg, #E7C48A, var(--brass));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.4rem;
+    box-shadow: var(--shadow), 0 0 0 6px var(--panel), 0 0 0 9px var(--line);
+    transform: rotate(-4deg);
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 14px 30px;
+    border-radius: 14px;
+    text-decoration: none;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn-primary {
+    background: var(--rust);
+    color: #fff;
+    box-shadow: 0 4px 0 var(--brass-dark);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--brass-dark); }
+  .btn-secondary {
+    background: var(--panel);
+    color: var(--ink);
+    border: 2px solid var(--line);
+  }
+  .btn-secondary:hover { transform: translateY(-2px); border-color: var(--brass); }
+
+  /* SECTIONS */
+  section { padding: 20px 0 40px; scroll-margin-top: 90px; }
+  .section-head { text-align: center; margin-bottom: 42px; }
+  .section-head .kicker {
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brass-dark);
+    margin-bottom: 10px;
+  }
+  .section-head h2 {
+    font-size: clamp(1.7rem, 4vw, 2.2rem);
+    font-weight: 800;
+  }
+  .section-head p {
+    max-width: 480px;
+    margin: 12px auto 0;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  /* ABOUT — feature panels */
+  .panel-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 640px) { .panel-grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 18px;
+    padding: 24px 22px;
+    position: relative;
+    box-shadow: var(--shadow);
+  }
+  .panel::before, .panel::after {
+    content: '';
+    position: absolute;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--brass);
+    box-shadow: 0 0 0 2px var(--cream);
+    top: 10px;
+  }
+  .panel::before { left: 10px; }
+  .panel::after { right: 10px; }
+  .panel .icon { font-size: 1.7rem; margin-bottom: 10px; display: block; }
+  .panel h3 {
+    font-size: 1.08rem;
+    margin-bottom: 6px;
+  }
+  .panel p { color: var(--ink-soft); font-size: 0.95rem; font-weight: 600; }
+
+  .loop-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 38px 0 4px;
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 0.98rem;
+  }
+  .loop-strip .step {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    padding: 9px 16px;
+    border-radius: 12px;
+    color: var(--rust);
+  }
+  .loop-strip .arrow { color: var(--brass); font-weight: 800; }
+
+  /* DOWNLOAD */
+  .download-card {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 22px;
+    padding: 40px 32px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .download-card .icon-big {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    background: linear-gradient(160deg, var(--mint), #4F8A5C);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    margin: 0 auto 18px;
+    box-shadow: 0 3px 0 #3A6B44;
+  }
+  .download-card h3 { font-size: 1.3rem; margin-bottom: 8px; }
+  .download-card p { color: var(--ink-soft); font-weight: 600; margin-bottom: 22px; }
+  .steps-list {
+    text-align: left;
+    max-width: 420px;
+    margin: 0 auto 26px;
+    list-style: none;
+    counter-reset: step;
+  }
+  .steps-list li {
+    counter-increment: step;
+    padding: 10px 0 10px 42px;
+    position: relative;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 1px dashed var(--line);
+    font-size: 0.95rem;
+  }
+  .steps-list li:last-child { border-bottom: none; }
+  .steps-list li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 8px;
+    width: 26px; height: 26px;
+    background: var(--brass);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 0.85rem;
+  }
+  .note {
+    background: rgba(184,89,46,0.08);
+    border: 1.5px dashed var(--rust);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.88rem;
+    color: var(--rust);
+    font-weight: 700;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  /* FEEDBACK */
+  .feedback-card {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 22px;
+    padding: 36px;
+    box-shadow: var(--shadow);
+  }
+  .form-slot {
+    background: repeating-linear-gradient(135deg, #F3E7D0, #F3E7D0 10px, #EDDFC2 10px, #EDDFC2 20px);
+    border: 2px dashed var(--brass);
+    border-radius: 16px;
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    padding: 30px;
+  }
+  .form-slot .icon { font-size: 2rem; }
+  .form-slot p { font-weight: 700; color: var(--brass-dark); max-width: 360px; font-size: 0.92rem; }
+  .form-slot code {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    color: var(--rust);
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px 24px 60px;
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+  footer .gear { color: var(--brass); }
+
+  ::selection { background: var(--rust); color: #fff; }
+  a:focus-visible, button:focus-visible {
+    outline: 3px solid var(--rust);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand"><span class="gear">⚙️</span> Rat King Recon</div>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="#feedback">Feedback</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero wrap" id="home">
+  <div class="hero-art">🐀</div>
+  <div class="eyebrow">Friends &amp; Family Test Build</div>
+  <h1>Walk the Scrapyard.<br>Hatch a <span>legend</span>.</h1>
+  <p class="sub">Rat King Recon turns your real steps into Scrap, hatches, splices, and scrap-metal showdowns. This build's in your hands early — go break it for me.</p>
+  <div class="btn-row">
+    <a href="#download" class="btn btn-primary">Get the test build</a>
+    <a href="#feedback" class="btn btn-secondary">Leave feedback</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="rivet-divider">
+    <div class="track"></div>
+    <div class="cog">⚙️</div>
+    <div class="track"></div>
+  </div>
+</div>
+
+<section id="about" class="wrap">
+  <div class="section-head">
+    <div class="kicker">The Loop</div>
+    <h2>One walk. A whole workshop.</h2>
+    <p>Every system in the app is built off the same idea — the steps you actually take outside power everything inside.</p>
+  </div>
+
+  <div class="loop-strip">
+    <span class="step">🚶 Walk</span>
+    <span class="arrow">→</span>
+    <span class="step">🥚 Hatch</span>
+    <span class="arrow">→</span>
+    <span class="step">📒 Collect</span>
+    <span class="arrow">→</span>
+    <span class="step">⚔️ Fight</span>
+    <span class="arrow">→</span>
+    <span class="step">🔧 Splice</span>
+  </div>
+
+  <div class="rivet-divider" style="padding:32px 0 30px;"><div class="track"></div><div class="track"></div></div>
+
+  <div class="panel-grid">
+    <div class="panel">
+      <span class="icon">🥚</span>
+      <h3>Hatch the roster</h3>
+      <p>Steps fill the egg. Every hatch rolls stats, rarity, and a shot at Shiny — with a premium Masterwork Hatchery for guaranteed top-tier pulls.</p>
+    </div>
+    <div class="panel">
+      <span class="icon">⚔️</span>
+      <h3>Rustbot combat</h3>
+      <p>Scrap-built enemies scale with you. Pick attack, defend, or special — and watch for the five Boss Rustbots hiding in the higher levels.</p>
+    </div>
+    <div class="panel">
+      <span class="icon">🔧</span>
+      <h3>Splice &amp; deploy</h3>
+      <p>Fuse two rats into a mutant at the Splicing Vat, or send your roster on idle Scrapyard Expeditions and Ledger Tasks while you're away.</p>
+    </div>
+    <div class="panel">
+      <span class="icon">🏆</span>
+      <h3>Achievements</h3>
+      <p>A trophy case of boss badges and lifetime milestones — steps walked, rats collected, rarest hatches — all tracking what you've actually done.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="rivet-divider"><div class="track"></div><div class="cog">⚙️</div><div class="track"></div></div>
+</div>
+
+<section id="download" class="wrap">
+  <div class="section-head">
+    <div class="kicker">Test Build</div>
+    <h2>Get it on your phone</h2>
+    <p>This is a sideloaded test build, not a Play Store release yet — that's normal, just follow the steps below.</p>
+  </div>
+
+  <div class="download-card">
+    <div class="icon-big">📲</div>
+    <h3>Rat King Recon — Test APK</h3>
+    <p>Android only, for now. Takes about a minute to install.</p>
+    <ol class="steps-list">
+      <li>Tap the download link (Google Drive) sent to you, or the button below.</li>
+      <li>When prompted, allow your phone to <strong>install from unknown sources</strong>.</li>
+      <li>Open the downloaded file and tap <strong>Install</strong>.</li>
+      <li>Launch the app, allow the step-tracking permission, and start walking!</li>
+    </ol>
+    <a href="https://drive.google.com/file/d/1mbne0YaySF73tPlIOtQZS0UWApYUdsd6/view?usp=drive_link" class="btn btn-primary" target="_blank" rel="noopener">Download APK (Drive link)</a>
+    <div style="height:22px;"></div>
+    <div class="note">⚠ This is an early test build — expect the odd rough edge, and please report anything that feels broken below.</div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="rivet-divider"><div class="track"></div><div class="cog">⚙️</div><div class="track"></div></div>
+</div>
+
+<section id="feedback" class="wrap">
+  <div class="section-head">
+    <div class="kicker">Your Report</div>
+    <h2>Found a bug? Got thoughts?</h2>
+    <p>This is exactly what this build is for. A screenshot and a sentence on what you were doing helps more than you'd think.</p>
+  </div>
+
+  <div class="feedback-card">
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSf-C-UnOu_gWJaCvGohrYwVBohARtYq17DqK8neTNPx_PCyzg/viewform?embedded=true" width="100%" height="1120" frameborder="0" marginheight="0" marginwidth="0" style="border-radius:16px; border:2px solid var(--line); display:block;">Loading…</iframe>
+  </div>
+</section>
+
+<footer>
+  <span class="gear">⚙</span> Rat King Recon — built one step at a time <span class="gear">⚙</span>
+</footer>
+
+</body>
+</html>
