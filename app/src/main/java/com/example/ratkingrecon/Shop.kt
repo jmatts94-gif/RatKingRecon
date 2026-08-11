@@ -121,6 +121,15 @@ object Shop {
                 nameRes = R.string.shop_name_surge,
                 bodyRes = R.string.shop_desc_surge,
                 iconRes = R.drawable.ic_power
+            ),
+            ShopItem(
+                price = 200,
+                effect = ShopEffect.Flag(ShopEffects.KEY_GOLDEN_WRENCH),
+                nameRes = R.string.shop_name_wrench,
+                bodyRes = R.string.shop_desc_wrench,
+                iconRes = R.drawable.ic_sparkle,
+                tooltipTitleRes = R.string.tooltip_wrench_title,
+                tooltipBodyRes = R.string.tooltip_wrench_body
             )
         )
     )

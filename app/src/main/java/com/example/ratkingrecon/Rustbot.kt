@@ -81,7 +81,15 @@ data class Encounter(
     val botName: String,
     val botPower: Int,
     val botToughness: Int,
-    val reward: Int
+    val reward: Int,
+    /**
+     * Set when this encounter is a boss, naming which one.
+     *
+     * Null for an ordinary Rustbot. Carried through the save so a boss fight
+     * interrupted by the process dying is still a boss fight when it resumes -
+     * and so the badge is awarded against the right id.
+     */
+    val bossId: String? = null
 ) {
     companion object {
         private const val KEY_PENDING = "ENCOUNTER_PENDING"
@@ -90,6 +98,7 @@ data class Encounter(
         private const val KEY_BOT_POWER = "ENCOUNTER_BOT_POWER"
         private const val KEY_BOT_TOUGH = "ENCOUNTER_BOT_TOUGH"
         private const val KEY_REWARD = "ENCOUNTER_REWARD"
+        private const val KEY_BOSS_ID = "ENCOUNTER_BOSS_ID"
 
         fun isPending(prefs: SharedPreferences): Boolean =
             prefs.getBoolean(KEY_PENDING, false)
@@ -101,7 +110,8 @@ data class Encounter(
                 botName = prefs.getString(KEY_BOT_NAME, "Rustbot") ?: "Rustbot",
                 botPower = prefs.getInt(KEY_BOT_POWER, 1),
                 botToughness = prefs.getInt(KEY_BOT_TOUGH, 1),
-                reward = prefs.getInt(KEY_REWARD, 0)
+                reward = prefs.getInt(KEY_REWARD, 0),
+                bossId = prefs.getString(KEY_BOSS_ID, null)
             ).takeIf { it.ratId >= 0 }
         }
 
@@ -113,27 +123,36 @@ data class Encounter(
                 .putInt(KEY_BOT_POWER, encounter.botPower)
                 .putInt(KEY_BOT_TOUGH, encounter.botToughness)
                 .putInt(KEY_REWARD, encounter.reward)
+                // Removed rather than written null, so a boss fight cannot leave
+                // its id behind for the next ordinary Rustbot to inherit.
+                .apply {
+                    if (encounter.bossId != null) putString(KEY_BOSS_ID, encounter.bossId)
+                    else remove(KEY_BOSS_ID)
+                }
                 .apply()
         }
 
         fun clear(prefs: SharedPreferences) {
-            prefs.edit().putBoolean(KEY_PENDING, false).apply()
+            prefs.edit().putBoolean(KEY_PENDING, false).remove(KEY_BOSS_ID).apply()
         }
     }
+
+    val isBoss: Boolean get() = bossId != null
 
     val botMaxHp: Int get() = botToughness * 10
 
     /**
      * Builds the simulator for this encounter against [rat].
      *
-     * [bonusPower] is a Shop Power Surge, passed in rather than read here so the
-     * simulator stays a pure function of the numbers handed to it - which is
-     * what keeps the manual and Auto-Resolve paths impossible to drift apart.
+     * [loadout] is whatever the Shop has armed for this one fight, passed in
+     * rather than read here so the simulator stays a pure function of the
+     * numbers handed to it - which is what keeps the manual and Auto-Resolve
+     * paths impossible to drift apart.
      */
-    fun toBattle(rat: RatEntity, bonusPower: Int = 0): Battle = Battle(
+    fun toBattle(rat: RatEntity, loadout: Loadout = Loadout.NONE): Battle = Battle(
         ratName = rat.name,
-        ratPower = rat.power + bonusPower,
-        ratMaxHp = rat.maxHp,
+        ratPower = loadout.powerFor(rat.power),
+        ratMaxHp = loadout.maxHpFor(rat.maxHp),
         botName = botName,
         botPower = botPower,
         botMaxHp = botMaxHp

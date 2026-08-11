@@ -53,6 +53,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".AchievementsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".OnboardingActivity"
             android:exported="false" />
 

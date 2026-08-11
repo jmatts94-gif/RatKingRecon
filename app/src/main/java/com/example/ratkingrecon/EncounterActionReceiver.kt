@@ -57,7 +57,7 @@ class EncounterActionReceiver : BroadcastReceiver() {
         // Same surge the manual screen would apply, so both paths fight the
         // same fight.
         val battle = AutoResolver.resolve(
-            encounter.toBattle(rat, ShopEffects.surgeBonusFor(prefs))
+            encounter.toBattle(rat, ShopEffects.loadoutFor(prefs))
         )
         val resolution = EncounterResolver.apply(app, encounter, rat, battle)
 
@@ -70,12 +70,23 @@ class EncounterActionReceiver : BroadcastReceiver() {
             app.getString(R.string.notif_result_title_loss)
         }
         val body = if (resolution.won) {
-            app.getString(
+            val win = app.getString(
                 R.string.battle_won,
                 resolution.ratName, resolution.botName, resolution.reward
             )
+            // A boss cannot reach Auto-Resolve - it is only ever built when the
+            // app is opened - but the badge line is appended here anyway so the
+            // two result paths stay interchangeable.
+            val badge = if (resolution.badgeEarned) {
+                Bosses.byId(resolution.bossId)
+                    ?.let { "\n" + app.getString(R.string.boss_badge_earned, app.getString(it.nameRes)) }
+                    .orEmpty()
+            } else {
+                ""
+            }
+            win + badge
         } else {
-            app.getString(R.string.battle_lost, resolution.ratName, resolution.botName)
+            EncounterResolver.lossMessage(app, resolution)
         }
 
         val quiet = !GameSettings.soundEnabled(prefs)

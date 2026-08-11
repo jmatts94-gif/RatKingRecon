@@ -10,6 +10,10 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -239,6 +243,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(android.content.Intent(this, SettingsActivity::class.java))
         }
 
+        findViewById<Button>(R.id.achievementsButton).setOnClickListener {
+            startActivity(android.content.Intent(this, AchievementsActivity::class.java))
+        }
+
         findViewById<Button>(R.id.activeExpeditionButton).setOnClickListener {
             checkExpedition()
         }
@@ -394,6 +402,38 @@ class MainActivity : AppCompatActivity() {
 
         reloadProgress()
         updateScreen()
+        maybeStartBankedBoss()
+    }
+
+    /**
+     * Starts a boss banked while the app was away.
+     *
+     * The whole reason bosses are banked rather than raised is that this happens
+     * here, with the player looking at the screen, instead of arriving as a
+     * notification that could be auto-resolved from a pocket.
+     *
+     * [Bosses.startBanked] declines - leaving the boss banked for next time - if
+     * an ordinary Rustbot is still waiting or every rat is knocked out, so both
+     * of those cases simply do nothing here.
+     */
+    private fun maybeStartBankedBoss() {
+        if (Bosses.bankedId(sharedPreferences) == null) return
+
+        lifecycleScope.launch {
+            val started = withContext(Dispatchers.IO) {
+                Bosses.startBanked(
+                    RatRepository.dao(this@MainActivity),
+                    sharedPreferences
+                ) { getString(it.nameRes) }
+            } ?: return@launch
+
+            Toast.makeText(
+                this@MainActivity,
+                getString(R.string.boss_arrived, getString(started.nameRes)),
+                Toast.LENGTH_LONG
+            ).show()
+            startActivity(android.content.Intent(this@MainActivity, BattleActivity::class.java))
+        }
     }
 
     override fun onPause() {

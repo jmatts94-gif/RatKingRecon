@@ -210,6 +210,48 @@ RARE DROP: %2$s</string>
     <string name="mission_checking_roster">Checking Roster…</string>
     <string name="expedition_status">Rat Scavenging… (Tap Status)</string>
 
+    <!-- Golden Wrench -->
+    <string name="shop_name_wrench">Golden Wrench</string>
+    <string name="shop_desc_wrench">Half again on Power and staying power, for one fight.</string>
+    <string name="tooltip_wrench_title">Golden Wrench</string>
+    <string name="tooltip_wrench_body">Multiplies your rat\'s Power and maximum HP by 1.5 for a single fight, then it is spent — win or lose. Stacks on top of a Power Surge. Worth saving for a boss.</string>
+
+    <!-- Boss Rustbots. Names are display only; the ids behind them live in Boss.kt. -->
+    <string name="boss_junk_golem">The Junk Golem</string>
+    <string name="boss_old_ironclaw">Old Ironclaw</string>
+    <string name="boss_boiler_baron">The Boiler Baron</string>
+    <string name="boss_circuit_reaper">Circuit Reaper</string>
+    <string name="boss_rustbringer">The Rustbringer</string>
+    <!-- boss name -->
+    <string name="boss_arrived">%1$s has been tracking you. The fight is on.</string>
+    <!-- boss name -->
+    <string name="boss_badge_earned">Badge earned: %1$s defeated for the first time.</string>
+
+    <!-- Achievements -->
+    <string name="btn_achievements">Achievements</string>
+    <string name="achievements_title">Achievements</string>
+    <!-- earned, total -->
+    <string name="achievements_summary">%1$d of %2$d earned</string>
+    <string name="achievements_combat">Combat Badges</string>
+    <string name="achievements_combat_sub">One for each boss Rustbot, earned on your first win.</string>
+    <string name="achievements_milestones">Lifetime Milestones</string>
+    <!-- lifetime steps, approximate kilometres -->
+    <string name="achievements_milestones_sub">%1$d steps walked, about %2$.1f km</string>
+    <!-- Escaped: a leading ? in a resource value is read as an attr reference. -->
+    <string name="badge_locked">\?\?\?</string>
+    <!-- minimum level at which the boss can appear -->
+    <string name="badge_locked_detail">Stalks walkers from Level %1$d.</string>
+    <string name="badge_earned_detail">Defeated.</string>
+    <string name="milestone_first_steps">First Steps</string>
+    <string name="milestone_pathfinder">Pathfinder</string>
+    <string name="milestone_wayfarer">Wayfarer</string>
+    <string name="milestone_far_walker">Far Walker</string>
+    <string name="milestone_rat_king">Rat King</string>
+    <!-- target steps -->
+    <string name="milestone_done">%1$d steps — done.</string>
+    <!-- steps so far, target steps -->
+    <string name="milestone_progress">%1$d of %2$d steps</string>
+
     <!-- Long-press explainers -->
     <string name="tooltip_hatchery_title">The Masterwork Hatchery</string>
     <!-- No price quoted until the feature exists and actually charges one. -->
@@ -242,7 +284,10 @@ RARE DROP: %2$s</string>
     <string name="battle_leave">Leave</string>
     <string name="battle_stats">Power %1$d  ·  HP %2$d / %3$d</string>
     <string name="battle_won">Victory! %1$s scrapped the %2$s. +%3$d Scrap.</string>
-    <string name="battle_lost">%1$s was beaten by the %2$s and needs 30 minutes to recover.</string>
+    <!-- rat name, bot name, recovery in whole minutes (scales with roster size) -->
+    <string name="battle_lost">%1$s was beaten by the %2$s and needs %3$d minutes to recover.</string>
+    <!-- rat name, bot name - the Revive Token path, where there is no wait to quote -->
+    <string name="battle_lost_revived">%1$s was beaten by the %2$s, but a Revive Token got them straight back up.</string>
     <string name="battle_revive">Revive Now (%1$d Scrap)</string>
     <string name="battle_revive_done">Back on their feet.</string>
     <string name="battle_revive_poor">Not enough Scrap to revive.</string>

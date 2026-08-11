@@ -35,6 +35,44 @@ object ShopEffects {
     fun surgeBonusFor(prefs: SharedPreferences): Int =
         if (powerSurgeArmed(prefs)) POWER_SURGE_BONUS else 0
 
+    /** Set by the Golden Wrench, read and cleared by the next fight that resolves. */
+    const val KEY_GOLDEN_WRENCH = "GOLDEN_WRENCH_ACTIVE"
+
+    /**
+     * What a Golden Wrench multiplies, on attack and on staying power.
+     *
+     * Half again on both is what makes the boss tiers tractable: their Power
+     * multipliers sit between 1.15 and 1.4, and their HP between 1.6 and 2.5,
+     * against a rat whose own stats never grow with level.
+     */
+    const val WRENCH_MULTIPLIER = 1.5
+
+    fun wrenchArmed(prefs: SharedPreferences): Boolean =
+        prefs.getBoolean(KEY_GOLDEN_WRENCH, false)
+
+    /**
+     * Everything the Shop has armed, gathered once for a fight about to start.
+     *
+     * Both buffs stack, and both are spent by the fight they are carried into -
+     * see [clearOneShotBuffs], which the resolver calls win or lose.
+     */
+    fun loadoutFor(prefs: SharedPreferences): Loadout {
+        val wrench = if (wrenchArmed(prefs)) WRENCH_MULTIPLIER else 1.0
+        return Loadout(
+            bonusPower = surgeBonusFor(prefs),
+            powerMultiplier = wrench,
+            hpMultiplier = wrench
+        )
+    }
+
+    /** Burns whatever a finished fight was carrying. */
+    fun clearOneShotBuffs(prefs: SharedPreferences) {
+        prefs.edit()
+            .putBoolean(KEY_POWER_SURGE, false)
+            .putBoolean(KEY_GOLDEN_WRENCH, false)
+            .apply()
+    }
+
     // ---- stackable charges ---------------------------------------------------
 
     /** Revive tokens held. Bought ahead of a loss rather than paid for after one. */

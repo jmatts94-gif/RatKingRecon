@@ -79,11 +79,11 @@ class BattleActivity : AppCompatActivity() {
 
             encounter = loaded.first
             rat = loaded.second
-            // A Shop Power Surge rides on this fight; EncounterResolver burns it
-            // when the fight settles.
+            // Whatever the Shop has armed rides on this fight; EncounterResolver
+            // burns it when the fight settles.
             battle = encounter.toBattle(
                 rat,
-                ShopEffects.surgeBonusFor(RatRepository.prefs(this@BattleActivity))
+                ShopEffects.loadoutFor(RatRepository.prefs(this@BattleActivity))
             )
 
             bindStaticViews()
@@ -162,24 +162,29 @@ class BattleActivity : AppCompatActivity() {
                 lines += getString(
                     R.string.battle_won, resolution.ratName, resolution.botName, resolution.reward
                 )
+                if (resolution.badgeEarned) {
+                    Bosses.byId(resolution.bossId)?.let {
+                        lines += getString(R.string.boss_badge_earned, getString(it.nameRes))
+                    }
+                }
                 render()
             } else {
-                lines += getString(R.string.battle_lost, resolution.ratName, resolution.botName)
+                lines += EncounterResolver.lossMessage(this@BattleActivity, resolution)
                 render()
-                offerRevive()
+                offerRevive(resolution)
             }
         }
     }
 
     /** A loss is not final if the player would rather pay to skip the wait. */
-    private fun offerRevive() {
+    private fun offerRevive(resolution: EncounterResolver.Resolution) {
         val cost = RustbotFactory.reviveCost(
             GameEngine.levelOf(RatRepository.prefs(this))
         )
 
         android.app.AlertDialog.Builder(this)
             .setTitle(R.string.notif_result_title_loss)
-            .setMessage(getString(R.string.battle_lost, rat.name, encounter.botName))
+            .setMessage(EncounterResolver.lossMessage(this, resolution))
             .setPositiveButton(getString(R.string.battle_revive, cost)) { _, _ ->
                 lifecycleScope.launch {
                     val ok = withContext(Dispatchers.IO) {

@@ -196,6 +196,23 @@
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/achievementsButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_achievements"
+            app:icon="@drawable/ic_star"
+            app:iconGravity="textStart"
+            app:iconPadding="10dp"
+            app:iconTint="@color/text_primary"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            app:backgroundTint="@color/card_white"
+            app:strokeColor="@color/card_border"
+            app:strokeWidth="1dp"
+            app:cornerRadius="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/settingsButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

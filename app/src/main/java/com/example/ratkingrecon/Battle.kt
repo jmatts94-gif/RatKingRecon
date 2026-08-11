@@ -7,6 +7,33 @@ enum class BattleAction { ATTACK, DEFEND, SPECIAL }
 
 enum class BattleOutcome { ONGOING, PLAYER_WON, PLAYER_LOST }
 
+/**
+ * What the Shop has armed for one fight.
+ *
+ * Takes plain numbers rather than a rat so this file stays free of Android and
+ * Room, the same reason [Battle] does. The flat bonus is applied before the
+ * multiplier, so Power Surge and a Golden Wrench compound rather than one
+ * quietly swallowing the other.
+ *
+ * There is no defence stat in [Battle] to multiply - DEFEND simply halves the
+ * incoming hit - so a defensive buff is expressed as extra maximum HP, which is
+ * the only durability lever the simulator actually has.
+ */
+data class Loadout(
+    val bonusPower: Int = 0,
+    val powerMultiplier: Double = 1.0,
+    val hpMultiplier: Double = 1.0
+) {
+    companion object {
+        val NONE = Loadout()
+    }
+
+    fun powerFor(basePower: Int): Int =
+        max(1, ((basePower + bonusPower) * powerMultiplier).roundToInt())
+
+    fun maxHpFor(baseMaxHp: Int): Int = max(1, (baseMaxHp * hpMultiplier).roundToInt())
+}
+
 /** What one round did, enough to drive both a UI log and a result summary. */
 data class RoundResult(
     val round: Int,

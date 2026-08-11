@@ -29,6 +29,15 @@ object GameEngine {
     /** Last cumulative reading seen, so the UI can show a session total. */
     const val KEY_TOTAL_STEPS = "STEP_TOTAL"
 
+    /**
+     * Every step ever banked, for the Achievements milestones.
+     *
+     * Not the same thing as [KEY_TOTAL_STEPS], which holds the sensor's own
+     * reading and restarts at zero on every reboot. This is a running total the
+     * game keeps itself, so it only ever climbs.
+     */
+    const val KEY_LIFETIME_STEPS = "LIFETIME_STEPS"
+
     const val KEY_MUTAGEN = "MUTAGEN_ACTIVE"
     const val KEY_POLISH = "POLISH_ACTIVE"
 
@@ -56,6 +65,8 @@ object GameEngine {
         val bountyReward: Int = 0,
         val bountyFailed: Boolean = false,
         val encounter: Encounter? = null,
+        /** A boss was banked. Deliberately not a fight - see [Bosses]. */
+        val bossBanked: BossSpec? = null,
         val changed: Boolean = false
     )
 
@@ -65,6 +76,23 @@ object GameEngine {
     fun totalStepsOf(prefs: SharedPreferences): Float = prefs.getFloat(KEY_TOTAL_STEPS, 0f)
     fun maxExpFor(level: Int): Int = level * EXP_PER_LEVEL
 
+    fun lifetimeStepsOf(prefs: SharedPreferences): Long = prefs.getLong(KEY_LIFETIME_STEPS, 0L)
+
+    /**
+     * The steps a save at [level] must have walked, at minimum.
+     *
+     * Lifetime counting was added after the game shipped, so an existing save
+     * has no history to restore - the sensor reading it did keep is not a total.
+     * Rather than showing a long-standing player zero, the total is seeded from
+     * the only evidence there is: levelling costs 50 EXP times the level, and
+     * one step is one EXP, so reaching level L took at least this many steps.
+     *
+     * A floor, not a reconstruction. Overflow EXP is discarded on each level, so
+     * the real figure is higher, and the seed cannot know by how much.
+     */
+    fun seedLifetimeFor(level: Int): Long =
+        EXP_PER_LEVEL.toLong() * level * (level - 1) / 2
+
     /**
      * Folds a cumulative step-counter reading into the save.
      *
@@ -73,6 +101,8 @@ object GameEngine {
      * subtracting into a negative.
      */
     fun onSteps(dao: RatDao, prefs: SharedPreferences, totalSteps: Float): Outcome {
+        seedLifetimeIfAbsent(prefs)
+
         val baseline = prefs.getFloat(KEY_BASELINE, -1f)
 
         // First reading ever, or the device rebooted and the counter restarted.
@@ -80,6 +110,14 @@ object GameEngine {
             prefs.edit()
                 .putFloat(KEY_BASELINE, totalSteps)
                 .putFloat(KEY_TOTAL_STEPS, totalSteps)
+                // Encounter spacing is measured against the same cumulative
+                // counter, so it restarted too. Left in place it would hold a
+                // reading from before the reboot - far ahead of anything the
+                // sensor will report for a long while - and the gap check in
+                // maybeTriggerEncounter would refuse every encounter until the
+                // counter climbed all the way back to it. Dropping the key
+                // restores its fresh-save default, which is "eligible now".
+                .remove(KEY_LAST_ENCOUNTER_STEPS)
                 .apply()
             return Outcome()
         }
@@ -90,6 +128,7 @@ object GameEngine {
         val editor = prefs.edit()
         editor.putFloat(KEY_BASELINE, totalSteps)
         editor.putFloat(KEY_TOTAL_STEPS, totalSteps)
+        editor.putLong(KEY_LIFETIME_STEPS, lifetimeStepsOf(prefs) + gained)
 
         val bounty = resolveBounty(prefs, editor, totalSteps)
 
@@ -115,14 +154,53 @@ object GameEngine {
         // from one batch of steps without competing for it.
         val encounter = maybeTriggerEncounter(dao, prefs, totalSteps, gained, level)
 
+        // Independent of the encounter above: a boss is banked, not fought, so
+        // the two do not compete and neither blocks the other.
+        val bossBanked = maybeBankBoss(prefs, gained, level)
+
         return Outcome(
             hatched = hatched,
             newLevel = newLevel,
+            bossBanked = bossBanked,
             bountyReward = bounty.first,
             bountyFailed = bounty.second,
             encounter = encounter,
             changed = true
         )
+    }
+
+    /**
+     * Seeds the lifetime total on the first walk after it was introduced.
+     *
+     * Absence is the migration signal: a save that predates the counter has no
+     * key at all, while a fresh one is written a zero the moment it walks.
+     */
+    private fun seedLifetimeIfAbsent(prefs: SharedPreferences) {
+        if (prefs.contains(KEY_LIFETIME_STEPS)) return
+        prefs.edit().putLong(KEY_LIFETIME_STEPS, seedLifetimeFor(levelOf(prefs))).apply()
+    }
+
+    /**
+     * Decides whether these steps banked a boss.
+     *
+     * Deliberately thin next to [maybeTriggerEncounter]: no fighter is chosen
+     * and no fight is built, because a boss must not be resolvable from a
+     * notification. All that is recorded is which boss is owed. MainActivity
+     * turns that into an actual encounter the next time the app is opened.
+     *
+     * Skipped when one is already banked, and when the player's level sits
+     * between tiers.
+     */
+    private fun maybeBankBoss(prefs: SharedPreferences, gained: Int, playerLevel: Int): BossSpec? {
+        if (Bosses.bankedId(prefs) != null) return null
+
+        val spec = Bosses.forLevel(playerLevel) ?: return null
+
+        val chance = 1.0 - Math.pow(1.0 - Bosses.CHANCE_PER_STEP, gained.toDouble())
+        if (Math.random() >= chance) return null
+
+        Bosses.bank(prefs, spec)
+        return spec
     }
 
     /**

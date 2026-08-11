@@ -10,8 +10,38 @@ import android.content.Context
  */
 object EncounterResolver {
 
-    /** How long a beaten rat is out of action. */
+    /** How long a beaten rat is out of action once the roster can spare one. */
     const val RECOVERY_MS = 30L * 60L * 1000L
+
+    /**
+     * The floor, applied while the roster is a single rat.
+     *
+     * A knockout takes the only fighter out of play, and GameEngine will not
+     * raise an encounter without one, so at roster size 1 the full wait stops
+     * combat outright rather than merely costing a rat.
+     */
+    const val MIN_RECOVERY_MS = 10L * 60L * 1000L
+
+    /** Roster size from which the full [RECOVERY_MS] applies. */
+    const val FULL_RECOVERY_ROSTER = 6
+
+    /**
+     * How long a beaten rat is out of action, given the size of the roster.
+     *
+     * Scales straight from [MIN_RECOVERY_MS] at one rat to [RECOVERY_MS] at
+     * [FULL_RECOVERY_ROSTER], so the penalty grows as losing a fighter stops
+     * being the same as losing combat entirely: 10, 14, 18, 22, 26, then 30
+     * minutes. Deliberately keyed to roster size rather than to how many rats
+     * happen to be awake, so the wait a player is quoted does not change while
+     * they are serving it.
+     */
+    fun recoveryMsFor(rosterSize: Int): Long {
+        if (rosterSize >= FULL_RECOVERY_ROSTER) return RECOVERY_MS
+        if (rosterSize <= 1) return MIN_RECOVERY_MS
+
+        val progress = (rosterSize - 1).toDouble() / (FULL_RECOVERY_ROSTER - 1).toDouble()
+        return MIN_RECOVERY_MS + ((RECOVERY_MS - MIN_RECOVERY_MS) * progress).toLong()
+    }
 
     data class Resolution(
         val won: Boolean,
@@ -21,7 +51,13 @@ object EncounterResolver {
         val ratHpLeft: Int,
         val recoveringUntil: Long,
         /** True when a Shop Revive Token was spent to skip the knockout. */
-        val revivedByToken: Boolean = false
+        val revivedByToken: Boolean = false,
+        /** Whole minutes the rat is out for, for the message shown to the player. */
+        val recoveryMinutes: Int = 0,
+        /** Which boss this was, if it was one. */
+        val bossId: String? = null,
+        /** True only on the win that first unlocked the badge. */
+        val badgeEarned: Boolean = false
     )
 
     /**
@@ -36,13 +72,20 @@ object EncounterResolver {
 
         val won = battle.outcome == BattleOutcome.PLAYER_WON
         var recoveringUntil = 0L
+        var recoveryMs = 0L
         var revivedByToken = false
+        var badgeEarned = false
 
         if (won) {
             dao.recordWin(rat.id)
             prefs.edit()
                 .putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + encounter.reward)
                 .apply()
+
+            // The badge is the first win only; the Scrap is paid every time, at
+            // the reduced rate Bosses.rewardFor already worked into the amount
+            // banked above when the encounter was built.
+            encounter.bossId?.let { badgeEarned = Bosses.markDefeated(prefs, it) }
         } else {
             // A Shop Revive Token is spent here rather than offered: it was
             // bought ahead of time precisely so the loss does not cost 30
@@ -51,14 +94,16 @@ object EncounterResolver {
             revivedByToken = ShopEffects.spendCharge(prefs, ShopEffects.KEY_REVIVE_TOKENS)
 
             if (!revivedByToken) {
-                recoveringUntil = System.currentTimeMillis() + RECOVERY_MS
+                recoveryMs = recoveryMsFor(dao.count())
+                recoveringUntil = System.currentTimeMillis() + recoveryMs
             }
             dao.recordLoss(rat.id, recoveringUntil)
         }
 
-        // A Power Surge is burned by the fight it was carried into, win or lose,
-        // and here rather than at the start so leaving a fight does not eat it.
-        prefs.edit().putBoolean(ShopEffects.KEY_POWER_SURGE, false).apply()
+        // One-shot buffs are burned by the fight they were carried into, win or
+        // lose, and here rather than at the start so leaving a fight does not
+        // eat them.
+        ShopEffects.clearOneShotBuffs(prefs)
 
         Encounter.clear(prefs)
 
@@ -69,9 +114,31 @@ object EncounterResolver {
             reward = if (won) encounter.reward else 0,
             ratHpLeft = battle.ratHp,
             recoveringUntil = recoveringUntil,
-            revivedByToken = revivedByToken
+            revivedByToken = revivedByToken,
+            recoveryMinutes = (recoveryMs / 60_000L).toInt(),
+            bossId = encounter.bossId,
+            badgeEarned = badgeEarned
         )
     }
+
+    /**
+     * The sentence shown after a loss, whichever path played the fight.
+     *
+     * Shared for the same reason [apply] is: the battle screen and the
+     * notification must not drift over how a knockout is described, and only
+     * one of them knows whether a Revive Token was spent.
+     */
+    fun lossMessage(context: Context, resolution: Resolution): String =
+        if (resolution.revivedByToken) {
+            context.getString(
+                R.string.battle_lost_revived, resolution.ratName, resolution.botName
+            )
+        } else {
+            context.getString(
+                R.string.battle_lost,
+                resolution.ratName, resolution.botName, resolution.recoveryMinutes
+            )
+        }
 
     /**
      * Wakes a knocked-out rat early for Scrap.
