@@ -18,7 +18,6 @@
     <!-- Consumables -->
     <string name="btn_mutagen">Tinkerer\'s Serum</string>
     <string name="btn_shiny_polish">Gleam-in-a-Bottle</string>
-    <string name="btn_premium">The Wobbly Hatchery (Coming Soon)</string>
 
     <!-- Shop -->
     <string name="shop_title">The Scrap Shop</string>
@@ -35,8 +34,8 @@
     <string name="shop_cat_featured">Featured</string>
     <string name="shop_cat_featured_sub">Event stock will appear here.</string>
 
-    <string name="shop_name_hatchery">The Wobbly Hatchery</string>
-    <string name="shop_desc_hatchery">Hatch a rat on the spot, without walking for it.</string>
+    <string name="shop_name_hatchery">The Masterwork Hatchery</string>
+    <string name="shop_desc_hatchery">Hatch a guaranteed shiny on the spot, without walking for it.</string>
     <string name="shop_name_revive">Revive Token</string>
     <string name="shop_desc_revive">Held in reserve. Brings a rat straight back the next time one is beaten.</string>
     <string name="shop_name_surge">Power Surge</string>
@@ -61,6 +60,12 @@
     <string name="shop_not_yet">%1$s is still being built.</string>
     <string name="shop_too_poor">Not enough Scrap.</string>
     <string name="shop_no_expedition">No rat is out in the Scrapyard.</string>
+    <!-- unlock level -->
+    <string name="shop_locked">Level %1$d</string>
+    <!-- unlock level -->
+    <string name="shop_locked_toast">The Masterwork Hatchery opens at Level %1$d.</string>
+    <!-- rat name -->
+    <string name="shop_masterwork_done">%1$s stepped out of the Masterwork Hatchery!</string>
     <string name="shop_desc_mutagen">Guarantees 6-10 Power and Toughness.</string>
     <string name="shop_desc_polish">Guarantees a shiny variant.</string>
 
@@ -140,7 +145,6 @@
     <!-- Silent twins of the alert channels, used when sound is switched off -->
     <string name="channel_hatch_quiet_name">Hatch Alerts (Silent)</string>
     <string name="channel_encounter_quiet_name">Rustbot Encounters (Silent)</string>
-    <string name="hatchery_coming_soon">The Wobbly Hatchery is still being built.</string>
 
     <!-- Expeditions and contracts -->
     <string name="btn_deploy_scrap_run">Send on a Scrap Run\n(4 Hours)</string>
@@ -155,9 +159,9 @@
     <string name="expedition_status">Rat Scavenging… (Tap Status)</string>
 
     <!-- Long-press explainers -->
-    <string name="tooltip_hatchery_title">The Wobbly Hatchery</string>
+    <string name="tooltip_hatchery_title">The Masterwork Hatchery</string>
     <!-- No price quoted until the feature exists and actually charges one. -->
-    <string name="tooltip_hatchery_body">Hatch a rat on the spot, without walking for it. Still being built.</string>
+    <string name="tooltip_hatchery_body">Hatches one rat immediately, no walking needed. Always shiny, never a Common species, and both stats roll in their top bracket.</string>
     <string name="tooltip_polish_title">Gleam-in-a-Bottle</string>
     <string name="tooltip_polish_body">Spend 5 Scrap to guarantee your next hatch comes out shiny.</string>
 

@@ -12,7 +12,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The Shop.
@@ -30,6 +34,9 @@ class ShopActivity : AppCompatActivity() {
     private class Row(val item: ShopItem, val button: MaterialButton, val body: TextView)
 
     private val rows = mutableListOf<Row>()
+
+    /** Guards the one purchase that is not instantaneous, against a double tap. */
+    private var busy = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +93,12 @@ class ShopActivity : AppCompatActivity() {
         row.findViewById<TextView>(R.id.itemName).setText(item.nameRes)
 
         val body = row.findViewById<TextView>(R.id.itemBody)
+        // The long-press explainer the Hatchery has always had, kept now that
+        // the button lives here rather than on the home screen.
+        if (item.tooltipBodyRes != 0) {
+            Tooltip.attachTo(row, item.tooltipTitleRes, item.tooltipBodyRes)
+        }
+
         val buy = row.findViewById<MaterialButton>(R.id.itemBuyButton)
         buy.setOnClickListener { purchase(item) }
 
@@ -103,7 +116,14 @@ class ShopActivity : AppCompatActivity() {
      * armed - costs nothing.
      */
     private fun purchase(item: ShopItem) {
+        if (busy) return
+
         val effect = item.effect
+
+        if (item.unlockLevel > 0 && GameEngine.levelOf(prefs) < item.unlockLevel) {
+            toast(getString(R.string.shop_locked_toast, item.unlockLevel))
+            return
+        }
 
         if (effect is ShopEffect.ComingSoon) {
             toast(getString(R.string.shop_not_yet, getString(item.nameRes)))
@@ -131,15 +151,21 @@ class ShopActivity : AppCompatActivity() {
             is ShopEffect.Charge -> ShopEffects.addCharge(prefs, effect.key)
             is ShopEffect.Cosmetic -> ShopEffects.grantCosmetic(prefs, effect.id)
 
-            is ShopEffect.Action -> {
-                val applied = when (effect.id) {
-                    Shop.ACTION_QUICK_RETURN -> ShopEffects.quickReturn(prefs)
-                    else -> false
-                }
-                if (!applied) {
-                    toast(getString(R.string.shop_no_expedition))
+            is ShopEffect.Action -> when (effect.id) {
+                // Hatching writes to Room, so it finishes on a background
+                // thread and pays for itself there.
+                Shop.ACTION_MASTERWORK -> {
+                    masterworkHatch(item)
                     return
                 }
+
+                Shop.ACTION_QUICK_RETURN ->
+                    if (!ShopEffects.quickReturn(prefs)) {
+                        toast(getString(R.string.shop_no_expedition))
+                        return
+                    }
+
+                else -> return
             }
 
             ShopEffect.ComingSoon -> return
@@ -148,6 +174,35 @@ class ShopActivity : AppCompatActivity() {
         prefs.edit().putInt(GameEngine.KEY_SCRAP, scrap - item.price).apply()
         toast(getString(R.string.shop_activated, getString(item.nameRes)))
         refresh()
+    }
+
+    /**
+     * Buys a hatch outright.
+     *
+     * The rat is minted and stored before any Scrap is taken, so a failure
+     * leaves the player with their money. Scrap is re-read at the moment of the
+     * write rather than reused from before the insert, so a bounty landing
+     * mid-hatch is not overwritten.
+     */
+    private fun masterworkHatch(item: ShopItem) {
+        busy = true
+        refresh()
+
+        lifecycleScope.launch {
+            val hatched = withContext(Dispatchers.IO) {
+                val minted = Masterwork.roll()
+                minted.copy(id = RatRepository.dao(this@ShopActivity).insert(minted))
+            }
+
+            val scrap = prefs.getInt(GameEngine.KEY_SCRAP, 0)
+            prefs.edit()
+                .putInt(GameEngine.KEY_SCRAP, (scrap - item.price).coerceAtLeast(0))
+                .apply()
+
+            busy = false
+            toast(getString(R.string.shop_masterwork_done, hatched.name))
+            refresh()
+        }
     }
 
     // ---- drawing -------------------------------------------------------------
@@ -180,7 +235,14 @@ class ShopActivity : AppCompatActivity() {
 
     private class Label(val text: String, val enabled: Boolean, val fill: Int = R.color.amber)
 
-    private fun labelFor(item: ShopItem): Label = when (val effect = item.effect) {
+    private fun labelFor(item: ShopItem): Label {
+        if (item.unlockLevel > 0 && GameEngine.levelOf(prefs) < item.unlockLevel) {
+            return Label(getString(R.string.shop_locked, item.unlockLevel), enabled = false)
+        }
+        return labelForUnlocked(item)
+    }
+
+    private fun labelForUnlocked(item: ShopItem): Label = when (val effect = item.effect) {
         is ShopEffect.ComingSoon ->
             Label(getString(R.string.shop_coming_soon_btn), enabled = false)
 

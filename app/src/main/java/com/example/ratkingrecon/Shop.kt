@@ -27,13 +27,21 @@ sealed interface ShopEffect {
     data object ComingSoon : ShopEffect
 }
 
-/** One purchasable row. */
+/**
+ * One purchasable row.
+ *
+ * [unlockLevel] of zero means always on sale. [tooltipBodyRes] adds the
+ * long-press explainer to a row whose full terms do not fit under its name.
+ */
 data class ShopItem(
     val price: Int,
     val effect: ShopEffect,
     @param:StringRes val nameRes: Int,
     @param:StringRes val bodyRes: Int,
-    @param:DrawableRes val iconRes: Int
+    @param:DrawableRes val iconRes: Int,
+    val unlockLevel: Int = 0,
+    @param:StringRes val tooltipTitleRes: Int = 0,
+    @param:StringRes val tooltipBodyRes: Int = 0
 )
 
 /**
@@ -61,8 +69,9 @@ object Shop {
     const val FRAME_BRASS = "brass"
     const val FRAME_EMBER = "ember"
 
-    /** Id for Quick Return, dispatched in ShopActivity. */
+    /** Ids for the immediate-effect items, dispatched in ShopActivity. */
     const val ACTION_QUICK_RETURN = "quick_return"
+    const val ACTION_MASTERWORK = "masterwork_hatch"
 
     private val hatching = ShopCategory(
         titleRes = R.string.shop_cat_hatching,
@@ -83,11 +92,14 @@ object Shop {
                 iconRes = R.drawable.ic_sparkle
             ),
             ShopItem(
-                price = 0,
-                effect = ShopEffect.ComingSoon,
+                price = Masterwork.PRICE,
+                effect = ShopEffect.Action(ACTION_MASTERWORK),
                 nameRes = R.string.shop_name_hatchery,
                 bodyRes = R.string.shop_desc_hatchery,
-                iconRes = R.drawable.ic_egg
+                iconRes = R.drawable.ic_egg,
+                unlockLevel = Masterwork.UNLOCK_LEVEL,
+                tooltipTitleRes = R.string.tooltip_hatchery_title,
+                tooltipBodyRes = R.string.tooltip_hatchery_body
             )
         )
     )

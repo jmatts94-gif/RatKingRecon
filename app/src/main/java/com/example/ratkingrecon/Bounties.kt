@@ -37,7 +37,7 @@ data class BountyTier(
  * The contract pool.
  *
  * Rewards are deliberately small relative to the Scrap sinks they feed - the
- * Fusion Pot costs 5 and the Wobbly Hatchery 50 - so a single long contract
+ * Fusion Pot costs 5 and the Masterwork Hatchery 800 - so a single long contract
  * does not immediately pay for everything.
  */
 object Bounties {
