@@ -18,8 +18,15 @@ class EncounterActionReceiver : BroadcastReceiver() {
     companion object {
         const val ACTION_AUTO_RESOLVE = "com.example.ratkingrecon.AUTO_RESOLVE"
         const val CHANNEL_ENCOUNTER = "encounter_alerts_v1"
+
+        /** Silent twin of [CHANNEL_ENCOUNTER]; see the note on the hatch channels. */
+        const val CHANNEL_ENCOUNTER_QUIET = "encounter_alerts_quiet_v1"
+
         const val NOTIF_ENCOUNTER = 3
         const val NOTIF_RESULT = 4
+
+        fun channelFor(quiet: Boolean): String =
+            if (quiet) CHANNEL_ENCOUNTER_QUIET else CHANNEL_ENCOUNTER
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -67,9 +74,11 @@ class EncounterActionReceiver : BroadcastReceiver() {
             app.getString(R.string.battle_lost, resolution.ratName, resolution.botName)
         }
 
+        val quiet = !GameSettings.soundEnabled(prefs)
+
         manager.notify(
             NOTIF_RESULT,
-            NotificationCompat.Builder(app, CHANNEL_ENCOUNTER)
+            NotificationCompat.Builder(app, channelFor(quiet))
                 .setContentTitle(title)
                 .setContentText(body)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(body))
@@ -77,6 +86,7 @@ class EncounterActionReceiver : BroadcastReceiver() {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(true)
+                .setSilent(quiet)
                 .build()
         )
     }

@@ -67,6 +67,31 @@
     <string name="import_confirm_body">Importing replaces everything you have now — every rat, your Scrap, level and EXP. This cannot be undone.\n\nExport your current save first if you want to keep it.</string>
     <string name="import_confirm_cta">Choose a File</string>
 
+    <!-- Settings: alerts -->
+    <string name="settings_cat_alerts">Alerts</string>
+    <string name="settings_cat_alerts_sub">The ongoing step-counter notification is required by Android and cannot be turned off.</string>
+    <string name="toggle_notifications">Hatch notifications</string>
+    <string name="toggle_notifications_sub">Tell me when an egg hatches while the app is closed.</string>
+    <string name="toggle_sound">Sound and vibration</string>
+    <string name="toggle_sound_sub">Let alerts play a sound and buzz.</string>
+
+    <!-- Settings: about -->
+    <string name="settings_cat_about">About</string>
+    <!-- version name, version code -->
+    <string name="about_version">Version %1$s (build %2$d)</string>
+
+    <!-- Settings: reset -->
+    <string name="settings_cat_reset">Reset</string>
+    <string name="settings_cat_reset_sub">Start over from Level 1 with an empty Ledger.</string>
+    <string name="btn_reset_save">Reset Save</string>
+    <string name="reset_confirm_title">Reset Save?</string>
+    <string name="reset_confirm_body">This will permanently delete all progress. This cannot be undone.</string>
+    <string name="reset_confirm_cta">Reset Save</string>
+    <string name="reset_done">Save reset. You are back to Level 1.</string>
+
+    <!-- Silent twins of the alert channels, used when sound is switched off -->
+    <string name="channel_hatch_quiet_name">Hatch Alerts (Silent)</string>
+    <string name="channel_encounter_quiet_name">Rustbot Encounters (Silent)</string>
     <string name="hatchery_coming_soon">The Wobbly Hatchery is still being built.</string>
 
     <!-- Expeditions and contracts -->

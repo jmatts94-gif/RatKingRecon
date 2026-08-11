@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,8 +61,15 @@ class SettingsActivity : AppCompatActivity() {
 
         statusText = findViewById(R.id.saveStatusText)
 
+        bindToggles()
+        bindAbout()
+
         findViewById<MaterialButton>(R.id.exportSaveButton).setOnClickListener {
             exportPicker.launch(defaultFileName())
+        }
+
+        findViewById<MaterialButton>(R.id.resetSaveButton).setOnClickListener {
+            confirmReset()
         }
 
         // The warning comes before the picker, so the player is not asked to
@@ -71,6 +79,98 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         findViewById<MaterialButton>(R.id.settingsBackButton).setOnClickListener { finish() }
+    }
+
+    // ---- toggles -------------------------------------------------------------
+
+    /**
+     * Both switches write straight through on change.
+     *
+     * Nothing caches them: [StepTrackerService] reads the flag at the moment it
+     * is about to post, so a switch flipped here takes effect on the very next
+     * alert without the service needing to be told.
+     */
+    private fun bindToggles() {
+        val prefs = RatRepository.prefs(this)
+
+        val notifications = findViewById<MaterialSwitch>(R.id.notificationsSwitch)
+        notifications.isChecked = GameSettings.notificationsEnabled(prefs)
+        notifications.setOnCheckedChangeListener { _, on ->
+            prefs.edit().putBoolean(GameSettings.KEY_NOTIFICATIONS, on).apply()
+        }
+
+        val sound = findViewById<MaterialSwitch>(R.id.soundSwitch)
+        sound.isChecked = GameSettings.soundEnabled(prefs)
+        sound.setOnCheckedChangeListener { _, on ->
+            prefs.edit().putBoolean(GameSettings.KEY_SOUND, on).apply()
+        }
+    }
+
+    /** Reads the version from the installed package, so it can never drift from the build. */
+    private fun bindAbout() {
+        val info = packageManager.getPackageInfo(packageName, 0)
+        val code = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            info.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            info.versionCode.toLong()
+        }
+
+        findViewById<TextView>(R.id.aboutVersionText).text =
+            getString(R.string.about_version, info.versionName, code)
+    }
+
+    // ---- reset ---------------------------------------------------------------
+
+    private fun confirmReset() {
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_confirm_reset)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialog.findViewById<Button>(R.id.resetConfirmButton).setOnClickListener {
+            dialog.dismiss()
+            resetSave()
+        }
+        dialog.findViewById<Button>(R.id.resetCancelButton).setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
+    /**
+     * Wipes the save.
+     *
+     * Both halves go, for the same reason export writes both: the roster lives
+     * in Room, so clearing only the preferences would leave a Level 1 player
+     * still holding every rat they had.
+     *
+     * The two switches are put back afterwards. They are settings rather than
+     * progress, and having them silently flip themselves on from this very
+     * screen would be a surprise.
+     */
+    private fun resetSave() {
+        setBusy(true)
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                val prefs = RatRepository.prefs(this@SettingsActivity)
+                val notifications = GameSettings.notificationsEnabled(prefs)
+                val sound = GameSettings.soundEnabled(prefs)
+
+                // As with import: keep a sensor event from landing mid-wipe.
+                stopService(Intent(this@SettingsActivity, StepTrackerService::class.java))
+
+                prefs.edit().clear()
+                    .putBoolean(GameSettings.KEY_NOTIFICATIONS, notifications)
+                    .putBoolean(GameSettings.KEY_SOUND, sound)
+                    .commit()
+
+                RatRepository.dao(this@SettingsActivity).deleteAll()
+            }
+
+            setBusy(false)
+            StepTrackerService.start(this@SettingsActivity)
+            report(getString(R.string.reset_done))
+        }
     }
 
     private fun defaultFileName(): String {

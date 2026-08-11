@@ -41,6 +41,16 @@ class StepTrackerService : Service(), SensorEventListener {
          */
         private const val CHANNEL_HATCH = "hatch_alerts_v1"
 
+        /**
+         * The same alert, without the sound or the buzz.
+         *
+         * Android fixes a channel's sound and vibration when it is created and
+         * ignores any later attempt to change them - deleting and recreating the
+         * channel does not help either, because the old settings are remembered.
+         * So the sound switch cannot mute a channel; it picks a different one.
+         */
+        private const val CHANNEL_HATCH_QUIET = "hatch_alerts_quiet_v1"
+
         private const val NOTIF_ONGOING = 1
         private const val NOTIF_HATCH = 2
 
@@ -151,13 +161,19 @@ class StepTrackerService : Service(), SensorEventListener {
         if (!outcome.changed) return
 
         // Stay quiet if the player is already looking at the app - MainActivity
-        // reveals the rat in-app from the broadcast below.
+        // reveals the rat in-app from the broadcast below - or if they have
+        // turned hatch notifications off in Settings. The hatch itself still
+        // happened either way; only the announcement is suppressed.
         outcome.hatched?.let {
-            if (!AppVisibility.isForeground) notifyHatch(it, outcome.newLevel)
+            if (!AppVisibility.isForeground && GameSettings.notificationsEnabled(prefs)) {
+                notifyHatch(it, outcome.newLevel)
+            }
         }
 
         // An encounter is always announced, even with the app open: it needs a
-        // decision from the player, unlike a hatch which is just news.
+        // decision from the player, unlike a hatch which is just news. That is
+        // also why the notifications switch does not cover it - this alert is
+        // the only way in to the fight, so hiding it would strand the encounter.
         outcome.encounter?.let { notifyEncounter(it) }
 
         sendBroadcast(
@@ -202,6 +218,18 @@ class StepTrackerService : Service(), SensorEventListener {
 
         manager.createNotificationChannel(
             NotificationChannel(
+                EncounterActionReceiver.CHANNEL_ENCOUNTER_QUIET,
+                getString(R.string.channel_encounter_quiet_name),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = getString(R.string.channel_encounter_desc)
+                enableVibration(false)
+                setSound(null, null)
+            }
+        )
+
+        manager.createNotificationChannel(
+            NotificationChannel(
                 CHANNEL_HATCH,
                 getString(R.string.channel_hatch_name),
                 NotificationManager.IMPORTANCE_HIGH
@@ -215,6 +243,18 @@ class StepTrackerService : Service(), SensorEventListener {
                         .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                         .build()
                 )
+            }
+        )
+
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_HATCH_QUIET,
+                getString(R.string.channel_hatch_quiet_name),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = getString(R.string.channel_hatch_desc)
+                enableVibration(false)
+                setSound(null, null)
             }
         )
     }
@@ -243,7 +283,12 @@ class StepTrackerService : Service(), SensorEventListener {
             getString(R.string.notif_hatch_text, card.name)
         }
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_HATCH)
+        val quiet = !GameSettings.soundEnabled(prefs)
+
+        val notification = NotificationCompat.Builder(
+            this,
+            if (quiet) CHANNEL_HATCH_QUIET else CHANNEL_HATCH
+        )
             .setContentTitle(getString(R.string.notif_hatch_title))
             .setContentText(body)
             .setSmallIcon(R.drawable.ic_egg)
@@ -253,6 +298,9 @@ class StepTrackerService : Service(), SensorEventListener {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(openAppIntent())
+            // The channel covers Android 8 and up; this is what silences the
+            // same notification on 7 and below, where there are no channels.
+            .setSilent(quiet)
             .build()
 
         getSystemService(NotificationManager::class.java)
@@ -285,7 +333,12 @@ class StepTrackerService : Service(), SensorEventListener {
 
         val ratName = RatRepository.dao(this).byId(encounter.ratId)?.name ?: "Your rat"
 
-        val notification = NotificationCompat.Builder(this, EncounterActionReceiver.CHANNEL_ENCOUNTER)
+        val quiet = !GameSettings.soundEnabled(prefs)
+
+        val notification = NotificationCompat.Builder(
+            this,
+            EncounterActionReceiver.channelFor(quiet)
+        )
             .setContentTitle(getString(R.string.notif_encounter_title))
             .setContentText(getString(R.string.notif_encounter_text, ratName, encounter.botName))
             .setSmallIcon(R.drawable.ic_power)
@@ -296,6 +349,7 @@ class StepTrackerService : Service(), SensorEventListener {
             .setContentIntent(fight)
             .addAction(0, getString(R.string.notif_action_fight), fight)
             .addAction(0, getString(R.string.notif_action_auto), auto)
+            .setSilent(quiet)
             .build()
 
         getSystemService(NotificationManager::class.java)
