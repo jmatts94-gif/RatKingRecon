@@ -4,16 +4,33 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 
 /**
- * One purchasable item.
+ * What buying an item actually does.
  *
- * [prefKey] is the only thing a purchase writes. [GameEngine.rollRat] reads
- * these flags when an egg hatches and clears them in the same edit, which is
- * what makes every boost apply to the *next* hatch and never to a rat already
- * sitting in the Ledger.
+ * The Shop screen switches on this rather than on the item, so each kind of
+ * purchase has exactly one implementation no matter how many items use it.
  */
+sealed interface ShopEffect {
+
+    /** Sets a flag that the next relevant event reads and clears. */
+    data class Flag(val key: String) : ShopEffect
+
+    /** Adds one to a stack the player spends later. */
+    data class Charge(val key: String) : ShopEffect
+
+    /** Happens on purchase. [apply] returns false when it could not, and nothing is charged. */
+    data class Action(val id: String) : ShopEffect
+
+    /** Bought once, then equipped or unequipped. Purely visual. */
+    data class Cosmetic(val id: String) : ShopEffect
+
+    /** On the shelf but not for sale, so it carries no price. */
+    data object ComingSoon : ShopEffect
+}
+
+/** One purchasable row. */
 data class ShopItem(
-    val prefKey: String,
     val price: Int,
+    val effect: ShopEffect,
     @param:StringRes val nameRes: Int,
     @param:StringRes val bodyRes: Int,
     @param:DrawableRes val iconRes: Int
@@ -22,8 +39,8 @@ data class ShopItem(
 /**
  * A titled group of items.
  *
- * A category with no [items] draws [emptyBodyRes] in a placeholder panel
- * instead, so a section can go on screen before there is anything to sell in it.
+ * An empty [items] draws [emptyBodyRes] in a placeholder panel, or - when that
+ * is left at zero - just the heading, for a section that is deliberately bare.
  */
 data class ShopCategory(
     @param:StringRes val titleRes: Int,
@@ -35,47 +52,107 @@ data class ShopCategory(
 /**
  * The catalogue.
  *
- * [ShopActivity] renders whatever is in [categories] without knowing what any
- * particular item does, so adding an item - or a whole category - is an edit to
- * this file and strings.xml, not to the screen or its layouts.
+ * [ShopActivity] renders whatever is here without knowing what any item does, so
+ * adding one - or a whole section - is an edit to this file and strings.xml.
  */
 object Shop {
 
-    /**
-     * Both boosts are one-shot: bought here, spent by the very next hatch.
-     *
-     * Gleam-in-a-Bottle keeps the 5 Scrap price it charged on the home screen.
-     * Tinkerer's Serum never had a purchase path anywhere in the app, so 25 is a
-     * new number - roughly a medium contract, and five times the Gleam because
-     * it lifts both stats from 1-5 to 6-10.
-     */
-    private val hatchingBoosts = ShopCategory(
+    /** Ids for the two Binder frames. Stored in the save, so they must not change. */
+    const val FRAME_BRASS = "brass"
+    const val FRAME_EMBER = "ember"
+
+    /** Id for Quick Return, dispatched in ShopActivity. */
+    const val ACTION_QUICK_RETURN = "quick_return"
+
+    private val hatching = ShopCategory(
         titleRes = R.string.shop_cat_hatching,
         subtitleRes = R.string.shop_cat_hatching_sub,
         items = listOf(
             ShopItem(
-                prefKey = GameEngine.KEY_MUTAGEN,
-                price = 25,
+                price = 50,
+                effect = ShopEffect.Flag(GameEngine.KEY_MUTAGEN),
                 nameRes = R.string.btn_mutagen,
                 bodyRes = R.string.shop_desc_mutagen,
                 iconRes = R.drawable.ic_flask
             ),
             ShopItem(
-                prefKey = GameEngine.KEY_POLISH,
-                price = 5,
+                price = 150,
+                effect = ShopEffect.Flag(GameEngine.KEY_POLISH),
                 nameRes = R.string.btn_shiny_polish,
                 bodyRes = R.string.shop_desc_polish,
                 iconRes = R.drawable.ic_sparkle
+            ),
+            ShopItem(
+                price = 0,
+                effect = ShopEffect.ComingSoon,
+                nameRes = R.string.shop_name_hatchery,
+                bodyRes = R.string.shop_desc_hatchery,
+                iconRes = R.drawable.ic_egg
             )
         )
     )
 
-    /** Deliberately empty. Repairs and the rest land here as they are built. */
-    private val comingSoon = ShopCategory(
-        titleRes = R.string.shop_cat_soon,
-        subtitleRes = R.string.shop_cat_soon_sub,
-        emptyBodyRes = R.string.shop_cat_soon_empty
+    private val combat = ShopCategory(
+        titleRes = R.string.shop_cat_combat,
+        subtitleRes = R.string.shop_cat_combat_sub,
+        items = listOf(
+            ShopItem(
+                price = 100,
+                effect = ShopEffect.Charge(ShopEffects.KEY_REVIVE_TOKENS),
+                nameRes = R.string.shop_name_revive,
+                bodyRes = R.string.shop_desc_revive,
+                iconRes = R.drawable.ic_pets
+            ),
+            ShopItem(
+                price = 75,
+                effect = ShopEffect.Flag(ShopEffects.KEY_POWER_SURGE),
+                nameRes = R.string.shop_name_surge,
+                bodyRes = R.string.shop_desc_surge,
+                iconRes = R.drawable.ic_power
+            )
+        )
     )
 
-    val categories = listOf(hatchingBoosts, comingSoon)
+    private val expeditions = ShopCategory(
+        titleRes = R.string.shop_cat_expeditions,
+        subtitleRes = R.string.shop_cat_expeditions_sub,
+        items = listOf(
+            ShopItem(
+                price = 100,
+                effect = ShopEffect.Action(ACTION_QUICK_RETURN),
+                nameRes = R.string.shop_name_quick_return,
+                bodyRes = R.string.shop_desc_quick_return,
+                iconRes = R.drawable.ic_expedition
+            )
+        )
+    )
+
+    private val cosmetic = ShopCategory(
+        titleRes = R.string.shop_cat_cosmetic,
+        subtitleRes = R.string.shop_cat_cosmetic_sub,
+        items = listOf(
+            ShopItem(
+                price = 200,
+                effect = ShopEffect.Cosmetic(FRAME_BRASS),
+                nameRes = R.string.shop_name_frame_brass,
+                bodyRes = R.string.shop_desc_frame,
+                iconRes = R.drawable.ic_star
+            ),
+            ShopItem(
+                price = 200,
+                effect = ShopEffect.Cosmetic(FRAME_EMBER),
+                nameRes = R.string.shop_name_frame_ember,
+                bodyRes = R.string.shop_desc_frame,
+                iconRes = R.drawable.ic_hexagon
+            )
+        )
+    )
+
+    /** Deliberately bare - heading only - until an event fills it. */
+    private val featured = ShopCategory(
+        titleRes = R.string.shop_cat_featured,
+        subtitleRes = R.string.shop_cat_featured_sub
+    )
+
+    val categories = listOf(hatching, combat, expeditions, cosmetic, featured)
 }

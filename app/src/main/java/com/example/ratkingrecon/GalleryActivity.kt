@@ -180,10 +180,32 @@ class GalleryActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * The Shop frame currently equipped, as a stroke colour and width.
+     *
+     * Null when none is on, in which case the card keeps the border set in
+     * item_rat_card.xml. Purely a border swap - no card data is touched.
+     */
+    private fun equippedFrame(): Pair<Int, Int>? =
+        when (ShopEffects.equippedCosmetic(RatRepository.prefs(this))) {
+            Shop.FRAME_BRASS -> R.color.amber_dark to dp(3)
+            Shop.FRAME_EMBER -> R.color.terracotta to dp(3)
+            else -> null
+        }
+
     private fun populateGrid(petGrid: GridLayout, pets: List<RatEntity>) {
         val layoutInflater = LayoutInflater.from(this)
+        val frame = equippedFrame()
+
         for (pet in pets) {
             val cardView = layoutInflater.inflate(R.layout.item_rat_card, petGrid, false)
+
+            frame?.let { (colorRes, width) ->
+                (cardView as com.google.android.material.card.MaterialCardView).apply {
+                    strokeColor = ContextCompat.getColor(this@GalleryActivity, colorRes)
+                    strokeWidth = width
+                }
+            }
             val cardImage = cardView.findViewById<ImageView>(R.id.cardImage)
             val cardName = cardView.findViewById<TextView>(R.id.cardName)
             val cardPower = cardView.findViewById<TextView>(R.id.cardPower)

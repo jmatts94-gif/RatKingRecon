@@ -127,29 +127,6 @@
             app:cornerRadius="16dp"
             android:layout_marginBottom="8dp" />
 
-        <LinearLayout
-            android:id="@+id/shopLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="20dp">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buyPremiumButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_premium"
-                app:icon="@drawable/ic_egg"
-                app:iconGravity="textStart"
-                app:iconPadding="10dp"
-                app:iconTint="@color/text_primary"
-                android:textAllCaps="false"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                app:backgroundTint="@color/amber"
-                app:cornerRadius="16dp" />
-        </LinearLayout>
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/activeExpeditionButton"
             android:layout_width="match_parent"

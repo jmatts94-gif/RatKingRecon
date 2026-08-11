@@ -123,10 +123,16 @@ data class Encounter(
 
     val botMaxHp: Int get() = botToughness * 10
 
-    /** Builds the simulator for this encounter against [rat]. */
-    fun toBattle(rat: RatEntity): Battle = Battle(
+    /**
+     * Builds the simulator for this encounter against [rat].
+     *
+     * [bonusPower] is a Shop Power Surge, passed in rather than read here so the
+     * simulator stays a pure function of the numbers handed to it - which is
+     * what keeps the manual and Auto-Resolve paths impossible to drift apart.
+     */
+    fun toBattle(rat: RatEntity, bonusPower: Int = 0): Battle = Battle(
         ratName = rat.name,
-        ratPower = rat.power,
+        ratPower = rat.power + bonusPower,
         ratMaxHp = rat.maxHp,
         botName = botName,
         botPower = botPower,

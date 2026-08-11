@@ -50,8 +50,6 @@ class MainActivity : AppCompatActivity() {
 
         Toast.makeText(this, "Contract Accepted! You have $minutesAllowed mins.", Toast.LENGTH_LONG).show()
     }
-    private lateinit var buyPremiumButton: Button
-    private lateinit var shopLayout: View
     private lateinit var missionButton: Button
     private lateinit var sharedPreferences: SharedPreferences
 
@@ -205,8 +203,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 2. Initialize UI (We do this FIRST so the buttons exist before we click them)
-        buyPremiumButton = findViewById(R.id.buyPremiumButton)
-        shopLayout = findViewById(R.id.shopLayout)
         missionButton = findViewById(R.id.scavengeMissionsButton)
         petImage = findViewById(R.id.petImage)
         scrapText = findViewById(R.id.scrapText)
@@ -255,11 +251,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(android.content.Intent(this, SettingsActivity::class.java))
         }
 
-        // Placeholder until instant hatching is built. Charges nothing, and the
-        // label and tooltip quote no price, so the two cannot contradict.
-        buyPremiumButton.setOnClickListener {
-            Toast.makeText(this, R.string.hatchery_coming_soon, Toast.LENGTH_SHORT).show()
-        }
         findViewById<Button>(R.id.activeExpeditionButton).setOnClickListener {
             checkExpedition()
         }
@@ -283,10 +274,6 @@ class MainActivity : AppCompatActivity() {
             updateScreen()
             Toast.makeText(this, "Game Reset", Toast.LENGTH_SHORT).show()
         }
-
-        // Long-press explainers. Tooltip is generic, so adding one to any other
-        // button later is a single call like these.
-        Tooltip.attachTo(buyPremiumButton, R.string.tooltip_hatchery_title, R.string.tooltip_hatchery_body)
 
         // Load the rest of the game data
         loadGame()
@@ -313,7 +300,6 @@ class MainActivity : AppCompatActivity() {
         scrapText.text = sharedPreferences.getInt("SCRAP", 0).toString()
         playerLevelText.text = "Lvl $playerLevel"
         updateStepDisplays()
-        updateShopVisibility()
 
         // 1. Update the Visual Bar
         val expBar = findViewById<ProgressBar>(R.id.expProgressBar)
@@ -337,14 +323,6 @@ class MainActivity : AppCompatActivity() {
             activeExpeditionButton.visibility = View.GONE
         }
     } // <--- THIS BRACKET WAS MISSING!
-
-    /**
-     * The workbench stays hidden until [UNLOCK_LEVEL] so new players are not shown
-     * consumables they have no context for yet.
-     */
-    private fun updateShopVisibility() {
-        shopLayout.visibility = if (playerLevel >= UNLOCK_LEVEL) View.VISIBLE else View.GONE
-    }
 
     /**
      * Explains the consumables the first time they unlock, then never again.

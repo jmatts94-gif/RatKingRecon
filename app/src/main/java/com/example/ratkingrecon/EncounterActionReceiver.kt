@@ -54,7 +54,11 @@ class EncounterActionReceiver : BroadcastReceiver() {
             return
         }
 
-        val battle = AutoResolver.resolve(encounter.toBattle(rat))
+        // Same surge the manual screen would apply, so both paths fight the
+        // same fight.
+        val battle = AutoResolver.resolve(
+            encounter.toBattle(rat, ShopEffects.surgeBonusFor(prefs))
+        )
         val resolution = EncounterResolver.apply(app, encounter, rat, battle)
 
         val manager = app.getSystemService(NotificationManager::class.java)

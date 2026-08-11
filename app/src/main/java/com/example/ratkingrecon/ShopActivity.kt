@@ -18,24 +18,25 @@ import com.google.android.material.button.MaterialButton
  * The Shop.
  *
  * Nothing here knows what a particular item is: the screen walks
- * [Shop.categories], draws a section per category and a row per item, and a
- * purchase just writes that item's flag. Growing the shop therefore means
- * editing Shop.kt, not this file.
+ * [Shop.categories] and switches on each item's [ShopEffect], so every kind of
+ * purchase has one implementation and growing the shop is an edit to Shop.kt.
  */
 class ShopActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
     private lateinit var scrapText: TextView
 
-    /** Every buy button, kept so [refresh] can restate prices and armed state. */
-    private val buyButtons = mutableListOf<Pair<ShopItem, MaterialButton>>()
+    /** A drawn row, kept so [refresh] can restate its price, state and count. */
+    private class Row(val item: ShopItem, val button: MaterialButton, val body: TextView)
+
+    private val rows = mutableListOf<Row>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_shop)
 
-        // Same store the rest of the app writes to; the boost flags are useless
-        // to GameEngine if they land anywhere else.
+        // Same store the rest of the app writes to; a purchase is useless if the
+        // flag or charge it sets lands anywhere else.
         prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
         scrapText = findViewById(R.id.shopScrapText)
 
@@ -46,12 +47,11 @@ class ShopActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Steps banked while this screen was open can hatch a rat, which spends
-        // a boost and pays out Scrap, so re-read rather than trust what we drew.
+        // Steps banked while this screen was open can hatch a rat or settle a
+        // fight, both of which spend things bought here.
         refresh()
     }
 
-    /** Inflates a section per category, and a row per item inside it. */
     private fun buildCatalogue() {
         val container = findViewById<LinearLayout>(R.id.shopCategoryContainer)
         val inflater = LayoutInflater.from(this)
@@ -61,13 +61,18 @@ class ShopActivity : AppCompatActivity() {
             section.findViewById<TextView>(R.id.categoryTitle).setText(category.titleRes)
             section.findViewById<TextView>(R.id.categorySubtitle).setText(category.subtitleRes)
 
-            val rows = section.findViewById<LinearLayout>(R.id.categoryItems)
-            if (category.items.isEmpty()) {
-                val empty = inflater.inflate(R.layout.view_shop_empty, rows, false)
-                empty.findViewById<TextView>(R.id.emptyBody).setText(category.emptyBodyRes)
-                rows.addView(empty)
-            } else {
-                category.items.forEach { rows.addView(buildRow(inflater, rows, it)) }
+            val list = section.findViewById<LinearLayout>(R.id.categoryItems)
+            when {
+                category.items.isNotEmpty() ->
+                    category.items.forEach { list.addView(buildRow(inflater, list, it)) }
+
+                // A section with nothing in it and nothing to say draws its
+                // heading alone, which is what "built but empty" looks like.
+                category.emptyBodyRes != 0 -> {
+                    val empty = inflater.inflate(R.layout.view_shop_empty, list, false)
+                    empty.findViewById<TextView>(R.id.emptyBody).setText(category.emptyBodyRes)
+                    list.addView(empty)
+                }
             }
 
             container.addView(section)
@@ -79,72 +84,137 @@ class ShopActivity : AppCompatActivity() {
 
         row.findViewById<ImageView>(R.id.itemIcon).setImageResource(item.iconRes)
         row.findViewById<TextView>(R.id.itemName).setText(item.nameRes)
-        row.findViewById<TextView>(R.id.itemBody).setText(item.bodyRes)
 
+        val body = row.findViewById<TextView>(R.id.itemBody)
         val buy = row.findViewById<MaterialButton>(R.id.itemBuyButton)
         buy.setOnClickListener { purchase(item) }
-        buyButtons += item to buy
 
+        rows += Row(item, buy, body)
         return row
     }
 
+    // ---- buying --------------------------------------------------------------
+
     /**
-     * Buys [item], keeping the rule the home screen enforced: pay the price, set
-     * the flag, and refuse a second purchase while the first is still unspent.
+     * Runs [item]'s effect and charges for it.
      *
-     * Setting the flag is the whole transaction. The effect is applied - and the
-     * flag cleared - by GameEngine on the next hatch, so buying a boost can
-     * never change a rat that has already been collected.
+     * Scrap only ever leaves after the effect has been accepted, so a purchase
+     * that cannot land - a Quick Return with no expedition out, a boost already
+     * armed - costs nothing.
      */
     private fun purchase(item: ShopItem) {
-        // Already armed. The button is disabled in this state, so this only
-        // guards against a tap that raced a hatch.
-        if (prefs.getBoolean(item.prefKey, false)) return
+        val effect = item.effect
 
-        val scrap = prefs.getInt(GameEngine.KEY_SCRAP, 0)
-        if (scrap < item.price) {
-            Toast.makeText(this, R.string.shop_too_poor, Toast.LENGTH_SHORT).show()
+        if (effect is ShopEffect.ComingSoon) {
+            toast(getString(R.string.shop_not_yet, getString(item.nameRes)))
             return
         }
 
-        prefs.edit()
-            .putInt(GameEngine.KEY_SCRAP, scrap - item.price)
-            .putBoolean(item.prefKey, true)
-            .apply()
+        // Equipping something already owned is free, so it settles before the
+        // affordability check rather than after it.
+        if (effect is ShopEffect.Cosmetic && ShopEffects.ownsCosmetic(prefs, effect.id)) {
+            ShopEffects.toggleEquipped(prefs, effect.id)
+            refresh()
+            return
+        }
 
-        Toast.makeText(
-            this,
-            getString(R.string.shop_activated, getString(item.nameRes)),
-            Toast.LENGTH_SHORT
-        ).show()
+        if (effect is ShopEffect.Flag && prefs.getBoolean(effect.key, false)) return
 
+        val scrap = prefs.getInt(GameEngine.KEY_SCRAP, 0)
+        if (scrap < item.price) {
+            toast(getString(R.string.shop_too_poor))
+            return
+        }
+
+        when (effect) {
+            is ShopEffect.Flag -> prefs.edit().putBoolean(effect.key, true).apply()
+            is ShopEffect.Charge -> ShopEffects.addCharge(prefs, effect.key)
+            is ShopEffect.Cosmetic -> ShopEffects.grantCosmetic(prefs, effect.id)
+
+            is ShopEffect.Action -> {
+                val applied = when (effect.id) {
+                    Shop.ACTION_QUICK_RETURN -> ShopEffects.quickReturn(prefs)
+                    else -> false
+                }
+                if (!applied) {
+                    toast(getString(R.string.shop_no_expedition))
+                    return
+                }
+            }
+
+            ShopEffect.ComingSoon -> return
+        }
+
+        prefs.edit().putInt(GameEngine.KEY_SCRAP, scrap - item.price).apply()
+        toast(getString(R.string.shop_activated, getString(item.nameRes)))
         refresh()
     }
 
-    /** Repaints the purse and every buy button from the save. */
+    // ---- drawing -------------------------------------------------------------
+
+    /** Repaints the purse and every row from the save. */
     private fun refresh() {
         scrapText.text = prefs.getInt(GameEngine.KEY_SCRAP, 0).toString()
 
-        for ((item, button) in buyButtons) {
-            val armed = prefs.getBoolean(item.prefKey, false)
+        for (row in rows) {
+            val label = labelFor(row.item)
+            row.button.text = label.text
+            row.button.isEnabled = label.enabled
 
-            button.isEnabled = !armed
-            button.text =
-                if (armed) getString(R.string.shop_active)
-                else getString(R.string.shop_price, item.price)
+            row.body.text = bodyFor(row.item)
 
-            // Tint by hand: the palette is hardcoded warm, so Material's own
+            // Tinted by hand: the palette is hardcoded warm, so Material's own
             // disabled colours would drop a grey button into a cream screen.
-            button.backgroundTintList = ContextCompat.getColorStateList(
+            row.button.backgroundTintList = ContextCompat.getColorStateList(
                 this,
-                if (armed) R.color.disabled_fill else R.color.amber
+                if (label.enabled) label.fill else R.color.disabled_fill
             )
-            button.setTextColor(
+            row.button.setTextColor(
                 ContextCompat.getColor(
                     this,
-                    if (armed) R.color.text_muted else R.color.text_primary
+                    if (label.enabled) R.color.text_primary else R.color.text_muted
                 )
             )
         }
+    }
+
+    private class Label(val text: String, val enabled: Boolean, val fill: Int = R.color.amber)
+
+    private fun labelFor(item: ShopItem): Label = when (val effect = item.effect) {
+        is ShopEffect.ComingSoon ->
+            Label(getString(R.string.shop_coming_soon_btn), enabled = false)
+
+        is ShopEffect.Flag ->
+            if (prefs.getBoolean(effect.key, false)) {
+                Label(getString(R.string.shop_active), enabled = false)
+            } else {
+                Label(price(item), enabled = true)
+            }
+
+        is ShopEffect.Cosmetic -> when {
+            !ShopEffects.ownsCosmetic(prefs, effect.id) -> Label(price(item), enabled = true)
+            ShopEffects.equippedCosmetic(prefs) == effect.id ->
+                Label(getString(R.string.shop_equipped), enabled = true, fill = R.color.amber_dark)
+            else -> Label(getString(R.string.shop_equip), enabled = true, fill = R.color.card_white)
+        }
+
+        // Charges and actions are repeatable, so they always show their price.
+        else -> Label(price(item), enabled = true)
+    }
+
+    private fun price(item: ShopItem): String = getString(R.string.shop_price, item.price)
+
+    /** The item's description, plus how many are held when that is the point of it. */
+    private fun bodyFor(item: ShopItem): String {
+        val text = getString(item.bodyRes)
+        val effect = item.effect
+        if (effect !is ShopEffect.Charge) return text
+
+        val held = ShopEffects.charges(prefs, effect.key)
+        return if (held > 0) getString(R.string.shop_held, text, held) else text
+    }
+
+    private fun toast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

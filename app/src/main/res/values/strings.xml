@@ -22,18 +22,45 @@
 
     <!-- Shop -->
     <string name="shop_title">The Scrap Shop</string>
-    <string name="shop_subtitle">Spend Scrap on gear for your next hatch.</string>
-    <string name="shop_cat_hatching">Hatching Boosts</string>
+    <string name="shop_subtitle">Spend Scrap on gear for your rats.</string>
+
+    <string name="shop_cat_hatching">Hatching</string>
     <string name="shop_cat_hatching_sub">Applied to your next hatch. Rats already in the Ledger are unaffected.</string>
-    <string name="shop_cat_soon">Coming Soon</string>
-    <string name="shop_cat_soon_sub">Still on the workbench.</string>
-    <string name="shop_cat_soon_empty">Repairs and other gear will appear here.</string>
+    <string name="shop_cat_combat">Combat</string>
+    <string name="shop_cat_combat_sub">Carried into your next Rustbot fight.</string>
+    <string name="shop_cat_expeditions">Expeditions</string>
+    <string name="shop_cat_expeditions_sub">Only usable while a rat is out in the Scrapyard.</string>
+    <string name="shop_cat_cosmetic">Cosmetic</string>
+    <string name="shop_cat_cosmetic_sub">Looks only. Nothing here changes a stat.</string>
+    <string name="shop_cat_featured">Featured</string>
+    <string name="shop_cat_featured_sub">Event stock will appear here.</string>
+
+    <string name="shop_name_hatchery">The Wobbly Hatchery</string>
+    <string name="shop_desc_hatchery">Hatch a rat on the spot, without walking for it.</string>
+    <string name="shop_name_revive">Revive Token</string>
+    <string name="shop_desc_revive">Held in reserve. Brings a rat straight back the next time one is beaten.</string>
+    <string name="shop_name_surge">Power Surge</string>
+    <string name="shop_desc_surge">Adds 3 Power for one fight, then burns out.</string>
+    <string name="shop_name_quick_return">Quick Return</string>
+    <string name="shop_desc_quick_return">Takes a quarter off the time left on the current expedition.</string>
+    <string name="shop_name_frame_brass">Brass Frame</string>
+    <string name="shop_name_frame_ember">Ember Frame</string>
+    <string name="shop_desc_frame">A trim for every card in the Ledger.</string>
+
     <!-- price in Scrap -->
     <string name="shop_price">%1$d Scrap</string>
     <string name="shop_active">Active</string>
+    <string name="shop_equip">Equip</string>
+    <string name="shop_equipped">Equipped</string>
+    <string name="shop_coming_soon_btn">Coming Soon</string>
+    <!-- description, number held -->
+    <string name="shop_held">%1$s  ·  %2$d held</string>
     <!-- item name -->
     <string name="shop_activated">%1$s Activated!</string>
+    <!-- item name -->
+    <string name="shop_not_yet">%1$s is still being built.</string>
     <string name="shop_too_poor">Not enough Scrap.</string>
+    <string name="shop_no_expedition">No rat is out in the Scrapyard.</string>
     <string name="shop_desc_mutagen">Guarantees 6-10 Power and Toughness.</string>
     <string name="shop_desc_polish">Guarantees a shiny variant.</string>
 

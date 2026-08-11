@@ -19,7 +19,9 @@ object EncounterResolver {
         val botName: String,
         val reward: Int,
         val ratHpLeft: Int,
-        val recoveringUntil: Long
+        val recoveringUntil: Long,
+        /** True when a Shop Revive Token was spent to skip the knockout. */
+        val revivedByToken: Boolean = false
     )
 
     /**
@@ -34,6 +36,7 @@ object EncounterResolver {
 
         val won = battle.outcome == BattleOutcome.PLAYER_WON
         var recoveringUntil = 0L
+        var revivedByToken = false
 
         if (won) {
             dao.recordWin(rat.id)
@@ -41,9 +44,21 @@ object EncounterResolver {
                 .putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + encounter.reward)
                 .apply()
         } else {
-            recoveringUntil = System.currentTimeMillis() + RECOVERY_MS
+            // A Shop Revive Token is spent here rather than offered: it was
+            // bought ahead of time precisely so the loss does not cost 30
+            // minutes. The pay-now dialog in BattleActivity is untouched and
+            // still covers a player holding no token.
+            revivedByToken = ShopEffects.spendCharge(prefs, ShopEffects.KEY_REVIVE_TOKENS)
+
+            if (!revivedByToken) {
+                recoveringUntil = System.currentTimeMillis() + RECOVERY_MS
+            }
             dao.recordLoss(rat.id, recoveringUntil)
         }
+
+        // A Power Surge is burned by the fight it was carried into, win or lose,
+        // and here rather than at the start so leaving a fight does not eat it.
+        prefs.edit().putBoolean(ShopEffects.KEY_POWER_SURGE, false).apply()
 
         Encounter.clear(prefs)
 
@@ -53,7 +68,8 @@ object EncounterResolver {
             botName = encounter.botName,
             reward = if (won) encounter.reward else 0,
             ratHpLeft = battle.ratHp,
-            recoveringUntil = recoveringUntil
+            recoveringUntil = recoveringUntil,
+            revivedByToken = revivedByToken
         )
     }
 

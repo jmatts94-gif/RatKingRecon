@@ -79,7 +79,12 @@ class BattleActivity : AppCompatActivity() {
 
             encounter = loaded.first
             rat = loaded.second
-            battle = encounter.toBattle(rat)
+            // A Shop Power Surge rides on this fight; EncounterResolver burns it
+            // when the fight settles.
+            battle = encounter.toBattle(
+                rat,
+                ShopEffects.surgeBonusFor(RatRepository.prefs(this@BattleActivity))
+            )
 
             bindStaticViews()
             wireActions()
