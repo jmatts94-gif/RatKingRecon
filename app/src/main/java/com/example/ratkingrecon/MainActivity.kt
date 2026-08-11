@@ -181,6 +181,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // 0. First launch: explain the game before the workshop appears. The
+        //    flag lives in the save, so a reset brings the walkthrough back.
+        if (!Onboarding.isComplete(RatRepository.prefs(this))) {
+            startActivity(android.content.Intent(this, OnboardingActivity::class.java))
+        }
+
         // 1. Permission Check
         val wanted = mutableListOf<String>()
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {

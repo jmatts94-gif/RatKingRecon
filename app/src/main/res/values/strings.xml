@@ -67,6 +67,27 @@
     <string name="import_confirm_body">Importing replaces everything you have now — every rat, your Scrap, level and EXP. This cannot be undone.\n\nExport your current save first if you want to keep it.</string>
     <string name="import_confirm_cta">Choose a File</string>
 
+    <!-- First-launch walkthrough -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_dot" translatable="false">●</string>
+
+    <string name="onboarding_welcome_title">Welcome to the Workshop</string>
+    <string name="onboarding_welcome_body">Rat King Recon runs on your feet. Every step you take out in the world earns EXP toward your next rat, and Scrap to spend on gear.</string>
+
+    <string name="onboarding_hatch_title">Walk to Hatch</string>
+    <string name="onboarding_hatch_body">Your phone counts your steps in the background, even with the app shut. Fill the EXP bar and the egg splits open — a new rat is yours.</string>
+
+    <string name="onboarding_ledger_title">The Rat Ledger</string>
+    <string name="onboarding_ledger_body">Every rat you hatch is written into the Ledger. Sort by Power, filter for shinies, and fill the collection out — there are 32 species to find.</string>
+
+    <string name="onboarding_fight_title">Fuse and Fight</string>
+    <string name="onboarding_fight_body">Feed two weak rats to the Fusion Pot to mint a stronger mutant. Out walking, Rustbots will block your path — fight one yourself, or settle it straight from the notification.</string>
+
+    <string name="onboarding_ready_title">Ready to Roll</string>
+    <string name="onboarding_ready_body">That is everything. Get walking, and your first rat will not be far off.</string>
+
     <!-- Settings: alerts -->
     <string name="settings_cat_alerts">Alerts</string>
     <string name="settings_cat_alerts_sub">The ongoing step-counter notification is required by Android and cannot be turned off.</string>
