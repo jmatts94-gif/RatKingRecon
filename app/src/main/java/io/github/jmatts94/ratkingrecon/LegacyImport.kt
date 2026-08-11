@@ -34,11 +34,6 @@ object LegacyImport {
         return if (json != null) fromJson(json) else fromCsv(prefs)
     }
 
-    /** True if either legacy format holds anything, used for reporting. */
-    fun hasLegacyData(prefs: SharedPreferences): Boolean =
-        prefs.getString(KEY_JSON, null) != null ||
-            (prefs.getStringSet(KEY_CSV, emptySet())?.isNotEmpty() == true)
-
     private fun fromJson(raw: String): List<RatEntity> {
         val rats = mutableListOf<RatEntity>()
         try {

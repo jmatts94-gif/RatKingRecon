@@ -71,7 +71,6 @@
 
     <!-- Home screen navigation -->
     <string name="btn_open_ledger">The Rat Ledger</string>
-    <string name="btn_send_to_ledger">Send to the Ledger</string>
     <string name="btn_contract_board">Contract Board</string>
     <string name="btn_ledger_tasks">Ledger Tasks</string>
     <string name="btn_shop">Shop</string>

@@ -381,7 +381,6 @@ private class AchStubDao : RatDao {
     override fun ownsShiny(): Boolean = false
     override fun weakest(limit: Int): List<RatEntity> = emptyList()
     override fun strongestAvailable(now: Long): RatEntity? = null
-    override fun availableCount(now: Long): Int = 0
     override fun recordWin(id: Long) = Unit
     override fun recordLoss(id: Long, until: Long) = Unit
     override fun revive(id: Long) = Unit

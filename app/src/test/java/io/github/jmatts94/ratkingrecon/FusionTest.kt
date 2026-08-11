@@ -72,6 +72,19 @@ class FusionTest {
         assertEquals("the count in the audit was 18", 18, previouslyUnreachable.size)
     }
 
+    /**
+     * Art and roster must stay in step, in both directions.
+     *
+     * A species with no art crashes at render time. Art with no species is dead
+     * weight in the APK - sixteen such files were shipped for months before
+     * anyone counted them.
+     */
+    @Test
+    fun `RatArt holds the roster and the fallback, and nothing else`() {
+        val expected = Roster.all.map { it.artKey }.toSet() + RatArt.FALLBACK_KEY
+        assertEquals(expected, RatArt.byKey.keys)
+    }
+
     // --- case handling --------------------------------------------------------
 
     @Test

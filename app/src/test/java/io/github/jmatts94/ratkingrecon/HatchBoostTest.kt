@@ -140,7 +140,6 @@ private class FakeRatDao : RatDao {
     override fun ownsShiny(): Boolean = rows.any { it.shiny }
     override fun weakest(limit: Int): List<RatEntity> = rows.sortedBy { it.score }.take(limit)
     override fun strongestAvailable(now: Long): RatEntity? = null
-    override fun availableCount(now: Long): Int = rows.count { !it.isRecovering(now) }
 
     override fun recordWin(id: Long) = replace(id) { it.copy(wins = it.wins + 1) }
 

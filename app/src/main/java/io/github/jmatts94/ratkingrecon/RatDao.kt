@@ -65,9 +65,6 @@ interface RatDao {
     """)
     fun strongestAvailable(now: Long): RatEntity?
 
-    @Query("SELECT COUNT(*) FROM rats WHERE recoveringUntil <= :now")
-    fun availableCount(now: Long): Int
-
     @Query("UPDATE rats SET wins = wins + 1 WHERE id = :id")
     fun recordWin(id: Long)
 

@@ -379,8 +379,6 @@ private class BossStubDao(
     override fun weakest(limit: Int): List<RatEntity> = rats.sortedBy { it.score }.take(limit)
     override fun strongestAvailable(now: Long): RatEntity? =
         if (allRecovering) null else rats.filter { !it.isRecovering(now) }.maxByOrNull { it.score }
-    override fun availableCount(now: Long): Int =
-        if (allRecovering) 0 else rats.count { !it.isRecovering(now) }
     override fun recordWin(id: Long) = replace(id) { it.copy(wins = it.wins + 1) }
     override fun recordLoss(id: Long, until: Long) =
         replace(id) { it.copy(losses = it.losses + 1, recoveringUntil = until) }

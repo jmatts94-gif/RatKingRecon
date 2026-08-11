@@ -241,8 +241,6 @@ private class StubDao(
         if (allRecovering) null
         else rats.filter { !it.isRecovering(now) }.maxByOrNull { it.score }
 
-    override fun availableCount(now: Long): Int =
-        if (allRecovering) 0 else rats.count { !it.isRecovering(now) }
 
     override fun recordWin(id: Long) = replace(id) { it.copy(wins = it.wins + 1) }
 
