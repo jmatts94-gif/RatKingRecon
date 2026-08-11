@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
             apply()
         }
 
-        Toast.makeText(this, "Contract Accepted! You have $minutesAllowed mins.", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.toast_contract_accepted, minutesAllowed), Toast.LENGTH_LONG).show()
     }
     private lateinit var missionButton: Button
     private lateinit var sharedPreferences: SharedPreferences
@@ -75,27 +75,9 @@ class MainActivity : AppCompatActivity() {
     private var launchBaselineSteps = 0f
     private var stepsSinceLaunch = 0
 
-    private fun deployRat(ratId: Long, hoursToScavenge: Int) {
-        isExpeditionActive = true
-        deployedRatId = ratId
-
-        // Math: hours * 60 mins * 60 secs * 1000 milliseconds
-        val msToAdd = hoursToScavenge * 60 * 60 * 1000L
-        expeditionEndTime = System.currentTimeMillis() + msToAdd
-
-        // Save to SharedPreferences so it survives the app closing!
-        with(sharedPreferences.edit()) {
-            putBoolean("EXPEDITION_ACTIVE", isExpeditionActive)
-            putLong("DEPLOYED_RAT_ID", deployedRatId)
-            putLong("EXPEDITION_END_TIME", expeditionEndTime)
-            apply()
-        }
-
-        Toast.makeText(this, "Rat deployed to the Scrapyard for $hoursToScavenge hours!", Toast.LENGTH_LONG).show()
-    }
     private fun checkExpedition() {
         if (!isExpeditionActive) {
-            Toast.makeText(this, "No rats currently in the Scrapyard.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_no_rats_out), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -104,27 +86,27 @@ class MainActivity : AppCompatActivity() {
         if (currentTime >= expeditionEndTime) {
             // SCENARIO A: TIME IS UP! (Give Reward)
             isExpeditionActive = false
-            sharedPreferences.edit().putBoolean("EXPEDITION_ACTIVE", false).apply()
+            sharedPreferences.edit().putBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false).apply()
 
             // Give a massive payout for waiting (e.g., 200 to 500 Scrap)
             val reward = (200..500).random()
-            val currentScrap = sharedPreferences.getInt("SCRAP", 0)
-            sharedPreferences.edit().putInt("SCRAP", currentScrap + reward).apply()
+            val currentScrap = sharedPreferences.getInt(GameEngine.KEY_SCRAP, 0)
+            sharedPreferences.edit().putInt(GameEngine.KEY_SCRAP, currentScrap + reward).apply()
 
-            Toast.makeText(this, "Expedition Complete! Your rat brought back $reward Scrap!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.toast_expedition_complete, reward), Toast.LENGTH_LONG).show()
             updateScreen()
         } else {
             // SCENARIO B: STILL WORKING (Tell them how long is left)
             val timeLeftMillis = expeditionEndTime - currentTime
             val minutesLeft = (timeLeftMillis / (1000 * 60)).toInt()
 
-            Toast.makeText(this, "Rat is still scavenging... $minutesLeft minutes left.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_expedition_running, minutesLeft), Toast.LENGTH_SHORT).show()
         }
     }
     private fun showBountyBoard() {
         // Block if a mission is already running
         if (isBountyActive) {
-            Toast.makeText(this, "You already have an active contract!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_contract_active), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -278,7 +260,7 @@ class MainActivity : AppCompatActivity() {
             expeditionEndTime = 0L
 
             updateScreen()
-            Toast.makeText(this, "Game Reset", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_game_reset), Toast.LENGTH_SHORT).show()
         }
 
         // Load the rest of the game data
@@ -298,12 +280,12 @@ class MainActivity : AppCompatActivity() {
     private fun celebrateHatch(artKey: String, name: String) {
         petImage.setImageResource(RatArt.resId(artKey))
         revealUntil = System.currentTimeMillis() + REVEAL_MS
-        Toast.makeText(this, "$name hatched and joined the Ledger!", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, getString(R.string.toast_hatch_joined, name), Toast.LENGTH_LONG).show()
     }
 
     private fun updateScreen() {
         // The header icons carry the meaning now, so these are bare values.
-        scrapText.text = sharedPreferences.getInt("SCRAP", 0).toString()
+        scrapText.text = sharedPreferences.getInt(GameEngine.KEY_SCRAP, 0).toString()
         playerLevelText.text = "Lvl $playerLevel"
         updateStepDisplays()
 
@@ -383,15 +365,6 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    // Progress only - the collection is owned by Vault and written when it changes,
-    // not on every step the pedometer reports.
-    private fun saveGame() {
-        sharedPreferences.edit()
-            .putInt("PLAYER_LEVEL", playerLevel)
-            .putInt("CURRENT_EXP", currentExp)
-            .apply()
-    }
-
     private fun loadGame() {
         playerLevel = sharedPreferences.getInt("PLAYER_LEVEL", 1)
         currentExp = sharedPreferences.getInt("CURRENT_EXP", 0)
@@ -414,9 +387,9 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
-        isExpeditionActive = sharedPreferences.getBoolean("EXPEDITION_ACTIVE", false)
+        isExpeditionActive = sharedPreferences.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false)
         if (isExpeditionActive) {
-            expeditionEndTime = sharedPreferences.getLong("EXPEDITION_END_TIME", 0L)
+            expeditionEndTime = sharedPreferences.getLong(ShopEffects.KEY_EXPEDITION_END, 0L)
         }
 
         reloadProgress()

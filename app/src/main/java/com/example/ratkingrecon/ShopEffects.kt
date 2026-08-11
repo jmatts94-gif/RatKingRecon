@@ -87,10 +87,11 @@ object ShopEffects {
 
     // ---- immediate actions ---------------------------------------------------
 
-    // Written as literals elsewhere in the app; named here so this file does not
-    // have to reach into MainActivity for them.
-    private const val KEY_EXPEDITION_ACTIVE = "EXPEDITION_ACTIVE"
-    private const val KEY_EXPEDITION_END = "EXPEDITION_END_TIME"
+    // The one place these two keys are spelled out. MainActivity and
+    // GalleryActivity read and write the same expedition, so they refer to
+    // these rather than repeating the literals and risking a silent typo.
+    const val KEY_EXPEDITION_ACTIVE = "EXPEDITION_ACTIVE"
+    const val KEY_EXPEDITION_END = "EXPEDITION_END_TIME"
 
     /**
      * Quick Return: takes a quarter off whatever is left of the expedition.

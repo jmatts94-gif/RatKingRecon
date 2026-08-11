@@ -245,7 +245,7 @@ class LedgerTasksActivity : AppCompatActivity() {
             message = getString(R.string.task_success_relic, rewardAmount, relic)
         }
 
-        editor.putInt("SCRAP", prefs.getInt("SCRAP", 0) + rewardAmount)
+        editor.putInt(GameEngine.KEY_SCRAP, prefs.getInt(GameEngine.KEY_SCRAP, 0) + rewardAmount)
         editor.putBoolean("${taskId}_ACTIVE", false)
         editor.apply()
 

@@ -152,6 +152,25 @@
     <string name="btn_close">Close</string>
     <string name="ledger_tasks_title">Ledger Tasks</string>
 
+    <!-- Transient confirmations shown as Toasts, from the home screen and the Ledger -->
+    <!-- minutes allowed -->
+    <string name="toast_contract_accepted">Contract Accepted! You have %1$d mins.</string>
+    <string name="toast_contract_active">You already have an active contract!</string>
+    <string name="toast_no_rats_out">No rats currently in the Scrapyard.</string>
+    <!-- reward in Scrap -->
+    <string name="toast_expedition_complete">Expedition Complete! Your rat brought back %1$d Scrap!</string>
+    <!-- minutes remaining -->
+    <string name="toast_expedition_running">Rat is still scavenging... %1$d minutes left.</string>
+    <string name="toast_rat_already_out">You already have a rat in the Scrapyard!</string>
+    <!-- rat name -->
+    <string name="toast_rat_deployed">%1$s deployed! Check the Home Screen later.</string>
+    <!-- The 5 matches the Fusion Pot's Scrap cost in GalleryActivity. -->
+    <string name="toast_splice_requirements">Need 5 Scrap and at least 2 rats!</string>
+    <string name="toast_fusion_complete">Fusion Complete! Mutant Created.</string>
+    <!-- rat name -->
+    <string name="toast_hatch_joined">%1$s hatched and joined the Ledger!</string>
+    <string name="toast_game_reset">Game Reset</string>
+
     <!-- Ledger Tasks (timed roster jobs). mission_checking_roster is shared with
          the Contract Board dialog, so it keeps its original name. -->
     <!-- number of relics recovered -->

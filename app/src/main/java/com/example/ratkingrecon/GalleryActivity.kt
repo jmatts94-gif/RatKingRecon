@@ -86,10 +86,10 @@ class GalleryActivity : AppCompatActivity() {
         }
 
         // Load the Idle Expedition (So this one doesn't get amnesia either!)
-        isExpeditionActive = sharedPreferences.getBoolean("EXPEDITION_ACTIVE", false)
+        isExpeditionActive = sharedPreferences.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false)
         if (isExpeditionActive) {
             deployedRatId = sharedPreferences.getLong("DEPLOYED_RAT_ID", -1L)
-            expeditionEndTime = sharedPreferences.getLong("EXPEDITION_END_TIME", 0L)
+            expeditionEndTime = sharedPreferences.getLong(ShopEffects.KEY_EXPEDITION_END, 0L)
         }
 
         // --- THE FUSION POT LOGIC ---
@@ -122,12 +122,12 @@ class GalleryActivity : AppCompatActivity() {
      */
     private fun spliceWeakestPair(sharedPreferences: SharedPreferences) {
         lifecycleScope.launch {
-            val scrap = sharedPreferences.getInt("SCRAP", 0)
+            val scrap = sharedPreferences.getInt(GameEngine.KEY_SCRAP, 0)
             val dao = withContext(Dispatchers.IO) { RatRepository.dao(this@GalleryActivity) }
             val parents = withContext(Dispatchers.IO) { dao.weakest(2) }
 
             if (scrap < 5 || parents.size < 2) {
-                Toast.makeText(this@GalleryActivity, "Need 5 Scrap and at least 2 rats!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@GalleryActivity, getString(R.string.toast_splice_requirements), Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
@@ -155,9 +155,9 @@ class GalleryActivity : AppCompatActivity() {
             )
 
             withContext(Dispatchers.IO) { dao.splice(parents, mutant) }
-            sharedPreferences.edit().putInt("SCRAP", scrap - 5).apply()
+            sharedPreferences.edit().putInt(GameEngine.KEY_SCRAP, scrap - 5).apply()
 
-            Toast.makeText(this@GalleryActivity, "Fusion Complete! Mutant Created.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@GalleryActivity, getString(R.string.toast_fusion_complete), Toast.LENGTH_SHORT).show()
             recreate()
         }
     }
@@ -264,8 +264,8 @@ class GalleryActivity : AppCompatActivity() {
             val prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
 
             // Block them if a rat is already out there!
-            if (prefs.getBoolean("EXPEDITION_ACTIVE", false)) {
-                Toast.makeText(this@GalleryActivity, "You already have a rat in the Scrapyard!", Toast.LENGTH_SHORT).show()
+            if (prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false)) {
+                Toast.makeText(this@GalleryActivity, getString(R.string.toast_rat_already_out), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -275,12 +275,12 @@ class GalleryActivity : AppCompatActivity() {
 
             // Save it to the exact same file the Home Screen checks
             prefs.edit()
-                .putBoolean("EXPEDITION_ACTIVE", true)
+                .putBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, true)
                 .putLong("DEPLOYED_RAT_ID", pet.id) // Remembering exactly which rat we sent
-                .putLong("EXPEDITION_END_TIME", endTime)
+                .putLong(ShopEffects.KEY_EXPEDITION_END, endTime)
                 .apply()
 
-            Toast.makeText(this@GalleryActivity, "${pet.name} deployed! Check the Home Screen later.", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@GalleryActivity, getString(R.string.toast_rat_deployed, pet.name), Toast.LENGTH_LONG).show()
             dialog.dismiss()
         }
 
