@@ -12,59 +12,94 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
- * Boss badges and lifetime walking milestones, on one screen.
+ * Boss badges and the three milestone categories, on one screen.
  *
- * One home-screen entry rather than two: the two lists answer the same question
- * - what has this save actually achieved - and splitting them would have cost a
- * second button on a home screen that already carries seven.
+ * One home-screen entry rather than four: they all answer the same question -
+ * what has this save actually achieved - and the home screen already carries
+ * eight buttons.
  *
- * Read-only, and cheap enough to rebuild wholesale in onResume rather than
- * diffing: eleven rows, all from preferences already in memory.
+ * Rebuilt wholesale on each resume rather than diffed. There are two dozen rows,
+ * all from one preferences read and three counting queries.
+ *
+ * The refresh here is also the safety net. Milestones latch at the point they
+ * are earned - walking, hatching, splicing, a Masterwork pull - but opening this
+ * screen re-evaluates them all, so a trigger that was missed because the process
+ * died mid-write cannot leave a badge permanently unearned.
  */
 class AchievementsActivity : AppCompatActivity() {
 
     private lateinit var badgeList: LinearLayout
-    private lateinit var milestoneList: LinearLayout
+    private lateinit var stepsList: LinearLayout
+    private lateinit var rosterList: LinearLayout
+    private lateinit var hatchingList: LinearLayout
     private lateinit var summary: TextView
-    private lateinit var milestoneSubtitle: TextView
+    private lateinit var stepsSubtitle: TextView
+    private lateinit var rosterSubtitle: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_achievements)
 
         badgeList = findViewById(R.id.badgeList)
-        milestoneList = findViewById(R.id.milestoneList)
+        stepsList = findViewById(R.id.stepsList)
+        rosterList = findViewById(R.id.rosterList)
+        hatchingList = findViewById(R.id.hatchingList)
         summary = findViewById(R.id.achievementsSummary)
-        milestoneSubtitle = findViewById(R.id.milestoneSubtitle)
+        stepsSubtitle = findViewById(R.id.stepsSubtitle)
+        rosterSubtitle = findViewById(R.id.rosterSubtitle)
 
         findViewById<View>(R.id.achievementsCloseButton).setOnClickListener { finish() }
     }
 
     override fun onResume() {
         super.onResume()
-        render()
+
+        lifecycleScope.launch {
+            val prefs = RatRepository.prefs(this@AchievementsActivity)
+            val progress = withContext(Dispatchers.IO) {
+                val dao = RatRepository.dao(this@AchievementsActivity)
+                val read = Milestones.readProgress(dao, prefs)
+                Milestones.refresh(prefs, read)
+                read
+            }
+            render(progress)
+        }
     }
 
-    private fun render() {
+    private fun render(progress: MilestoneProgress) {
         val prefs = RatRepository.prefs(this)
-        val lifetime = GameEngine.lifetimeStepsOf(prefs)
 
-        val badgesEarned = Bosses.defeatedCount(prefs)
-        val milestonesHit = Milestones.reachedCount(lifetime)
         summary.text = getString(
             R.string.achievements_summary,
-            badgesEarned + milestonesHit,
+            Bosses.defeatedCount(prefs) + Milestones.earnedCount(prefs),
             Bosses.all.size + Milestones.all.size
         )
 
-        milestoneSubtitle.text = getString(
-            R.string.achievements_milestones_sub,
-            lifetime,
-            Milestones.kilometresFor(lifetime)
+        stepsSubtitle.text = getString(
+            R.string.achievements_steps_sub,
+            progress.lifetimeSteps,
+            Milestones.kilometresFor(progress.lifetimeSteps)
+        )
+        rosterSubtitle.text = getString(
+            R.string.achievements_roster_sub,
+            progress.ratsHeld,
+            progress.speciesFound,
+            Roster.all.size
         )
 
+        renderBadges(prefs)
+        renderMilestones(stepsList, Milestones.steps, prefs, progress)
+        renderMilestones(rosterList, Milestones.roster, prefs, progress)
+        renderMilestones(hatchingList, Milestones.hatching, prefs, progress)
+    }
+
+    private fun renderBadges(prefs: android.content.SharedPreferences) {
         badgeList.removeAllViews()
         Bosses.all.forEach { spec ->
             val earned = Bosses.isDefeated(prefs, spec.id)
@@ -82,23 +117,36 @@ class AchievementsActivity : AppCompatActivity() {
                 )
             )
         }
+    }
 
-        milestoneList.removeAllViews()
-        Milestones.all.forEach { milestone ->
-            val reached = Milestones.reached(lifetime, milestone)
-            milestoneList.addView(
+    private fun renderMilestones(
+        into: LinearLayout,
+        milestones: List<Milestone>,
+        prefs: android.content.SharedPreferences,
+        progress: MilestoneProgress
+    ) {
+        into.removeAllViews()
+        milestones.forEach { milestone ->
+            val earned = Milestones.isEarned(prefs, milestone)
+            val current = Milestones.currentFor(milestone, progress)
+
+            // A yes/no milestone has nothing to count towards, so it gets a
+            // plain "not yet" rather than "0 of 1".
+            val detail = when {
+                earned -> getString(R.string.milestone_done)
+                milestone.target == 1L -> getString(R.string.milestone_not_yet)
+                else -> getString(R.string.milestone_progress, current, milestone.target)
+            }
+
+            into.addView(
                 row(
-                    parent = milestoneList,
+                    parent = into,
                     iconRes = milestone.iconRes,
                     name = getString(milestone.nameRes),
-                    detail = if (reached) {
-                        getString(R.string.milestone_done, milestone.steps)
-                    } else {
-                        getString(R.string.milestone_progress, lifetime, milestone.steps)
-                    },
-                    unlocked = reached,
-                    progress = if (reached) null else {
-                        Milestones.percentTowards(lifetime, milestone)
+                    detail = detail,
+                    unlocked = earned,
+                    progress = if (earned || milestone.target == 1L) null else {
+                        Milestones.percentTowards(milestone, progress)
                     }
                 )
             )

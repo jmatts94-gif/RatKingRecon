@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app_gradient"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -53,18 +54,18 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
 
-        <!-- Lifetime milestones -->
+        <!-- Lifetime steps -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
-            android:text="@string/achievements_milestones"
+            android:text="@string/achievements_steps"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/milestoneSubtitle"
+            android:id="@+id/stepsSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
@@ -73,7 +74,57 @@
             android:textSize="12sp" />
 
         <LinearLayout
-            android:id="@+id/milestoneList"
+            android:id="@+id/stepsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Roster size -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="@string/achievements_roster"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/rosterSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="10dp"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:id="@+id/rosterList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- Hatching -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="@string/achievements_hatching"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="10dp"
+            android:text="@string/achievements_hatching_sub"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:id="@+id/hatchingList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical" />

@@ -97,35 +97,137 @@ class AchievementsTest {
     // --- milestones -----------------------------------------------------------
 
     @Test
-    fun `milestones are ordered and match the brief`() {
+    fun `the three categories match the brief`() {
         assertEquals(
-            listOf(10_000L, 50_000L, 100_000L, 500_000L, 1_000_000L),
-            Milestones.all.map { it.steps }
+            listOf(10_000L, 50_000L, 100_000L, 250_000L, 500_000L, 1_000_000L),
+            Milestones.steps.map { it.target }
         )
+        assertEquals(
+            listOf(10L, 25L, 50L, Roster.all.size.toLong()),
+            Milestones.roster.map { it.target }
+        )
+        assertEquals(
+            listOf("hatch_shiny", "hatch_masterwork"),
+            Milestones.hatching.map { it.id }
+        )
+        assertEquals(12, Milestones.all.size)
     }
 
     @Test
-    fun `a milestone unlocks exactly at its threshold`() {
-        val first = Milestones.all.first()
-        assertFalse(Milestones.reached(9_999L, first))
-        assertTrue(Milestones.reached(10_000L, first))
-        assertTrue(Milestones.reached(10_001L, first))
+    fun `milestone ids are unique - they are save keys`() {
+        assertEquals(Milestones.all.size, Milestones.all.map { it.id }.distinct().size)
     }
 
     @Test
-    fun `reached count climbs with the total`() {
-        assertEquals(0, Milestones.reachedCount(0L))
-        assertEquals(1, Milestones.reachedCount(10_000L))
-        assertEquals(3, Milestones.reachedCount(120_000L))
-        assertEquals(5, Milestones.reachedCount(2_000_000L))
+    fun `Full Collection counts species, not rats held`() {
+        val full = Milestones.roster.first { it.id == "roster_full" }
+        assertEquals(MilestoneKind.SPECIES, full.kind)
+        assertEquals(Roster.all.size.toLong(), full.target)
+
+        // A hoard of duplicates is not a full collection.
+        val hoarder = MilestoneProgress(ratsHeld = 500, speciesFound = 4)
+        assertFalse(Milestones.isMet(full, hoarder))
+    }
+
+    @Test
+    fun `a milestone is met exactly at its threshold`() {
+        val first = Milestones.steps.first()
+        assertFalse(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 9_999L)))
+        assertTrue(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 10_000L)))
+        assertTrue(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 10_001L)))
     }
 
     @Test
     fun `progress is clamped to a whole percent`() {
-        val last = Milestones.all.last()
-        assertEquals(0, Milestones.percentTowards(0L, last))
-        assertEquals(50, Milestones.percentTowards(500_000L, last))
-        assertEquals(100, Milestones.percentTowards(9_999_999L, last))
+        val last = Milestones.steps.last()
+        assertEquals(0, Milestones.percentTowards(last, MilestoneProgress(lifetimeSteps = 0L)))
+        assertEquals(50, Milestones.percentTowards(last, MilestoneProgress(lifetimeSteps = 500_000L)))
+        assertEquals(100, Milestones.percentTowards(last, MilestoneProgress(lifetimeSteps = 9_999_999L)))
+    }
+
+    // --- latching, which is the whole point -----------------------------------
+
+    @Test
+    fun `refresh latches what has been met and returns only the new ones`() {
+        val prefs = FakePrefs()
+        val first = Milestones.refresh(prefs, MilestoneProgress(lifetimeSteps = 60_000L))
+
+        assertEquals(listOf("steps_10k", "steps_50k"), first.map { it.id })
+        assertTrue(Milestones.isEarned(prefs, Milestones.steps[0]))
+        assertEquals(2, Milestones.earnedCount(prefs))
+
+        // Same progress again: nothing is newly earned.
+        assertTrue(Milestones.refresh(prefs, MilestoneProgress(lifetimeSteps = 60_000L)).isEmpty())
+        assertEquals(2, Milestones.earnedCount(prefs))
+    }
+
+    /**
+     * The reason milestones are latched rather than recomputed.
+     *
+     * The Fusion Pot burns two rats to mint one, so a roster shrinks as it is
+     * used. Recomputing would take an earned badge back off a player for
+     * playing the game.
+     */
+    @Test
+    fun `a roster badge survives the roster shrinking`() {
+        val prefs = FakePrefs()
+        Milestones.refresh(prefs, MilestoneProgress(ratsHeld = 25))
+
+        val badge = Milestones.roster.first { it.id == "roster_25" }
+        assertTrue(Milestones.isEarned(prefs, badge))
+
+        // Splice it down to 11 rats.
+        Milestones.refresh(prefs, MilestoneProgress(ratsHeld = 11))
+        assertTrue("an earned badge must never be revoked", Milestones.isEarned(prefs, badge))
+    }
+
+    @Test
+    fun `First Shiny survives splicing the only shiny away`() {
+        val prefs = FakePrefs()
+        val shiny = Milestones.hatching.first { it.id == "hatch_shiny" }
+
+        Milestones.refresh(prefs, MilestoneProgress(ownsShiny = true))
+        assertTrue(Milestones.isEarned(prefs, shiny))
+
+        Milestones.refresh(prefs, MilestoneProgress(ownsShiny = false))
+        assertTrue(Milestones.isEarned(prefs, shiny))
+    }
+
+    @Test
+    fun `a masterwork pull is recorded and latches its badge`() {
+        val prefs = FakePrefs()
+        val badge = Milestones.hatching.first { it.id == "hatch_masterwork" }
+        assertFalse(Milestones.isEarned(prefs, badge))
+
+        Milestones.recordMasterworkPull(prefs)
+        Milestones.refresh(prefs, MilestoneProgress(masterworkPulled = true))
+        assertTrue(Milestones.isEarned(prefs, badge))
+    }
+
+    @Test
+    fun `the cheap step refresh latches steps and nothing else`() {
+        val prefs = FakePrefs()
+        // Deliberately passed a progress that would satisfy roster badges too;
+        // the sensor-path refresh must not need or use them.
+        Milestones.refreshSteps(prefs, 100_000L)
+
+        assertTrue(Milestones.isEarned(prefs, Milestones.steps[2]))
+        assertFalse(Milestones.isEarned(prefs, Milestones.roster[0]))
+        assertEquals(3, Milestones.earnedCount(prefs))
+    }
+
+    @Test
+    fun `walking latches step milestones through onSteps`() {
+        val prefs = FakePrefs()
+        val dao = AchStubDao()
+
+        GameEngine.onSteps(dao, prefs, 0f)
+        GameEngine.onSteps(dao, prefs, 10_000f)
+
+        assertTrue(
+            "walking past 10k should have latched the first milestone",
+            Milestones.isEarned(prefs, Milestones.steps.first())
+        )
     }
 
     @Test

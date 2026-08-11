@@ -197,8 +197,15 @@ class ShopActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val hatched = withContext(Dispatchers.IO) {
+                val dao = RatRepository.dao(this@ShopActivity)
                 val minted = Masterwork.roll()
-                minted.copy(id = RatRepository.dao(this@ShopActivity).insert(minted))
+                val stored = minted.copy(id = dao.insert(minted))
+
+                // The only place a Masterwork pull is observable: the rat it
+                // mints carries no column marking it as one.
+                Milestones.recordMasterworkPull(prefs)
+                Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+                stored
             }
 
             val scrap = prefs.getInt(GameEngine.KEY_SCRAP, 0)

@@ -150,6 +150,15 @@ object GameEngine {
         editor.putInt(KEY_EXP, exp)
         editor.apply()
 
+        // Step milestones latch on every batch: they read a number already in
+        // preferences, so it costs nothing on the sensor path. The collection
+        // ones are only worth re-reading when the collection just changed, which
+        // is exactly when a hatch has landed.
+        Milestones.refreshSteps(prefs, lifetimeStepsOf(prefs))
+        if (hatched != null) {
+            Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+        }
+
         // Rolled after EXP is banked so a hatch and an encounter can both land
         // from one batch of steps without competing for it.
         val encounter = maybeTriggerEncounter(dao, prefs, totalSteps, gained, level)

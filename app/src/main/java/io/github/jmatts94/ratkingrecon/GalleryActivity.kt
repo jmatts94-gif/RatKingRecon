@@ -134,7 +134,16 @@ class GalleryActivity : AppCompatActivity() {
                 isSpliced = true
             )
 
-            withContext(Dispatchers.IO) { dao.splice(parents, mutant) }
+            withContext(Dispatchers.IO) {
+                dao.splice(parents, mutant)
+                // A splice consumes two rats and mints one, so the roster shrinks
+                // - but the mutant can still be the species that completes the
+                // collection, and milestones only ever latch on.
+                Milestones.refresh(
+                    sharedPreferences,
+                    Milestones.readProgress(dao, sharedPreferences)
+                )
+            }
             sharedPreferences.edit().putInt(GameEngine.KEY_SCRAP, scrap - 5).apply()
 
             Toast.makeText(this@GalleryActivity, getString(R.string.toast_fusion_complete), Toast.LENGTH_SHORT).show()
