@@ -13,7 +13,7 @@
     <!-- unique species found, total species in the roster -->
     <string name="collection_progress">Collection: %1$d / %2$d Rats Found</string>
     <string name="btn_back_to_workshop">Back to the Workshop</string>
-    <string name="splicing_vat_text">The Fusion Pot: Fuse 2 Weakest (Cost: 5 Scrap)</string>
+    <string name="fusion_pot_text">The Fusion Pot: Fuse 2 Weakest (Cost: 5 Scrap)</string>
 
     <!-- Consumables -->
     <string name="btn_mutagen">Tinkerer\'s Serum</string>

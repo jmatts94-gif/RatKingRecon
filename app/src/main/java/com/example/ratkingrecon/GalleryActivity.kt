@@ -92,7 +92,7 @@ class GalleryActivity : AppCompatActivity() {
             expeditionEndTime = sharedPreferences.getLong("EXPEDITION_END_TIME", 0L)
         }
 
-        // --- THE SPLICING VAT LOGIC ---
+        // --- THE FUSION POT LOGIC ---
         // Colours now come from the layout so they stay in step with the palette.
         val spliceButton = findViewById<Button>(R.id.spliceButton)
 
