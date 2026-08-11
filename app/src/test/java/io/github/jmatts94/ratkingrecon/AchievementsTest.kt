@@ -154,25 +154,79 @@ class AchievementsTest {
     }
 
     @Test
-    fun `the wrench stacks on top of a power surge`() {
+    fun `the two buffs are mutually exclusive, and the wrench wins`() {
         val prefs = FakePrefs()
         prefs.values[ShopEffects.KEY_POWER_SURGE] = true
         prefs.values[ShopEffects.KEY_GOLDEN_WRENCH] = true
 
         val loadout = ShopEffects.loadoutFor(prefs)
-        // The flat bonus lands first, then the multiplier: (3 + 3) * 1.5.
-        assertEquals(9, loadout.powerFor(3))
+        // Not compounded: a save carrying both - imported from the build where
+        // they stacked - gets the dearer item, not the product of the two.
+        assertEquals(5, loadout.powerFor(3))
         assertEquals(45, loadout.maxHpFor(30))
     }
 
     @Test
-    fun `a surge alone is still flat`() {
+    fun `the Shop refuses to sell a buff that could not apply`() {
+        val prefs = FakePrefs()
+        assertFalse(ShopEffects.conflictsWithArmedBuff(prefs, ShopEffects.KEY_POWER_SURGE))
+
+        prefs.values[ShopEffects.KEY_GOLDEN_WRENCH] = true
+        assertTrue(ShopEffects.conflictsWithArmedBuff(prefs, ShopEffects.KEY_POWER_SURGE))
+
+        prefs.values.clear()
+        prefs.values[ShopEffects.KEY_POWER_SURGE] = true
+        assertTrue(ShopEffects.conflictsWithArmedBuff(prefs, ShopEffects.KEY_GOLDEN_WRENCH))
+        assertFalse(
+            "unrelated flags are not combat buffs",
+            ShopEffects.conflictsWithArmedBuff(prefs, GameEngine.KEY_MUTAGEN)
+        )
+    }
+
+    @Test
+    fun `a surge raises Power by half and leaves HP alone`() {
         val prefs = FakePrefs()
         prefs.values[ShopEffects.KEY_POWER_SURGE] = true
 
         val loadout = ShopEffects.loadoutFor(prefs)
-        assertEquals(6, loadout.powerFor(3))
+        assertEquals(5, loadout.powerFor(3))
         assertEquals("HP is untouched without a wrench", 30, loadout.maxHpFor(30))
+    }
+
+    /**
+     * The reason the flat bonus was replaced.
+     *
+     * A flat +3 was worth +100% to a Power 3 rat and +38% to a Power 8 one, so
+     * the better the roster got the less a Surge did - against bosses scaled off
+     * that same rat, it got actively worse. A proportion cannot drift that way.
+     */
+    @Test
+    fun `a surge is worth the same proportion at every rat size`() {
+        val prefs = FakePrefs()
+        prefs.values[ShopEffects.KEY_POWER_SURGE] = true
+        val loadout = ShopEffects.loadoutFor(prefs)
+
+        (2..10).forEach { base ->
+            val ratio = loadout.powerFor(base).toDouble() / base
+            assertTrue(
+                "power $base scaled by $ratio, outside rounding tolerance of 1.5",
+                ratio > 1.3 && ratio < 1.75
+            )
+        }
+    }
+
+    @Test
+    fun `a surge is never rounded away to nothing`() {
+        val prefs = FakePrefs()
+        prefs.values[ShopEffects.KEY_POWER_SURGE] = true
+        val loadout = ShopEffects.loadoutFor(prefs)
+
+        (1..10).forEach { base ->
+            assertTrue(
+                "a Surge left a Power $base rat unchanged - it would read as broken",
+                loadout.powerFor(base) > base
+            )
+        }
     }
 
     @Test
@@ -189,7 +243,7 @@ class AchievementsTest {
 
     @Test
     fun `a loadout never drops a stat below one`() {
-        val crushing = Loadout(bonusPower = -99, powerMultiplier = 0.0, hpMultiplier = 0.0)
+        val crushing = Loadout(powerMultiplier = 0.0, hpMultiplier = 0.0)
         assertEquals(1, crushing.powerFor(3))
         assertEquals(1, crushing.maxHpFor(30))
     }

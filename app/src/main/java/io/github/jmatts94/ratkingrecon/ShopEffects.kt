@@ -21,19 +21,23 @@ object ShopEffects {
     const val KEY_POWER_SURGE = "POWER_SURGE_ACTIVE"
 
     /**
-     * Extra Power a surged rat carries into one fight.
+     * What a Power Surge multiplies the rat's Power by.
      *
-     * Rat Power rolls 1-5 (6-10 with the Serum), so +3 is a real swing without
-     * making a fight a foregone conclusion. Nothing in the brief fixed a number.
+     * A proportion rather than the flat +3 this used to be. Rustbots - and
+     * bosses especially - are scaled off the rat that meets them, so a flat
+     * bonus was worth twice as much to a Power 3 rat as to a Power 6 one, and
+     * the stronger the roster got the less a Surge did. Simulated against the
+     * boss tiers, the flat version actually inverted: a 3/3 rat beat four of
+     * the five, an 8/8 rat only three.
+     *
+     * Half again, and not less, because Power is a small integer. Anything under
+     * 17% rounds away entirely on a Power 3 rat, and under 50% on a Power 1 one -
+     * an item that visibly does nothing is worse than no item.
      */
-    const val POWER_SURGE_BONUS = 3
+    const val SURGE_MULTIPLIER = 1.5
 
     fun powerSurgeArmed(prefs: SharedPreferences): Boolean =
         prefs.getBoolean(KEY_POWER_SURGE, false)
-
-    /** Power to add for a fight starting now. Zero unless a surge is armed. */
-    fun surgeBonusFor(prefs: SharedPreferences): Int =
-        if (powerSurgeArmed(prefs)) POWER_SURGE_BONUS else 0
 
     /** Set by the Golden Wrench, read and cleared by the next fight that resolves. */
     const val KEY_GOLDEN_WRENCH = "GOLDEN_WRENCH_ACTIVE"
@@ -41,9 +45,9 @@ object ShopEffects {
     /**
      * What a Golden Wrench multiplies, on attack and on staying power.
      *
-     * Half again on both is what makes the boss tiers tractable: their Power
-     * multipliers sit between 1.15 and 1.4, and their HP between 1.6 and 2.5,
-     * against a rat whose own stats never grow with level.
+     * The same proportion on Power as a Surge; what the extra 125 Scrap buys is
+     * the second half, on maximum HP. That is what carries a rat through The
+     * Rustbringer, which no Surge beats at any rat size.
      */
     const val WRENCH_MULTIPLIER = 1.5
 
@@ -51,18 +55,37 @@ object ShopEffects {
         prefs.getBoolean(KEY_GOLDEN_WRENCH, false)
 
     /**
-     * Everything the Shop has armed, gathered once for a fight about to start.
+     * What the Shop has armed, gathered once for a fight about to start.
      *
-     * Both buffs stack, and both are spent by the fight they are carried into -
-     * see [clearOneShotBuffs], which the resolver calls win or lose.
+     * The two are mutually exclusive, and the Shop refuses to sell one while the
+     * other is armed. This resolves it a second time anyway, in favour of the
+     * dearer item, so a save that somehow holds both - an import from an older
+     * build, where they stacked - cannot end up worse off than either alone.
+     *
+     * Whichever applied is spent by the fight it was carried into; see
+     * [clearOneShotBuffs], which the resolver calls win or lose.
      */
-    fun loadoutFor(prefs: SharedPreferences): Loadout {
-        val wrench = if (wrenchArmed(prefs)) WRENCH_MULTIPLIER else 1.0
-        return Loadout(
-            bonusPower = surgeBonusFor(prefs),
-            powerMultiplier = wrench,
-            hpMultiplier = wrench
+    fun loadoutFor(prefs: SharedPreferences): Loadout = when {
+        wrenchArmed(prefs) -> Loadout(
+            powerMultiplier = WRENCH_MULTIPLIER,
+            hpMultiplier = WRENCH_MULTIPLIER
         )
+
+        powerSurgeArmed(prefs) -> Loadout(powerMultiplier = SURGE_MULTIPLIER)
+
+        else -> Loadout.NONE
+    }
+
+    /**
+     * True when [key] is a combat buff the player already has one of.
+     *
+     * The Shop asks before charging, so buying a Surge with a Wrench in hand
+     * cannot quietly take the Scrap for something that would never apply.
+     */
+    fun conflictsWithArmedBuff(prefs: SharedPreferences, key: String): Boolean = when (key) {
+        KEY_POWER_SURGE -> wrenchArmed(prefs)
+        KEY_GOLDEN_WRENCH -> powerSurgeArmed(prefs)
+        else -> false
     }
 
     /** Burns whatever a finished fight was carrying. */

@@ -56,12 +56,12 @@ class ShopEffectsTest {
     // ---- power surge ---------------------------------------------------------
 
     @Test
-    fun `surge adds nothing until it is armed`() {
+    fun `surge changes nothing until it is armed`() {
         val prefs = FakePrefs()
-        assertEquals(0, ShopEffects.surgeBonusFor(prefs))
+        assertEquals(4, ShopEffects.loadoutFor(prefs).powerFor(4))
 
         prefs.edit().putBoolean(ShopEffects.KEY_POWER_SURGE, true).apply()
-        assertEquals(ShopEffects.POWER_SURGE_BONUS, ShopEffects.surgeBonusFor(prefs))
+        assertEquals(6, ShopEffects.loadoutFor(prefs).powerFor(4))
     }
 
     // ---- quick return --------------------------------------------------------

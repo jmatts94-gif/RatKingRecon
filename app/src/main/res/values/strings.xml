@@ -39,7 +39,7 @@
     <string name="shop_name_revive">Revive Token</string>
     <string name="shop_desc_revive">Held in reserve. Brings a rat straight back the next time one is beaten.</string>
     <string name="shop_name_surge">Power Surge</string>
-    <string name="shop_desc_surge">Adds 3 Power for one fight, then burns out.</string>
+    <string name="shop_desc_surge">+50% Power for one fight, then burns out.</string>
     <string name="shop_name_quick_return">Quick Return</string>
     <string name="shop_desc_quick_return">Takes a quarter off the time left on the current expedition.</string>
     <string name="shop_name_frame_brass">Brass Frame</string>
@@ -212,9 +212,10 @@ RARE DROP: %2$s</string>
 
     <!-- Golden Wrench -->
     <string name="shop_name_wrench">Golden Wrench</string>
-    <string name="shop_desc_wrench">Half again on Power and staying power, for one fight.</string>
+    <string name="shop_desc_wrench">+50% Power and +50% max HP, for one fight.</string>
     <string name="tooltip_wrench_title">Golden Wrench</string>
-    <string name="tooltip_wrench_body">Multiplies your rat\'s Power and maximum HP by 1.5 for a single fight, then it is spent — win or lose. Stacks on top of a Power Surge. Worth saving for a boss.</string>
+    <string name="tooltip_wrench_body">Raises your rat\'s Power and maximum HP by half for a single fight, then it is spent — win or lose. Only one combat buff rides a fight, so it cannot be combined with a Power Surge. The extra HP is what carries a rat through the last boss.</string>
+    <string name="shop_buff_conflict">One combat buff per fight — spend the one you are holding first.</string>
 
     <!-- Boss Rustbots. Names are display only; the ids behind them live in Boss.kt. -->
     <string name="boss_junk_golem">The Junk Golem</string>

@@ -140,6 +140,13 @@ class ShopActivity : AppCompatActivity() {
 
         if (effect is ShopEffect.Flag && prefs.getBoolean(effect.key, false)) return
 
+        // Power Surge and the Golden Wrench are mutually exclusive: only one can
+        // ride a fight, so selling the second would be charging for nothing.
+        if (effect is ShopEffect.Flag && ShopEffects.conflictsWithArmedBuff(prefs, effect.key)) {
+            toast(getString(R.string.shop_buff_conflict))
+            return
+        }
+
         val scrap = prefs.getInt(GameEngine.KEY_SCRAP, 0)
         if (scrap < item.price) {
             toast(getString(R.string.shop_too_poor))
