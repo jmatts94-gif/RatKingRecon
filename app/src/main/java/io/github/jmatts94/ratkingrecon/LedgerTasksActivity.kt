@@ -1,0 +1,274 @@
+package io.github.jmatts94.ratkingrecon
+
+import android.content.Context
+import android.content.SharedPreferences
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+/**
+ * Ledger Tasks: timed jobs the roster qualifies for on its best stats.
+ *
+ * Distinct from the Scrap Run, which sends one named rat away for four hours.
+ * A task checks the collection's best Power, best Toughness or whether a shiny
+ * exists, and locks nothing up while it runs.
+ *
+ * The M1/M2/M3 preference keys are deliberately unchanged by the rename: they
+ * hold tasks players already have running.
+ */
+class LedgerTasksActivity : AppCompatActivity() {
+
+    private lateinit var prefs: SharedPreferences
+
+    private val timeM1 = 2 * 60 * 60 * 1000L   // 2 Hours
+    private val timeM2 = 8 * 60 * 60 * 1000L   // 8 Hours
+    private val timeM3 = 24 * 60 * 60 * 1000L  // 24 Hours
+
+    private val prefixes = arrayOf("The Rust", "The Toxic", "The Abandoned", "The Glowing", "The Flooded", "The Iron")
+    private val suffixes = arrayOf("Pipes", "Factory", "Sewer", "Crater", "Warehouse", "Subway", "Scrapyard")
+
+    /**
+     * Best Power, best Toughness, owns-a-shiny.
+     *
+     * Cached after the first read so the ticker below can redraw without going
+     * back to the database every half minute. Only a claim changes it, and that
+     * clears the cache itself.
+     */
+    private var rosterStats: Triple<Int, Int, Boolean>? = null
+
+    private val ticker = Handler(Looper.getMainLooper())
+
+    /** Keeps the countdown honest while the screen is open. */
+    private val tick = object : Runnable {
+        override fun run() {
+            rosterStats?.let { bindTasks(it) }
+            ticker.postDelayed(this, TICK_MS)
+        }
+    }
+
+    private companion object {
+        const val TICK_MS = 30_000L
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_mission)
+
+        prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
+
+        // Wired here rather than in the refresh, so it works while stats load.
+        findViewById<Button>(R.id.btnBack).setOnClickListener { finish() }
+    }
+
+    /**
+     * Everything is drawn from here rather than from onCreate.
+     *
+     * Coming back to a screen that was left running used to show a frozen
+     * countdown and a button still marked "Exploring…" long after the task had
+     * finished; now returning to it redraws, and the ticker keeps it moving.
+     */
+    override fun onResume() {
+        super.onResume()
+        checkDailyReroll()
+        refresh()
+        ticker.postDelayed(tick, TICK_MS)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        ticker.removeCallbacks(tick)
+    }
+
+    private fun refresh() {
+        findViewById<TextView>(R.id.relicCountText).text =
+            getString(R.string.task_relics, prefs.getStringSet("RELICS", emptySet())?.size ?: 0)
+
+        val cached = rosterStats
+        if (cached != null) {
+            bindTasks(cached)
+            return
+        }
+
+        // Aggregated in SQL rather than by loading every rat, and off the main
+        // thread because Room insists.
+        lifecycleScope.launch {
+            val stats = withContext(Dispatchers.IO) {
+                val dao = RatRepository.dao(this@LedgerTasksActivity)
+                Triple(dao.maxPower(), dao.maxToughness(), dao.ownsShiny())
+            }
+            rosterStats = stats
+            bindTasks(stats)
+        }
+    }
+
+    private fun bindTasks(stats: Triple<Int, Int, Boolean>) {
+        val (maxPower, maxToughness, ownsShiny) = stats
+
+        setupTask(
+            "M1", maxPower, timeM1,
+            findViewById(R.id.titleM1), findViewById(R.id.reqM1),
+            findViewById(R.id.rewardM1), findViewById(R.id.btnMission1),
+            R.string.stat_power
+        )
+
+        setupTask(
+            "M2", maxToughness, timeM2,
+            findViewById(R.id.titleM2), findViewById(R.id.reqM2),
+            findViewById(R.id.rewardM2), findViewById(R.id.btnMission2),
+            R.string.stat_toughness
+        )
+
+        // The shiny task has no numeric stat, so it passes a value that clears
+        // its stored requirement of 1 only when a shiny actually exists.
+        setupTask(
+            "M3", if (ownsShiny) 1 else 0, timeM3,
+            findViewById(R.id.titleM3), findViewById(R.id.reqM3),
+            findViewById(R.id.rewardM3), findViewById(R.id.btnMission3),
+            statNameRes = 0
+        )
+    }
+
+    private fun checkDailyReroll() {
+        val currentDay = (System.currentTimeMillis() / (1000 * 60 * 60 * 24)).toInt()
+        if (currentDay == prefs.getInt("LAST_ROLL_DAY", 0)) return
+
+        val editor = prefs.edit()
+
+        // Only overwrite tasks that are NOT currently running, so an unclaimed
+        // reward cannot be rerolled out from under the player.
+        if (!prefs.getBoolean("M1_ACTIVE", false)) {
+            editor.putString("M1_TITLE", "${prefixes.random()} ${suffixes.random()}")
+            editor.putInt("M1_REQ", (2..4).random())
+            editor.putInt("M1_REWARD", (15..30).random())
+        }
+        if (!prefs.getBoolean("M2_ACTIVE", false)) {
+            editor.putString("M2_TITLE", "${prefixes.random()} ${suffixes.random()}")
+            editor.putInt("M2_REQ", (4..7).random())
+            editor.putInt("M2_REWARD", (40..70).random())
+        }
+        if (!prefs.getBoolean("M3_ACTIVE", false)) {
+            editor.putString("M3_TITLE", "${prefixes.random()} ${suffixes.random()}")
+            editor.putInt("M3_REQ", 1) // 1 just means "needs a Shiny"
+            editor.putInt("M3_REWARD", (100..200).random())
+        }
+
+        editor.putInt("LAST_ROLL_DAY", currentDay).apply()
+    }
+
+    private fun setupTask(
+        taskId: String, playerStat: Int, durationMs: Long,
+        titleTxt: TextView, reqTxt: TextView, rewardTxt: TextView, btn: Button,
+        @StringRes statNameRes: Int
+    ) {
+        val isActive = prefs.getBoolean("${taskId}_ACTIVE", false)
+        val endTime = prefs.getLong("${taskId}_END_TIME", 0L)
+        val reqAmount = prefs.getInt("${taskId}_REQ", 1)
+        val rewardAmount = prefs.getInt("${taskId}_REWARD", 10)
+        val now = System.currentTimeMillis()
+
+        titleTxt.text = prefs.getString("${taskId}_TITLE", getString(R.string.task_unknown_sector))
+        reqTxt.text = if (statNameRes == 0) {
+            getString(R.string.task_requires_shiny)
+        } else {
+            getString(R.string.task_requires_stat, reqAmount, getString(statNameRes))
+        }
+        rewardTxt.text = getString(
+            R.string.task_reward_line,
+            (durationMs / (1000 * 60 * 60)).toInt(),
+            rewardAmount
+        )
+
+        // Re-enabled explicitly: the screen redraws in place now rather than
+        // being recreated, so a button disabled by a previous pass would stay
+        // disabled once the task became claimable.
+        btn.isEnabled = true
+
+        when {
+            isActive && now >= endTime -> {
+                btn.text = getString(R.string.task_claim)
+                tintButton(btn, R.color.amber)
+                btn.setOnClickListener { claim(taskId, rewardAmount) }
+            }
+
+            isActive -> {
+                val minsLeft = ((endTime - now) / (1000 * 60)).toInt()
+                btn.text = getString(R.string.task_exploring, minsLeft)
+                tintButton(btn, R.color.card_border)
+                btn.isEnabled = false
+            }
+
+            playerStat >= reqAmount -> {
+                btn.text = getString(R.string.task_start)
+                tintButton(btn, R.color.amber)
+                btn.setOnClickListener { start(taskId, durationMs) }
+            }
+
+            else -> {
+                btn.text = getString(R.string.task_too_weak)
+                tintButton(btn, R.color.disabled_fill)
+                btn.isEnabled = false
+            }
+        }
+    }
+
+    private fun start(taskId: String, durationMs: Long) {
+        val endAt = System.currentTimeMillis() + durationMs
+        prefs.edit()
+            .putBoolean("${taskId}_ACTIVE", true)
+            .putLong("${taskId}_END_TIME", endAt)
+            .apply()
+
+        // Nothing else is watching the clock, so the alert is armed here.
+        LedgerTaskAlarms.schedule(this, taskId, endAt)
+        refresh()
+    }
+
+    private fun claim(taskId: String, rewardAmount: Int) {
+        val editor = prefs.edit()
+
+        var message = getString(R.string.task_success, rewardAmount)
+        if ((1..100).random() <= 25) {
+            val relic = RELICS.random()
+            val held = prefs.getStringSet("RELICS", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+            held.add(relic)
+            editor.putStringSet("RELICS", held)
+            message = getString(R.string.task_success_relic, rewardAmount, relic)
+        }
+
+        editor.putInt(GameEngine.KEY_SCRAP, prefs.getInt(GameEngine.KEY_SCRAP, 0) + rewardAmount)
+        editor.putBoolean("${taskId}_ACTIVE", false)
+        editor.apply()
+
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        refresh()
+    }
+
+    /**
+     * Sets a MaterialButton's fill.
+     *
+     * setBackgroundColor() replaces the whole background drawable on a
+     * MaterialButton, which throws away its rounded corners, so the tint has to
+     * be applied as a tint list instead.
+     */
+    private fun tintButton(btn: Button, colorRes: Int) {
+        btn.backgroundTintList = ContextCompat.getColorStateList(this, colorRes)
+    }
+}
+
+/** Relic names are stored verbatim in the save, so these strings must not change. */
+private val RELICS = arrayOf(
+    "⚙️ Rusted Gear",
+    "🧪 Glowing Vial",
+    "📜 Tattered Blueprint",
+    "🔧 Heavy Wrench"
+)

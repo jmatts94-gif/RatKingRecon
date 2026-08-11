@@ -1,0 +1,71 @@
+package io.github.jmatts94.ratkingrecon
+
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+/**
+ * One rat in the player's collection.
+ *
+ * Every row is a distinct instance: two rats rolled with identical stats are two
+ * rows with two ids. That is the main thing the old JSON blob could not express,
+ * and it is what upcoming combat state hangs off.
+ *
+ * [artKey] is a stable name from [RatArt], never a drawable resource ID -
+ * resource IDs are regenerated on every build and must not reach storage.
+ *
+ * The combat columns all carry defaults so they can be introduced without
+ * backfilling existing rows.
+ */
+@Entity(
+    tableName = "rats",
+    indices = [Index("artKey"), Index("shiny")]
+)
+data class RatEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
+
+    @ColumnInfo(name = "artKey")
+    val artKey: String,
+
+    val name: String,
+    val power: Int,
+    val toughness: Int,
+    val shiny: Boolean,
+
+    /** When this rat hatched, for "newest first" ordering. */
+    val caughtAt: Long = System.currentTimeMillis(),
+
+    /** Spliced mutants are minted by the Fusion Pot rather than hatched. */
+    val isSpliced: Boolean = false,
+
+    // --- combat ---
+    val wins: Int = 0,
+    val losses: Int = 0,
+    val battleExp: Int = 0,
+    val ratLevel: Int = 1,
+
+    /** Epoch millis until which this rat is knocked out. 0 means ready. */
+    val recoveringUntil: Long = 0,
+
+    /**
+     * Flat HP on top of the Toughness-derived base.
+     *
+     * Max HP is deliberately *not* stored: it is a function of Toughness, and a
+     * stored copy would drift the moment the Fusion Pot changes that. This
+     * column exists so future upgrades can add HP without duplicating the base.
+     */
+    val bonusHp: Int = 0
+) {
+    /** Battle HP. Derived, so existing rats are correct with no backfill. */
+    val maxHp: Int get() = toughness * 10 + bonusHp
+
+    fun isRecovering(now: Long = System.currentTimeMillis()): Boolean = recoveringUntil > now
+
+    /** Resolved at render time; see [artKey]. */
+    val imageRes: Int get() = RatArt.resId(artKey)
+
+    /** Combined stat line, used to pick splice fodder and to rank the binder. */
+    val score: Int get() = power + toughness
+}

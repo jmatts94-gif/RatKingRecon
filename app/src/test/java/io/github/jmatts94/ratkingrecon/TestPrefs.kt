@@ -1,0 +1,83 @@
+package io.github.jmatts94.ratkingrecon
+
+import android.content.SharedPreferences
+
+/**
+ * In-memory SharedPreferences, shared by the JVM tests.
+ *
+ * Edits are buffered until apply/commit, exactly as the real implementation
+ * does - production code reads through the preferences while an editor is still
+ * open, so a fake that wrote straight through would not reproduce its behaviour.
+ */
+internal class FakePrefs : SharedPreferences {
+
+    val values = mutableMapOf<String, Any?>()
+
+    override fun getAll(): MutableMap<String, *> = values.toMutableMap()
+    override fun getString(key: String?, defValue: String?): String? = values[key] as? String ?: defValue
+    override fun getInt(key: String?, defValue: Int): Int = values[key] as? Int ?: defValue
+    override fun getLong(key: String?, defValue: Long): Long = values[key] as? Long ?: defValue
+    override fun getFloat(key: String?, defValue: Float): Float = values[key] as? Float ?: defValue
+    override fun getBoolean(key: String?, defValue: Boolean): Boolean = values[key] as? Boolean ?: defValue
+    override fun contains(key: String?): Boolean = values.containsKey(key)
+    override fun edit(): SharedPreferences.Editor = FakeEditor(this)
+
+    @Suppress("UNCHECKED_CAST")
+    override fun getStringSet(key: String?, defValues: MutableSet<String>?): MutableSet<String>? =
+        values[key] as? MutableSet<String> ?: defValues
+
+    override fun registerOnSharedPreferenceChangeListener(
+        listener: SharedPreferences.OnSharedPreferenceChangeListener?
+    ) = Unit
+
+    override fun unregisterOnSharedPreferenceChangeListener(
+        listener: SharedPreferences.OnSharedPreferenceChangeListener?
+    ) = Unit
+}
+
+internal class FakeEditor(private val target: FakePrefs) : SharedPreferences.Editor {
+
+    private val pending = mutableMapOf<String, Any?>()
+    private val removed = mutableSetOf<String>()
+    private var clearAll = false
+
+    override fun putString(key: String?, value: String?): SharedPreferences.Editor = set(key, value)
+    override fun putInt(key: String?, value: Int): SharedPreferences.Editor = set(key, value)
+    override fun putLong(key: String?, value: Long): SharedPreferences.Editor = set(key, value)
+    override fun putFloat(key: String?, value: Float): SharedPreferences.Editor = set(key, value)
+    override fun putBoolean(key: String?, value: Boolean): SharedPreferences.Editor = set(key, value)
+
+    override fun putStringSet(key: String?, values: MutableSet<String>?): SharedPreferences.Editor =
+        set(key, values)
+
+    override fun remove(key: String?): SharedPreferences.Editor {
+        if (key != null) removed += key
+        return this
+    }
+
+    override fun clear(): SharedPreferences.Editor {
+        clearAll = true
+        return this
+    }
+
+    override fun commit(): Boolean {
+        flush()
+        return true
+    }
+
+    override fun apply() = flush()
+
+    private fun set(key: String?, value: Any?): SharedPreferences.Editor {
+        if (key != null) pending[key] = value
+        return this
+    }
+
+    private fun flush() {
+        if (clearAll) target.values.clear()
+        removed.forEach { target.values.remove(it) }
+        target.values.putAll(pending)
+        pending.clear()
+        removed.clear()
+        clearAll = false
+    }
+}
