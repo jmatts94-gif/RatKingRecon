@@ -205,6 +205,18 @@ RARE DROP: %2$s</string>
     <string name="contract_board_subtitle">Select a physical bounty to earn scrap.</string>
     <!-- name, steps, minutes, reward - filled in when the board rolls its offers -->
     <string name="bounty_label">%1$s (%2$d Steps / %3$dm)\nReward: %4$d Scrap</string>
+    <!-- Battle Rat: the rat put on combat duty -->
+    <string name="btn_set_battle_rat">Set as Battle Rat</string>
+    <string name="btn_clear_battle_rat">Stand Down as Battle Rat</string>
+    <!-- rat name -->
+    <string name="toast_battle_rat_set">%1$s is on combat duty. No Scrap Runs, and it sits out the Ledger Task checks.</string>
+    <!-- rat name -->
+    <string name="toast_battle_rat_cleared">%1$s is off combat duty.</string>
+    <!-- rat name -->
+    <string name="toast_battle_rat_busy">%1$s is your Battle Rat. Stand it down first if you would rather send it out.</string>
+    <string name="toast_no_battle_rat">No Battle Rat set — the strongest rat fought. Pick one in the Ledger.</string>
+    <string name="task_battle_rat_locked">Your Battle Rat would qualify, but it is on combat duty.</string>
+
     <!-- Debug encounter trigger. Debug builds only; never reaches a release APK. -->
     <!-- bot name -->
     <string name="debug_encounter_raised">Debug: %1$s blocks your path.</string>

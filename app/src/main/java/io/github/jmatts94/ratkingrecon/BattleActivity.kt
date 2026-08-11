@@ -80,6 +80,17 @@ class BattleActivity : AppCompatActivity() {
 
             encounter = loaded.first
             rat = loaded.second
+
+            // Combat still works without a designation - it just picks the
+            // strongest rat, as it always did. Said once, here, because this is
+            // where a player is looking at the consequence of not having chosen.
+            if (!BattleRat.isSet(RatRepository.prefs(this@BattleActivity))) {
+                Toast.makeText(
+                    this@BattleActivity,
+                    R.string.toast_no_battle_rat,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
             // Whatever the Shop has armed rides on this fight; EncounterResolver
             // burns it when the fight settles.
             battle = encounter.toBattle(

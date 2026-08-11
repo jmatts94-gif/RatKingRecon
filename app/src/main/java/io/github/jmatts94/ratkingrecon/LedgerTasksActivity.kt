@@ -38,13 +38,29 @@ class LedgerTasksActivity : AppCompatActivity() {
     private val suffixes = arrayOf("Pipes", "Factory", "Sewer", "Crater", "Warehouse", "Subway", "Scrapyard")
 
     /**
-     * Best Power, best Toughness, owns-a-shiny.
+     * What the tasks gate on: best Power, best Toughness, owns-a-shiny.
      *
+     * Held twice. The first three leave the Battle Rat out, and are what a task
+     * is actually checked against - a rat on combat duty does not count towards
+     * the roster's strength. The [allPower] set counts everything, and exists
+     * only so a locked task can say whether the designation is the sole reason
+     * it is locked.
+     */
+    private data class RosterStats(
+        val power: Int,
+        val toughness: Int,
+        val shiny: Boolean,
+        val allPower: Int,
+        val allToughness: Int,
+        val allShiny: Boolean
+    )
+
+    /**
      * Cached after the first read so the ticker below can redraw without going
      * back to the database every half minute. Only a claim changes it, and that
      * clears the cache itself.
      */
-    private var rosterStats: Triple<Int, Int, Boolean>? = null
+    private var rosterStats: RosterStats? = null
 
     private val ticker = Handler(Looper.getMainLooper())
 
@@ -104,25 +120,33 @@ class LedgerTasksActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val stats = withContext(Dispatchers.IO) {
                 val dao = RatRepository.dao(this@LedgerTasksActivity)
-                Triple(dao.maxPower(), dao.maxToughness(), dao.ownsShiny())
+                // NONE is -1 and no row can hold it, so "everything" and
+                // "everything but the Battle Rat" are the same query twice.
+                val excluded = BattleRat.exclusionId(dao, prefs)
+                RosterStats(
+                    power = dao.maxPowerExcluding(excluded),
+                    toughness = dao.maxToughnessExcluding(excluded),
+                    shiny = dao.ownsShinyExcluding(excluded),
+                    allPower = dao.maxPowerExcluding(BattleRat.NONE),
+                    allToughness = dao.maxToughnessExcluding(BattleRat.NONE),
+                    allShiny = dao.ownsShinyExcluding(BattleRat.NONE)
+                )
             }
             rosterStats = stats
             bindTasks(stats)
         }
     }
 
-    private fun bindTasks(stats: Triple<Int, Int, Boolean>) {
-        val (maxPower, maxToughness, ownsShiny) = stats
-
+    private fun bindTasks(stats: RosterStats) {
         setupTask(
-            "M1", maxPower, timeM1,
+            "M1", stats.power, stats.allPower, timeM1,
             findViewById(R.id.titleM1), findViewById(R.id.reqM1),
             findViewById(R.id.rewardM1), findViewById(R.id.btnMission1),
             R.string.stat_power
         )
 
         setupTask(
-            "M2", maxToughness, timeM2,
+            "M2", stats.toughness, stats.allToughness, timeM2,
             findViewById(R.id.titleM2), findViewById(R.id.reqM2),
             findViewById(R.id.rewardM2), findViewById(R.id.btnMission2),
             R.string.stat_toughness
@@ -131,7 +155,7 @@ class LedgerTasksActivity : AppCompatActivity() {
         // The shiny task has no numeric stat, so it passes a value that clears
         // its stored requirement of 1 only when a shiny actually exists.
         setupTask(
-            "M3", if (ownsShiny) 1 else 0, timeM3,
+            "M3", if (stats.shiny) 1 else 0, if (stats.allShiny) 1 else 0, timeM3,
             findViewById(R.id.titleM3), findViewById(R.id.reqM3),
             findViewById(R.id.rewardM3), findViewById(R.id.btnMission3),
             statNameRes = 0
@@ -165,8 +189,16 @@ class LedgerTasksActivity : AppCompatActivity() {
         editor.putInt("LAST_ROLL_DAY", currentDay).apply()
     }
 
+    /**
+     * [unrestrictedStat] is the same measure counting the Battle Rat.
+     *
+     * Used for one thing: telling a player whose task is locked that their own
+     * designation is what locked it. Without that the requirement line simply
+     * stops being met, with nothing on screen connecting it to the rat they put
+     * on combat duty.
+     */
     private fun setupTask(
-        taskId: String, playerStat: Int, durationMs: Long,
+        taskId: String, playerStat: Int, unrestrictedStat: Int, durationMs: Long,
         titleTxt: TextView, reqTxt: TextView, rewardTxt: TextView, btn: Button,
         @StringRes statNameRes: Int
     ) {
@@ -217,6 +249,14 @@ class LedgerTasksActivity : AppCompatActivity() {
                 btn.text = getString(R.string.task_too_weak)
                 tintButton(btn, R.color.disabled_fill)
                 btn.isEnabled = false
+
+                // The roster does clear this task - the Battle Rat is simply
+                // not part of the roster for these purposes. Say so, rather
+                // than leaving the player to work out why a rat they can see
+                // does not count.
+                if (unrestrictedStat >= reqAmount) {
+                    reqTxt.text = getString(R.string.task_battle_rat_locked)
+                }
             }
         }
     }

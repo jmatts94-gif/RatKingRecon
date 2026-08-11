@@ -43,11 +43,21 @@ interface RatDao {
     @Query("SELECT COUNT(DISTINCT artKey) FROM rats WHERE artKey IN (:rosterKeys)")
     fun distinctSpeciesFound(rosterKeys: List<String>): Int
 
-    @Query("SELECT COALESCE(MAX(power), 0) FROM rats")
-    fun maxPower(): Int
+    /**
+     * The roster's best stats and whether it holds a shiny, ignoring one rat.
+     *
+     * [excludedId] is [BattleRat.NONE] (-1) to count everything, which no row's
+     * id can equal - so the Ledger Tasks gate has one code path whether or not a
+     * Battle Rat is standing out of it.
+     */
+    @Query("SELECT COALESCE(MAX(power), 0) FROM rats WHERE id != :excludedId")
+    fun maxPowerExcluding(excludedId: Long): Int
 
-    @Query("SELECT COALESCE(MAX(toughness), 0) FROM rats")
-    fun maxToughness(): Int
+    @Query("SELECT COALESCE(MAX(toughness), 0) FROM rats WHERE id != :excludedId")
+    fun maxToughnessExcluding(excludedId: Long): Int
+
+    @Query("SELECT EXISTS(SELECT 1 FROM rats WHERE shiny = 1 AND id != :excludedId)")
+    fun ownsShinyExcluding(excludedId: Long): Boolean
 
     @Query("SELECT EXISTS(SELECT 1 FROM rats WHERE shiny = 1)")
     fun ownsShiny(): Boolean

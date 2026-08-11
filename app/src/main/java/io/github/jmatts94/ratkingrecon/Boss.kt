@@ -183,7 +183,9 @@ object Bosses {
         val spec = banked(prefs) ?: return null
         if (Encounter.isPending(prefs)) return null
 
-        val fighter = dao.strongestAvailable(System.currentTimeMillis()) ?: return null
+        // Same fighter rule as an ordinary encounter: the Battle Rat meets the
+        // boss if it can, and a knocked-out one steps aside.
+        val fighter = BattleRat.fighterFor(dao, prefs).rat ?: return null
         val level = GameEngine.levelOf(prefs)
         val bot = rustbotFor(spec, level, fighter, nameOf(spec))
 

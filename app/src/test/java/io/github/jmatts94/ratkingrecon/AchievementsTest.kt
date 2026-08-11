@@ -376,9 +376,13 @@ private class AchStubDao : RatDao {
     override fun byId(id: Long): RatEntity? = rats.firstOrNull { it.id == id }
     override fun count(): Int = rats.size
     override fun distinctSpeciesFound(rosterKeys: List<String>): Int = 0
-    override fun maxPower(): Int = 0
-    override fun maxToughness(): Int = 0
+    override fun maxPowerExcluding(excludedId: Long): Int =
+        0
+    override fun maxToughnessExcluding(excludedId: Long): Int =
+        0
     override fun ownsShiny(): Boolean = false
+    override fun ownsShinyExcluding(excludedId: Long): Boolean =
+        false
     override fun weakest(limit: Int): List<RatEntity> = emptyList()
     override fun strongestAvailable(now: Long): RatEntity? = null
     override fun recordWin(id: Long) = Unit

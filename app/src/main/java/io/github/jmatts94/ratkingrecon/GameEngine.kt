@@ -258,7 +258,9 @@ object GameEngine {
      * an encounter impossible rather than merely unlikely.
      */
     fun raiseEncounter(dao: RatDao, prefs: SharedPreferences, playerLevel: Int): Encounter? {
-        val fighter = dao.strongestAvailable(System.currentTimeMillis()) ?: return null
+        // The designated Battle Rat if there is one and it can fight; otherwise
+        // the strongest available, which is what this always used to do.
+        val fighter = BattleRat.fighterFor(dao, prefs).rat ?: return null
         val bot = RustbotFactory.forEncounter(playerLevel, fighter)
 
         val encounter = Encounter(

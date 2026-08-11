@@ -40,6 +40,14 @@ class GalleryActivity : AppCompatActivity() {
         return icon
     }
 
+    /** The Battle Rat marker, bounded the same way [starIcon] is and for the same reason. */
+    private fun battleIcon(sizeDp: Int): Drawable? {
+        val icon = ContextCompat.getDrawable(this, R.drawable.ic_power) ?: return null
+        val size = dp(sizeDp)
+        icon.setBounds(0, 0, size, size)
+        return icon
+    }
+
     override fun onResume() {
         super.onResume()
         // This runs every time you open the Binder!
@@ -183,6 +191,7 @@ class GalleryActivity : AppCompatActivity() {
         }
 
     private fun populateGrid(petGrid: GridLayout, pets: List<RatEntity>) {
+        val prefs = RatRepository.prefs(this)
         val layoutInflater = LayoutInflater.from(this)
         val frame = equippedFrame()
 
@@ -206,13 +215,21 @@ class GalleryActivity : AppCompatActivity() {
             cardToughness.text = pet.toughness.toString()
 
             cardName.text = pet.name
+            // Shiny marks the start of the label, Battle Rat the end, so a rat
+            // that is both keeps both markers instead of one hiding the other.
+            val onDuty = BattleRat.isBattleRat(prefs, pet.id)
             if (pet.shiny) {
                 cardName.setTextColor(ContextCompat.getColor(this, R.color.shiny_gold))
-                cardName.setCompoundDrawablesRelative(starIcon(14), null, null, null)
+                cardName.setCompoundDrawablesRelative(
+                    starIcon(14), null, if (onDuty) battleIcon(14) else null, null
+                )
                 cardName.compoundDrawablePadding = dp(3)
             } else {
                 cardName.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
-                cardName.setCompoundDrawablesRelative(null, null, null, null)
+                cardName.setCompoundDrawablesRelative(
+                    null, null, if (onDuty) battleIcon(14) else null, null
+                )
+                cardName.compoundDrawablePadding = dp(3)
             }
 
             cardView.setOnClickListener { showEnlargedRat(pet) }
@@ -222,6 +239,7 @@ class GalleryActivity : AppCompatActivity() {
     }
 
     private fun showEnlargedRat(pet: RatEntity) {
+        val prefs = RatRepository.prefs(this)
         val dialog = android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog.setContentView(R.layout.dialog_enlarged_rat)
 
@@ -231,6 +249,7 @@ class GalleryActivity : AppCompatActivity() {
         val powerText = dialog.findViewById<TextView>(R.id.enlargedRatPower)
         val toughnessText = dialog.findViewById<TextView>(R.id.enlargedRatToughness)
         val deployButton = dialog.findViewById<Button>(R.id.deployScrapyardButton)
+        val battleRatButton = dialog.findViewById<Button>(R.id.battleRatButton)
         val closeButton = dialog.findViewById<Button>(R.id.closeEnlargedButton)
 
         // 2. Set the Visuals and Stats
@@ -239,18 +258,53 @@ class GalleryActivity : AppCompatActivity() {
         toughnessText.text = pet.toughness.toString()
 
         nameText.text = pet.name
+        val onDuty = BattleRat.isBattleRat(prefs, pet.id)
         if (pet.shiny) {
             nameText.setTextColor(ContextCompat.getColor(this, R.color.shiny_gold))
-            nameText.setCompoundDrawablesRelative(starIcon(22), null, null, null)
-            nameText.compoundDrawablePadding = dp(6)
+            nameText.setCompoundDrawablesRelative(
+                starIcon(22), null, if (onDuty) battleIcon(22) else null, null
+            )
         } else {
             nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
-            nameText.setCompoundDrawablesRelative(null, null, null, null)
+            nameText.setCompoundDrawablesRelative(
+                null, null, if (onDuty) battleIcon(22) else null, null
+            )
+        }
+        nameText.compoundDrawablePadding = dp(6)
+
+        // The same button stands a rat down again, the way buying an equipped
+        // Binder frame a second time takes it off.
+        battleRatButton.text = getString(
+            if (onDuty) R.string.btn_clear_battle_rat else R.string.btn_set_battle_rat
+        )
+        battleRatButton.setOnClickListener {
+            val nowOnDuty = BattleRat.toggle(prefs, pet.id)
+            Toast.makeText(
+                this@GalleryActivity,
+                if (nowOnDuty) {
+                    getString(R.string.toast_battle_rat_set, pet.name)
+                } else {
+                    getString(R.string.toast_battle_rat_cleared, pet.name)
+                },
+                Toast.LENGTH_SHORT
+            ).show()
+            dialog.dismiss()
+            recreate()
         }
 
         // 3. --- THE DISPATCH LOGIC ---
         deployButton.setOnClickListener {
-            val prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
+
+            // A rat on combat duty is not available for the Scrap Run. That is
+            // the cost of the designation, and the reason it is free to change.
+            if (BattleRat.isBattleRat(prefs, pet.id)) {
+                Toast.makeText(
+                    this@GalleryActivity,
+                    getString(R.string.toast_battle_rat_busy, pet.name),
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            }
 
             // Block them if a rat is already out there!
             if (prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false)) {

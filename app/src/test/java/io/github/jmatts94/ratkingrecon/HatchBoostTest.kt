@@ -135,9 +135,13 @@ private class FakeRatDao : RatDao {
     override fun distinctSpeciesFound(rosterKeys: List<String>): Int =
         rows.map { it.artKey }.filter { it in rosterKeys }.distinct().size
 
-    override fun maxPower(): Int = rows.maxOfOrNull { it.power } ?: 0
-    override fun maxToughness(): Int = rows.maxOfOrNull { it.toughness } ?: 0
+    override fun maxPowerExcluding(excludedId: Long): Int =
+        rows.filter { it.id != excludedId }.maxOfOrNull { it.power } ?: 0
+    override fun maxToughnessExcluding(excludedId: Long): Int =
+        rows.filter { it.id != excludedId }.maxOfOrNull { it.toughness } ?: 0
     override fun ownsShiny(): Boolean = rows.any { it.shiny }
+    override fun ownsShinyExcluding(excludedId: Long): Boolean =
+        rows.any { it.shiny && it.id != excludedId }
     override fun weakest(limit: Int): List<RatEntity> = rows.sortedBy { it.score }.take(limit)
     override fun strongestAvailable(now: Long): RatEntity? = null
 
