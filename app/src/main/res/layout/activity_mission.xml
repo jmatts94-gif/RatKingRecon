@@ -15,11 +15,27 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/expedition_board_title"
+            android:text="@string/ledger_tasks_title"
             android:textColor="@color/text_primary"
             android:textSize="26sp"
             android:textStyle="bold"
             android:textAlignment="center"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Relics only ever accumulated in the save before; this is where they surface. -->
+        <TextView
+            android:id="@+id/relicCountText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_pill_tan"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:drawableStart="@drawable/ic_star"
+            android:drawablePadding="6dp"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
             android:layout_marginBottom="20dp" />
 
         <com.google.android.material.card.MaterialCardView

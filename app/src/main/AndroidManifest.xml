@@ -35,9 +35,14 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name=".MissionActivity"
+            android:name=".LedgerTasksActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+
+        <!-- Wakes when a Ledger Task finishes; internal only. -->
+        <receiver
+            android:name=".LedgerTaskAlarmReceiver"
+            android:exported="false" />
 
         <activity
             android:name=".ShopActivity"

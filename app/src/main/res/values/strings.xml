@@ -73,7 +73,7 @@
     <string name="btn_open_ledger">The Rat Ledger</string>
     <string name="btn_send_to_ledger">Send to the Ledger</string>
     <string name="btn_contract_board">Contract Board</string>
-    <string name="btn_expedition_board">Expedition Board</string>
+    <string name="btn_ledger_tasks">Ledger Tasks</string>
     <string name="btn_shop">Shop</string>
     <string name="btn_settings">Settings</string>
     <string name="btn_dev_reset">Dev Reset</string>
@@ -150,7 +150,40 @@
     <string name="btn_deploy_scrap_run">Send on a Scrap Run\n(4 Hours)</string>
     <string name="btn_shut_the_board">Shut the Board</string>
     <string name="btn_close">Close</string>
-    <string name="expedition_board_title">Daily Scavenge Board</string>
+    <string name="ledger_tasks_title">Ledger Tasks</string>
+
+    <!-- Ledger Tasks (timed roster jobs). mission_checking_roster is shared with
+         the Contract Board dialog, so it keeps its original name. -->
+    <!-- number of relics recovered -->
+    <string name="task_relics">Relics recovered: %1$d</string>
+    <string name="task_unknown_sector">Unknown Sector</string>
+    <string name="task_claim">Claim Reward</string>
+    <string name="task_start">Start Task</string>
+    <string name="task_too_weak">Roster Too Weak</string>
+    <!-- minutes remaining -->
+    <string name="task_exploring">Exploring… (%1$dm left)</string>
+    <!-- required amount, stat name -->
+    <string name="task_requires_stat">Requires: %1$d+ %2$s</string>
+    <string name="task_requires_shiny">Requires: a Shiny rat</string>
+    <!-- hours, reward in Scrap -->
+    <string name="task_reward_line">Time: %1$d Hours  |  Reward: %2$d Scrap</string>
+    <string name="stat_power">Power</string>
+    <string name="stat_toughness">Toughness</string>
+    <!-- reward -->
+    <string name="task_success">Task complete! +%1$d Scrap</string>
+    <!-- reward, relic name -->
+    <string name="task_success_relic">Task complete! +%1$d Scrap
+RARE DROP: %2$s</string>
+    <string name="tooltip_tasks_title">Ledger Tasks</string>
+    <string name="tooltip_tasks_body">Timed jobs your roster qualifies for on its best stats. Start one, walk away, and claim the Scrap when it finishes.</string>
+
+    <!-- Ledger Task completion alerts -->
+    <string name="channel_task_name">Ledger Task Alerts</string>
+    <string name="channel_task_quiet_name">Ledger Task Alerts (Silent)</string>
+    <string name="channel_task_desc">Tells you when a Ledger Task has finished.</string>
+    <string name="notif_task_title">Ledger Task complete</string>
+    <!-- task title -->
+    <string name="notif_task_text">%1$s is ready to claim.</string>
     <string name="contract_board_title">Contract Board</string>
     <string name="contract_board_subtitle">Select a physical bounty to earn scrap.</string>
     <!-- name, steps, minutes, reward - filled in when the board rolls its offers -->

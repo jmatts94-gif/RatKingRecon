@@ -165,7 +165,7 @@
             android:id="@+id/expeditionBoardButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/btn_expedition_board"
+            android:text="@string/btn_ledger_tasks"
             app:icon="@drawable/ic_expedition"
             app:iconGravity="textStart"
             app:iconPadding="10dp"

@@ -235,9 +235,15 @@ class MainActivity : AppCompatActivity() {
             showBountyBoard()
         }
 
-        findViewById<Button>(R.id.expeditionBoardButton).setOnClickListener {
-            startActivity(android.content.Intent(this, MissionActivity::class.java))
+        val ledgerTasksButton = findViewById<Button>(R.id.expeditionBoardButton)
+        ledgerTasksButton.setOnClickListener {
+            startActivity(android.content.Intent(this, LedgerTasksActivity::class.java))
         }
+        Tooltip.attachTo(
+            ledgerTasksButton,
+            R.string.tooltip_tasks_title,
+            R.string.tooltip_tasks_body
+        )
 
         findViewById<Button>(R.id.openGalleryButton).setOnClickListener {
             startActivity(android.content.Intent(this, GalleryActivity::class.java))

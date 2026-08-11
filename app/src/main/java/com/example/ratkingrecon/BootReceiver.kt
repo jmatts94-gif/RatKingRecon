@@ -28,6 +28,10 @@ class BootReceiver : BroadcastReceiver() {
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
                 val started = StepTrackerService.start(context)
                 Log.i(TAG, "${intent.action}: step tracking started = $started")
+
+                // Alarms do not survive a reboot, so a running Ledger Task
+                // would otherwise finish in silence.
+                LedgerTaskAlarms.scheduleAll(context)
             }
         }
     }
