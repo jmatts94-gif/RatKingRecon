@@ -62,15 +62,16 @@ class BattleActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val loaded = withContext(Dispatchers.IO) {
-                val prefs = RatRepository.prefs(this@BattleActivity)
-                val enc = Encounter.load(prefs) ?: return@withContext null
-                val fighter = RatRepository.dao(this@BattleActivity).byId(enc.ratId)
-                    ?: return@withContext null
-                enc to fighter
+                Encounter.loadFightable(
+                    RatRepository.prefs(this@BattleActivity),
+                    RatRepository.dao(this@BattleActivity)
+                )
             }
 
-            // The encounter may have been auto-resolved from the notification,
-            // or the rat spliced away, between the alert and this screen.
+            // Either the encounter was auto-resolved from the notification
+            // before this screen opened, or its rat is gone - in which case
+            // loadFightable has just cleared it rather than leaving it to block
+            // every future encounter.
             if (loaded == null) {
                 Toast.makeText(this@BattleActivity, R.string.battle_gone, Toast.LENGTH_SHORT).show()
                 finish()

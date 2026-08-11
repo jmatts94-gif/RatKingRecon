@@ -237,6 +237,27 @@ object GameEngine {
         val chance = 1.0 - Math.pow(1.0 - ENCOUNTER_CHANCE_PER_STEP, gained.toDouble())
         if (Math.random() >= chance) return null
 
+        val encounter = raiseEncounter(dao, prefs, playerLevel) ?: return null
+
+        prefs.edit().putFloat(KEY_LAST_ENCOUNTER_STEPS, totalSteps).apply()
+        return encounter
+    }
+
+    /**
+     * Builds and stores an encounter against the best rat currently available.
+     *
+     * Split out of [maybeTriggerEncounter] so the debug trigger in Settings can
+     * raise the same fight the roll above would have: same scaling against the
+     * same rat, same reward band, same pending record. A second construction
+     * site would drift from this one the first time either changed.
+     *
+     * Deliberately does *not* touch the encounter spacing marker - that belongs
+     * to the walk, and a forced encounter should not delay the next real one.
+     *
+     * Returns null when every rat is knocked out, the one condition that makes
+     * an encounter impossible rather than merely unlikely.
+     */
+    fun raiseEncounter(dao: RatDao, prefs: SharedPreferences, playerLevel: Int): Encounter? {
         val fighter = dao.strongestAvailable(System.currentTimeMillis()) ?: return null
         val bot = RustbotFactory.forEncounter(playerLevel, fighter)
 
@@ -249,7 +270,6 @@ object GameEngine {
         )
 
         Encounter.save(prefs, encounter)
-        prefs.edit().putFloat(KEY_LAST_ENCOUNTER_STEPS, totalSteps).apply()
         return encounter
     }
 

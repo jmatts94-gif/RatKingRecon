@@ -116,8 +116,73 @@ class SettingsActivity : AppCompatActivity() {
             info.versionCode.toLong()
         }
 
-        findViewById<TextView>(R.id.aboutVersionText).text =
-            getString(R.string.about_version, info.versionName, code)
+        val versionText = findViewById<TextView>(R.id.aboutVersionText)
+        versionText.text = getString(R.string.about_version, info.versionName, code)
+
+        // Debug builds only, and behind a long press with nothing advertising
+        // it. BuildConfig.DEBUG is a genuine compile-time false in release - AGP
+        // writes `= false` there and `Boolean.parseBoolean("true")` in debug
+        // precisely so this folds - so the registration below is compiled out
+        // and there is no way to reach it in a release build.
+        //
+        // The method it calls does still sit in the release DEX as dead code,
+        // because minification is off. Turning R8 on removes it; until then the
+        // guarantee is unreachability, not absence.
+        if (BuildConfig.DEBUG) {
+            versionText.setOnLongClickListener {
+                forceDebugEncounter()
+                true
+            }
+        }
+    }
+
+    /**
+     * Debug only: raises a Rustbot on the spot and opens the fight.
+     *
+     * Builds nothing of its own. [GameEngine.raiseEncounter] is the same call
+     * the step roll makes once it has decided an encounter happens, so a forced
+     * fight is indistinguishable from a walked one - and it stays that way
+     * without anyone remembering to keep two copies in step.
+     *
+     * An encounter already waiting is opened rather than replaced, so this
+     * cannot quietly discard a fight the player was about to have.
+     */
+    private fun forceDebugEncounter() {
+        lifecycleScope.launch {
+            val prefs = RatRepository.prefs(this@SettingsActivity)
+
+            val encounter = withContext(Dispatchers.IO) {
+                val dao = RatRepository.dao(this@SettingsActivity)
+
+                // A waiting encounter is opened rather than replaced. One whose
+                // rat is gone is cleared by loadFightable, so this falls through
+                // and raises a fresh fight instead of reopening a dead one.
+                Encounter.loadFightable(prefs, dao)?.first
+                    ?: GameEngine.raiseEncounter(
+                        dao = dao,
+                        prefs = prefs,
+                        playerLevel = GameEngine.levelOf(prefs)
+                    )
+            }
+
+            if (encounter == null) {
+                // strongestAvailable found nobody: an empty roster, or every
+                // rat still recovering from a loss.
+                Toast.makeText(
+                    this@SettingsActivity,
+                    getString(R.string.debug_encounter_no_rat),
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+
+            Toast.makeText(
+                this@SettingsActivity,
+                getString(R.string.debug_encounter_raised, encounter.botName),
+                Toast.LENGTH_SHORT
+            ).show()
+            startActivity(Intent(this@SettingsActivity, BattleActivity::class.java))
+        }
     }
 
     // ---- reset ---------------------------------------------------------------

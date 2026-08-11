@@ -135,6 +135,34 @@ data class Encounter(
         fun clear(prefs: SharedPreferences) {
             prefs.edit().putBoolean(KEY_PENDING, false).remove(KEY_BOSS_ID).apply()
         }
+
+        /**
+         * The pending encounter together with the rat that must fight it, or
+         * null if there is nothing fightable.
+         *
+         * Self-healing, and that is the point. An encounter names a rat by id;
+         * the Fusion Pot can consume that rat afterwards, leaving a fight nobody
+         * can take. [GameEngine.maybeTriggerEncounter] refuses to raise a new
+         * encounter while one is outstanding, so such a leftover does not merely
+         * fail to open - it ends combat permanently, with no route back from
+         * inside the game. Clearing it here is the only thing standing between a
+         * splice and a dead game.
+         *
+         * Blocking, because it queries the collection.
+         */
+        fun loadFightable(
+            prefs: SharedPreferences,
+            dao: RatDao
+        ): Pair<Encounter, RatEntity>? {
+            val encounter = load(prefs) ?: return null
+            val fighter = dao.byId(encounter.ratId)
+
+            if (fighter == null) {
+                clear(prefs)
+                return null
+            }
+            return encounter to fighter
+        }
     }
 
     val isBoss: Boolean get() = bossId != null

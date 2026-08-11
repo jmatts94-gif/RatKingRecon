@@ -1,6 +1,8 @@
 package io.github.jmatts94.ratkingrecon
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -139,6 +141,113 @@ class EncounterTriggerTest {
 
         val raised = walk(dao, prefs, steps = 5_000)
         assertEquals("gate 4 must refuse an encounter with no fighter", 0, raised)
+    }
+
+    // --- raising one directly, which the debug trigger uses -------------------
+
+    @Test
+    fun `raiseEncounter builds a pending fight against the best rat`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(mutableListOf(rat(id = 1), rat(id = 2)))
+        prefs.values[GameEngine.KEY_LEVEL] = 12
+
+        val raised = GameEngine.raiseEncounter(dao, prefs, 12)
+
+        assertNotNull(raised)
+        assertTrue(Encounter.isPending(prefs))
+        assertEquals(raised, Encounter.load(prefs))
+        assertTrue("a Rustbot should have been scaled", raised!!.botPower >= 1)
+        assertTrue("and it should pay something", raised.reward > 0)
+    }
+
+    @Test
+    fun `raiseEncounter declines when no rat can fight`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(mutableListOf(rat(id = 1)), allRecovering = true)
+
+        assertNull(GameEngine.raiseEncounter(dao, prefs, 12))
+        assertFalse("nothing may be left pending", Encounter.isPending(prefs))
+    }
+
+    /**
+     * The spacing marker belongs to the walk.
+     *
+     * A forced encounter must not consume the gap, or using the debug trigger
+     * would quietly delay the next real encounter by 150 steps.
+     */
+    @Test
+    fun `raiseEncounter leaves the walk's spacing marker alone`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(mutableListOf(rat(id = 1)))
+
+        GameEngine.raiseEncounter(dao, prefs, 12)
+
+        assertFalse(prefs.values.containsKey("LAST_ENCOUNTER_STEPS"))
+    }
+
+    // --- an encounter whose rat is gone ---------------------------------------
+
+    /**
+     * The failure this guards against ends the game quietly.
+     *
+     * A splice can eat the rat an encounter named. The fight then cannot open,
+     * and because a pending encounter blocks new ones, combat stops for good
+     * with nothing on screen to say why.
+     */
+    @Test
+    fun `an encounter whose rat is gone clears itself`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(mutableListOf(rat(id = 1)))
+
+        GameEngine.raiseEncounter(dao, prefs, 12)
+        assertTrue(Encounter.isPending(prefs))
+
+        // The Fusion Pot consumes the fighter.
+        dao.deleteAll()
+
+        assertNull(Encounter.loadFightable(prefs, dao))
+        assertFalse(
+            "a fight nobody can take must not stay pending",
+            Encounter.isPending(prefs)
+        )
+    }
+
+    @Test
+    fun `combat recovers after a stale encounter is cleared`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(mutableListOf(rat(id = 1)))
+
+        GameEngine.raiseEncounter(dao, prefs, 12)
+        dao.deleteAll()
+        Encounter.loadFightable(prefs, dao)
+
+        // A new rat hatches, and the game must be able to raise a fight again.
+        val replacement = dao.insert(rat(id = 0))
+        assertNotNull(GameEngine.raiseEncounter(dao, prefs, 12))
+        assertEquals(replacement, Encounter.load(prefs)?.ratId)
+    }
+
+    @Test
+    fun `a fightable encounter is returned with its rat and left pending`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(mutableListOf(rat(id = 1)))
+
+        val raised = GameEngine.raiseEncounter(dao, prefs, 12)
+        val loaded = Encounter.loadFightable(prefs, dao)
+
+        assertNotNull(loaded)
+        assertEquals(raised, loaded!!.first)
+        assertEquals(raised!!.ratId, loaded.second.id)
+        assertTrue("a good encounter must survive being read", Encounter.isPending(prefs))
+    }
+
+    @Test
+    fun `nothing pending means nothing to load and nothing to clear`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(mutableListOf(rat(id = 1)))
+
+        assertNull(Encounter.loadFightable(prefs, dao))
+        assertFalse(Encounter.isPending(prefs))
     }
 
     // --- rate -----------------------------------------------------------------

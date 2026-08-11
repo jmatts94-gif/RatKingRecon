@@ -21,6 +21,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // BuildConfig.DEBUG is what keeps the debug encounter trigger out of a
+    // release build. AGP stopped generating BuildConfig by default in 8.0.
+    buildFeatures {
+        buildConfig = true
+    }
+
     buildTypes {
         release {
             // Signed with the debug key on purpose. An unsigned APK cannot be
