@@ -41,10 +41,12 @@ object GameEngine {
     const val KEY_MUTAGEN = "MUTAGEN_ACTIVE"
     const val KEY_POLISH = "POLISH_ACTIVE"
 
-    private const val KEY_BOUNTY_ACTIVE = "BOUNTY_ACTIVE"
-    private const val KEY_BOUNTY_TARGET = "BOUNTY_TARGET"
-    private const val KEY_BOUNTY_END = "BOUNTY_END_TIME"
-    private const val KEY_BOUNTY_REWARD = "BOUNTY_REWARD"
+    // Public so [ActiveContract] can read the same keys this resolves against,
+    // rather than a second copy of the spellings drifting out of step.
+    const val KEY_BOUNTY_ACTIVE = "BOUNTY_ACTIVE"
+    const val KEY_BOUNTY_TARGET = "BOUNTY_TARGET"
+    const val KEY_BOUNTY_END = "BOUNTY_END_TIME"
+    const val KEY_BOUNTY_REWARD = "BOUNTY_REWARD"
 
     private const val EXP_PER_LEVEL = 50
 

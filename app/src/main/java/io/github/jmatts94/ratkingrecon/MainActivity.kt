@@ -24,7 +24,13 @@ class MainActivity : AppCompatActivity() {
 
         /** How long a newly hatched rat stays on screen before the next egg appears. */
         const val REVEAL_MS = 5_000L
+
+        /** Redraw interval for the active-contract dialog. */
+        const val CONTRACT_TICK_MS = 1_000L
     }
+
+    /** Drives the active-contract dialog; idle unless that dialog is open. */
+    private val contractTicker = android.os.Handler(android.os.Looper.getMainLooper())
 
     private var bountyReward = 0
     private var isBountyActive = false
@@ -37,22 +43,23 @@ class MainActivity : AppCompatActivity() {
     private var deployedRatId: Long = -1L // -1 means "no rat selected"
     private var expeditionEndTime: Long = 0L
 
-    private fun startActiveBounty(stepsRequired: Float, minutesAllowed: Int, rewardAmount: Int) {
+    private fun startActiveBounty(offer: BountyOffer) {
+        ActiveContract.accept(
+            prefs = sharedPreferences,
+            offer = offer,
+            currentTotalSteps = GameEngine.totalStepsOf(sharedPreferences)
+        )
+
         isBountyActive = true
-        bountyReward = rewardAmount // Save the specific reward!
+        bountyReward = offer.reward
+        bountyTargetSteps = GameEngine.totalStepsOf(sharedPreferences) + offer.steps
+        bountyEndTime = System.currentTimeMillis() + offer.minutes * 60L * 1000L
 
-        bountyTargetSteps = GameEngine.totalStepsOf(sharedPreferences) + stepsRequired
-        bountyEndTime = System.currentTimeMillis() + (minutesAllowed * 60 * 1000)
-
-        with(sharedPreferences.edit()) {
-            putBoolean("BOUNTY_ACTIVE", isBountyActive)
-            putFloat("BOUNTY_TARGET", bountyTargetSteps)
-            putLong("BOUNTY_END_TIME", bountyEndTime)
-            putInt("BOUNTY_REWARD", bountyReward) // Save it to the phone!
-            apply()
-        }
-
-        Toast.makeText(this, getString(R.string.toast_contract_accepted, minutesAllowed), Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            this,
+            getString(R.string.toast_contract_accepted, offer.minutes),
+            Toast.LENGTH_LONG
+        ).show()
     }
     private lateinit var missionButton: Button
     private lateinit var sharedPreferences: SharedPreferences
@@ -108,9 +115,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private fun showBountyBoard() {
-        // Block if a mission is already running
-        if (isBountyActive) {
-            Toast.makeText(this, getString(R.string.toast_contract_active), Toast.LENGTH_SHORT).show()
+        // One contract at a time, but "you already have one" on its own left no
+        // way to see what it was. Showing it is more use than refusing.
+        ActiveContract.load(sharedPreferences)?.let {
+            showActiveContract(it)
             return
         }
 
@@ -157,9 +165,80 @@ class MainActivity : AppCompatActivity() {
             offer.reward
         )
         button.setOnClickListener {
-            startActiveBounty(offer.steps, offer.minutes, offer.reward)
+            startActiveBounty(offer)
             dialog.dismiss()
         }
+    }
+
+    /**
+     * Shows the contract already running: what it was, how far along it is, how
+     * long is left and what it pays.
+     *
+     * Redrawn on a ticker while it is open, because both the step count and the
+     * countdown move on their own - the service banks steps whether or not this
+     * dialog is up.
+     */
+    private fun showActiveContract(contract: ActiveContract) {
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_active_contract)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        val nameText = dialog.findViewById<TextView>(R.id.activeContractName)
+        val stepsText = dialog.findViewById<TextView>(R.id.activeContractSteps)
+        val progressBar = dialog.findViewById<ProgressBar>(R.id.activeContractProgress)
+        val timeText = dialog.findViewById<TextView>(R.id.activeContractTime)
+        val rewardText = dialog.findViewById<TextView>(R.id.activeContractReward)
+
+        nameText.text = contract.name.ifBlank { getString(R.string.contract_active_unnamed) }
+        rewardText.text = getString(R.string.contract_active_reward, contract.reward)
+
+        val redraw = object : Runnable {
+            override fun run() {
+                // Re-read rather than trusting the copy this dialog opened with:
+                // the contract may have been paid out or failed underneath it.
+                val live = ActiveContract.load(sharedPreferences)
+                if (live == null) {
+                    dialog.dismiss()
+                    return
+                }
+
+                val total = GameEngine.totalStepsOf(sharedPreferences)
+
+                if (live.knowsRequirement) {
+                    stepsText.text = getString(
+                        R.string.contract_active_steps,
+                        live.stepsWalked(total),
+                        live.requiredSteps.toInt()
+                    )
+                    progressBar.visibility = View.VISIBLE
+                    progressBar.progress = live.percentComplete(total)
+                } else {
+                    // Accepted before the requirement was recorded, so the only
+                    // honest thing to show is the distance still owed.
+                    stepsText.text = getString(
+                        R.string.contract_active_steps_left,
+                        live.stepsRemaining(total)
+                    )
+                    progressBar.visibility = View.GONE
+                }
+
+                timeText.text = if (live.hasExpired()) {
+                    getString(R.string.contract_active_expired)
+                } else {
+                    getString(R.string.contract_active_time, live.minutesRemaining())
+                }
+
+                contractTicker.postDelayed(this, CONTRACT_TICK_MS)
+            }
+        }
+
+        dialog.findViewById<Button>(R.id.btnCloseActiveContract).setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.setOnDismissListener { contractTicker.removeCallbacks(redraw) }
+
+        redraw.run()
+        dialog.show()
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -201,11 +280,11 @@ class MainActivity : AppCompatActivity() {
         playerLevel = sharedPreferences.getInt("PLAYER_LEVEL", 1)
         maxExp = playerLevel * 50
 
-        isBountyActive = sharedPreferences.getBoolean("BOUNTY_ACTIVE", false)
-        if (isBountyActive) {
-            bountyTargetSteps = sharedPreferences.getFloat("BOUNTY_TARGET", 0f)
-            bountyEndTime = sharedPreferences.getLong("BOUNTY_END_TIME", 0L)
-            bountyReward = sharedPreferences.getInt("BOUNTY_REWARD", 0)
+        isBountyActive = ActiveContract.isActive(sharedPreferences)
+        ActiveContract.load(sharedPreferences)?.let {
+            bountyTargetSteps = it.targetSteps
+            bountyEndTime = it.endsAt
+            bountyReward = it.reward
         }
 
         // 4. Hand step tracking to the service. Started from here because

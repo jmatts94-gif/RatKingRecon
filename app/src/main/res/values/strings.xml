@@ -154,7 +154,6 @@
     <!-- Transient confirmations shown as Toasts, from the home screen and the Ledger -->
     <!-- minutes allowed -->
     <string name="toast_contract_accepted">Contract Accepted! You have %1$d mins.</string>
-    <string name="toast_contract_active">You already have an active contract!</string>
     <string name="toast_no_rats_out">No rats currently in the Scrapyard.</string>
     <!-- reward in Scrap -->
     <string name="toast_expedition_complete">Expedition Complete! Your rat brought back %1$d Scrap!</string>
@@ -206,6 +205,19 @@ RARE DROP: %2$s</string>
     <string name="contract_board_subtitle">Select a physical bounty to earn scrap.</string>
     <!-- name, steps, minutes, reward - filled in when the board rolls its offers -->
     <string name="bounty_label">%1$s (%2$d Steps / %3$dm)\nReward: %4$d Scrap</string>
+    <!-- The contract currently running -->
+    <string name="contract_active_title">Contract In Progress</string>
+    <string name="contract_active_unnamed">An earlier contract</string>
+    <!-- steps walked, steps required -->
+    <string name="contract_active_steps">%1$d / %2$d steps</string>
+    <!-- steps still owed, for a contract accepted before the goal was recorded -->
+    <string name="contract_active_steps_left">%1$d steps to go</string>
+    <!-- whole minutes remaining -->
+    <string name="contract_active_time">%1$d min remaining</string>
+    <string name="contract_active_expired">Time is up.</string>
+    <!-- reward in Scrap -->
+    <string name="contract_active_reward">Pays %1$d Scrap on completion</string>
+
     <string name="mission_checking_roster">Checking Roster…</string>
     <string name="expedition_status">Rat Scavenging… (Tap Status)</string>
 
