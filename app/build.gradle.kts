@@ -23,6 +23,13 @@ android {
 
     buildTypes {
         release {
+            // Signed with the debug key on purpose. An unsigned APK cannot be
+            // installed on anything, so a release build would be untestable and
+            // unshareable without it. This must be swapped for a real keystore
+            // before a Play upload - the debug key is shared by every Android
+            // install on the machine and identifies nobody.
+            signingConfig = signingConfigs.getByName("debug")
+
             optimization {
                 enable = false
             }
