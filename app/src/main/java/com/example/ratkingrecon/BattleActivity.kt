@@ -131,9 +131,13 @@ class BattleActivity : AppCompatActivity() {
         ratStats.text = getString(R.string.battle_stats, battle.attackDamage(), battle.ratHp, battle.ratMaxHp)
         botHpBar.progress = battle.botHp
         ratHpBar.progress = battle.ratHp
-        // Stays hidden until round 1, so the screen never shows an empty card.
-        logView.visibility = if (lines.isEmpty()) View.GONE else View.VISIBLE
-        logView.text = lines.takeLast(8).joinToString("\n")
+        // Stays hidden until there is something to read, so the screen never
+        // shows an empty card. Driven by the text actually about to be drawn
+        // rather than by the line count: a blank or whitespace-only entry would
+        // otherwise pass the count check and render as an empty white box.
+        val log = lines.takeLast(8).joinToString("\n")
+        logView.text = log
+        logView.visibility = if (log.isBlank()) View.GONE else View.VISIBLE
 
         val over = battle.outcome != BattleOutcome.ONGOING
         btnAttack.isEnabled = !over
