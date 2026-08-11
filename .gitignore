@@ -14,3 +14,39 @@
 .cxx
 local.properties
 .kotlin
+
+# --- additions ---
+
+# Packaged output. Anything under build/ is already ignored; these catch a copy
+# left somewhere else, which is how an APK usually ends up committed by accident.
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Signing material must never be committed.
+*.jks
+*.keystore
+keystore.properties
+
+# Android Studio state that is per-machine rather than per-project. The stock
+# template predates most of these, so they are added by hand. Everything else
+# under .idea/ - compiler.xml, gradle.xml, misc.xml, runConfigurations.xml - is
+# shared project config and stays tracked on purpose.
+/.idea/deploymentTargetSelector.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/deviceManager.xml
+/.idea/appInsightsSettings.xml
+/.idea/studiobot.xml
+/.idea/planningMode.xml
+/.idea/shelf/
+/.idea/artifacts/
+/.idea/httpRequests/
+/.idea/tasks.xml
+/.idea/usage.statistics.xml
+/.idea/dictionaries/
+/.idea/sonarlint/
+
+# Misc local noise
+*.log
+.externalNativeBuild/
