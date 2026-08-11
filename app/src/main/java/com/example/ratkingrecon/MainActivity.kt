@@ -245,6 +245,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(android.content.Intent(this, ShopActivity::class.java))
         }
 
+        findViewById<Button>(R.id.settingsButton).setOnClickListener {
+            startActivity(android.content.Intent(this, SettingsActivity::class.java))
+        }
+
         // Placeholder until instant hatching is built. Charges nothing, and the
         // label and tooltip quote no price, so the two cannot contradict.
         buyPremiumButton.setOnClickListener {

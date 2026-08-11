@@ -43,7 +43,30 @@
     <string name="btn_contract_board">Contract Board</string>
     <string name="btn_expedition_board">Expedition Board</string>
     <string name="btn_shop">Shop</string>
+    <string name="btn_settings">Settings</string>
     <string name="btn_dev_reset">Dev Reset</string>
+
+    <!-- Settings and save transfer -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Back up your progress, or restore it from a file.</string>
+    <string name="settings_cat_save">Save Data</string>
+    <string name="settings_cat_save_sub">Your rats, Scrap, level, EXP and anything in progress, in one JSON file.</string>
+    <string name="btn_export_save">Export Save</string>
+    <string name="btn_import_save">Import Save</string>
+    <string name="btn_cancel">Cancel</string>
+    <!-- file size in KB -->
+    <string name="export_done">Exported %1$.1f KB.</string>
+    <!-- reason -->
+    <string name="export_failed">Could not export: %1$s.</string>
+    <!-- number of rats restored -->
+    <string name="import_done">Imported your save, including %1$d rat(s).</string>
+    <string name="import_done_toast">Save imported.</string>
+    <!-- reason -->
+    <string name="import_failed">Could not import: %1$s.</string>
+    <string name="import_confirm_title">Overwrite your progress?</string>
+    <string name="import_confirm_body">Importing replaces everything you have now — every rat, your Scrap, level and EXP. This cannot be undone.\n\nExport your current save first if you want to keep it.</string>
+    <string name="import_confirm_cta">Choose a File</string>
+
     <string name="hatchery_coming_soon">The Wobbly Hatchery is still being built.</string>
 
     <!-- Expeditions and contracts -->

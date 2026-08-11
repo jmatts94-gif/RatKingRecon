@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_app_gradient"
+    android:fitsSystemWindows="true">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_title"
+        android:textColor="@color/text_primary"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_subtitle"
+        android:textColor="@color/text_muted"
+        android:textSize="13sp"
+        android:textAlignment="center"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="20dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="16dp"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_cat_save"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_cat_save_sub"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="10dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/exportSaveButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_export_save"
+                app:icon="@drawable/ic_upload"
+                app:iconGravity="textStart"
+                app:iconPadding="10dp"
+                app:iconTint="@color/text_primary"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@color/card_white"
+                app:strokeColor="@color/card_border"
+                app:strokeWidth="1dp"
+                app:cornerRadius="16dp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/importSaveButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_import_save"
+                app:icon="@drawable/ic_download"
+                app:iconGravity="textStart"
+                app:iconPadding="10dp"
+                app:iconTint="@color/text_primary"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@color/card_white"
+                app:strokeColor="@color/card_border"
+                app:strokeWidth="1dp"
+                app:cornerRadius="16dp"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:id="@+id/saveStatusText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:textAlignment="center" />
+
+            </LinearLayout>
+    </ScrollView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/settingsBackButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="@string/btn_back_to_workshop"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        app:backgroundTint="@color/card_white"
+        app:strokeColor="@color/card_border"
+        app:strokeWidth="1dp"
+        app:cornerRadius="16dp" />
+
+</LinearLayout>

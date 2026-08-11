@@ -90,6 +90,21 @@ interface RatDao {
     @Delete
     fun delete(rats: List<RatEntity>)
 
+    @Query("DELETE FROM rats")
+    fun deleteAll()
+
+    /**
+     * Swaps the whole collection for [rats], atomically.
+     *
+     * Used by save import. A transaction so a crash partway cannot leave the
+     * player with the old collection deleted and the new one not yet written.
+     */
+    @Transaction
+    fun replaceAll(rats: List<RatEntity>) {
+        deleteAll()
+        insertAll(rats)
+    }
+
     /**
      * Fuses two rats into one, atomically.
      *

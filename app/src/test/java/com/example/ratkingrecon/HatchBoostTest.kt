@@ -236,6 +236,10 @@ private class FakeRatDao : RatDao {
         rows.removeAll { it.id in ids }
     }
 
+    override fun deleteAll() {
+        rows.clear()
+    }
+
     private fun replace(id: Long, change: (RatEntity) -> RatEntity) {
         val index = rows.indexOfFirst { it.id == id }
         if (index >= 0) rows[index] = change(rows[index])

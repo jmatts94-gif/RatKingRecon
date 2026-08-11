@@ -17,8 +17,14 @@ object GameEngine {
     const val KEY_EXP = "CURRENT_EXP"
     const val KEY_SCRAP = "SCRAP"
 
-    /** Cumulative sensor reading at the last time steps were banked. */
-    private const val KEY_BASELINE = "STEP_BASELINE"
+    /**
+     * Cumulative sensor reading at the last time steps were banked.
+     *
+     * Public because save import has to clear it: a baseline restored from
+     * another device - or from before a reboot reset the counter - would make
+     * the next reading look like thousands of steps taken at once.
+     */
+    const val KEY_BASELINE = "STEP_BASELINE"
 
     /** Last cumulative reading seen, so the UI can show a session total. */
     const val KEY_TOTAL_STEPS = "STEP_TOTAL"
