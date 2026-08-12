@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The app's own widget defaults.
+
+  Split into a Base holding everything common and a thin variant on top, so
+  values-v28 can add the API 28 shadow colours by inheriting rather than by
+  restating the lot. Redefining a style name in a qualified folder replaces it
+  outright, which is how a palette ends up duplicated four times and drifts.
+-->
+<resources>
+
+    <!--
+      Inherits Material's own button rather than standing in for it. That is the
+      whole reason this is safe to hang off the theme: every button in the app
+      keeps its corners, ripple and colour handling, and gains two properties.
+    -->
+    <style name="Widget.RatKing.Button.Base" parent="Widget.Material3.Button" />
+
+    <style name="Widget.RatKing.Button" parent="Widget.RatKing.Button.Base" />
+
+</resources>

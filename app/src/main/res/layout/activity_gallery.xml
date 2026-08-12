@@ -5,6 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/bg_app_gradient"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:fitsSystemWindows="true">
 
     <LinearLayout
@@ -58,7 +60,8 @@
         android:textStyle="bold"
         android:textColor="@color/text_primary"
         app:backgroundTint="@color/amber"
-        app:cornerRadius="16dp" />
+        app:cornerRadius="16dp"
+        app:elevation="4dp" />
 
     <!-- Filters. Previously untinted, so they inherited the theme's purple. -->
     <HorizontalScrollView
@@ -85,6 +88,7 @@
                 app:strokeColor="@color/card_border"
                 app:strokeWidth="1dp"
                 app:cornerRadius="16dp"
+                app:elevation="4dp"
                 android:layout_marginEnd="8dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -99,6 +103,7 @@
                 app:strokeColor="@color/card_border"
                 app:strokeWidth="1dp"
                 app:cornerRadius="16dp"
+                app:elevation="4dp"
                 android:layout_marginEnd="8dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -112,7 +117,8 @@
                 app:backgroundTint="@color/card_white"
                 app:strokeColor="@color/card_border"
                 app:strokeWidth="1dp"
-                app:cornerRadius="16dp" />
+                app:cornerRadius="16dp"
+                app:elevation="4dp" />
         </LinearLayout>
     </HorizontalScrollView>
 
@@ -145,5 +151,6 @@
         app:backgroundTint="@color/card_white"
         app:strokeColor="@color/card_border"
         app:strokeWidth="1dp"
-        app:cornerRadius="16dp" />
+        app:cornerRadius="16dp"
+        app:elevation="4dp" />
 </LinearLayout>

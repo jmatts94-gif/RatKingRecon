@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app_gradient"
@@ -10,6 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:padding="20dp">
 
         <TextView
@@ -138,6 +143,7 @@
             app:iconTint="@color/text_primary"
             app:backgroundTint="@color/amber"
             app:cornerRadius="16dp"
+            app:elevation="4dp"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -155,6 +161,7 @@
             app:strokeColor="@color/card_border"
             app:strokeWidth="1dp"
             app:cornerRadius="16dp"
+            app:elevation="4dp"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -172,6 +179,7 @@
             app:strokeColor="@color/card_border"
             app:strokeWidth="1dp"
             app:cornerRadius="16dp"
+            app:elevation="4dp"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -180,6 +188,10 @@
             android:layout_height="wrap_content"
             android:visibility="gone"
             android:background="@drawable/bg_card_white"
+            android:elevation="4dp"
+            android:outlineAmbientShadowColor="@color/shadow_warm"
+            android:outlineSpotShadowColor="@color/shadow_warm"
+            tools:targetApi="28"
             android:padding="14dp"
             android:textColor="@color/text_muted"
             android:textSize="13sp"
@@ -196,7 +208,8 @@
             app:backgroundTint="@color/card_white"
             app:strokeColor="@color/card_border"
             app:strokeWidth="1dp"
-            app:cornerRadius="16dp" />
+            app:cornerRadius="16dp"
+            app:elevation="4dp" />
 
     </LinearLayout>
 </ScrollView>

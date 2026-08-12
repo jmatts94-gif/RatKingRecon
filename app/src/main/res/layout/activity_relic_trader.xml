@@ -64,6 +64,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:fillViewport="true">
 
         <LinearLayout
@@ -71,6 +73,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:paddingHorizontal="16dp"
             android:paddingBottom="20dp" />
     </ScrollView>
@@ -84,5 +88,6 @@
         android:textColor="@color/text_primary"
         android:backgroundTint="@color/card_white"
         app:cornerRadius="14dp"
+        app:elevation="4dp"
         xmlns:app="http://schemas.android.com/apk/res-auto" />
 </LinearLayout>

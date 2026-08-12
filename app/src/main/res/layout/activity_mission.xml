@@ -5,12 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app_gradient"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:padding="20dp">
 
         <TextView
@@ -50,7 +54,10 @@
             app:strokeColor="@color/card_border"
             app:strokeWidth="1dp"
             app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            app:cardElevation="5dp"
+            android:outlineAmbientShadowColor="@color/shadow_warm"
+            android:outlineSpotShadowColor="@color/shadow_warm"
+            tools:targetApi="28"
             android:layout_marginBottom="14dp">
 
             <LinearLayout
@@ -70,7 +77,8 @@
                     android:text="@string/mission_checking_roster"
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary"
-                    app:cornerRadius="14dp" />
+                    app:cornerRadius="14dp"
+                    app:elevation="4dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -81,7 +89,10 @@
             app:strokeColor="@color/card_border"
             app:strokeWidth="1dp"
             app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            app:cardElevation="5dp"
+            android:outlineAmbientShadowColor="@color/shadow_warm"
+            android:outlineSpotShadowColor="@color/shadow_warm"
+            tools:targetApi="28"
             android:layout_marginBottom="14dp">
 
             <LinearLayout
@@ -101,7 +112,8 @@
                     android:text="@string/mission_checking_roster"
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary"
-                    app:cornerRadius="14dp" />
+                    app:cornerRadius="14dp"
+                    app:elevation="4dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -112,7 +124,10 @@
             app:strokeColor="@color/card_border"
             app:strokeWidth="1dp"
             app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            app:cardElevation="5dp"
+            android:outlineAmbientShadowColor="@color/shadow_warm"
+            android:outlineSpotShadowColor="@color/shadow_warm"
+            tools:targetApi="28"
             android:layout_marginBottom="20dp">
 
             <LinearLayout
@@ -132,7 +147,8 @@
                     android:text="@string/mission_checking_roster"
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary"
-                    app:cornerRadius="14dp" />
+                    app:cornerRadius="14dp"
+                    app:elevation="4dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -147,7 +163,8 @@
             app:backgroundTint="@color/card_white"
             app:strokeColor="@color/card_border"
             app:strokeWidth="1dp"
-            app:cornerRadius="16dp" />
+            app:cornerRadius="16dp"
+            app:elevation="4dp" />
 
     </LinearLayout>
 </ScrollView>

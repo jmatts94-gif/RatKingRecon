@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Scrap: a hex nut.
+
+  Hand-drawn rather than a Material Symbol, because the stock set has no piece
+  of hardware in it and Scrap is salvaged metal, not an abstract token. The
+  outer silhouette is deliberately the same hexagon the currency has always
+  used, so the change reads as the icon gaining detail rather than as a
+  different currency - it is the bore and the machined bevel that turn a shape
+  into a part someone unbolted from something.
+
+  Drawn at 24 rather than the 960 viewport the imported Material icons use:
+  there is no source SVG to stay faithful to, and the round numbers keep the
+  bevel concentric.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/text_primary">
+
+    <!--
+      Body and bore in one path. evenOdd is what punches the hole through:
+      the second subpath is wound inside the first, so the overlap is dropped
+      rather than filled.
+    -->
+    <path
+        android:fillColor="@color/text_primary"
+        android:fillType="evenOdd"
+        android:pathData="M17.2,2.9 L6.8,2.9 L1.6,12 L6.8,21.1 L17.2,21.1 L22.4,12 Z
+                          M12,7.6 C14.43,7.6 16.4,9.57 16.4,12 C16.4,14.43 14.43,16.4 12,16.4
+                          C9.57,16.4 7.6,14.43 7.6,12 C7.6,9.57 9.57,7.6 12,7.6 Z" />
+
+    <!--
+      The chamfer around the bore: a thin ring just outside the hole, the way a
+      real nut is relieved where the faces meet the thread. Faint on purpose -
+      at the size this is drawn beside a number, it is the difference between
+      reading as machined and reading as a washer.
+    -->
+    <path
+        android:fillColor="@color/text_primary"
+        android:fillAlpha="0.35"
+        android:fillType="evenOdd"
+        android:pathData="M12,6.1 C15.26,6.1 17.9,8.74 17.9,12 C17.9,15.26 15.26,17.9 12,17.9
+                          C8.74,17.9 6.1,15.26 6.1,12 C6.1,8.74 8.74,6.1 12,6.1 Z
+                          M12,7.1 C9.29,7.1 7.1,9.29 7.1,12 C7.1,14.71 9.29,16.9 12,16.9
+                          C14.71,16.9 16.9,14.71 16.9,12 C16.9,9.29 14.71,7.1 12,7.1 Z" />
+
+</vector>

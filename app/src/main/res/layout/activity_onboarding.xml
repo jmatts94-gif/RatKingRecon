@@ -55,7 +55,8 @@
             android:textStyle="bold"
             android:textColor="@color/text_primary"
             app:backgroundTint="@color/amber"
-            app:cornerRadius="16dp" />
+            app:cornerRadius="16dp"
+            app:elevation="4dp" />
 
     </LinearLayout>
 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Warm shadows on every button in the app, from API 28 up.
+
+  Hung off the theme's materialButtonStyle rather than applied per layout, which
+  is what makes this a handful of lines instead of an attribute on forty
+  buttons - and means a button added tomorrow gets it without anyone
+  remembering.
+
+  Applying a style to a MaterialButton with the style attribute would have
+  replaced its default outright and taken the Material appearance with it.
+  Inheriting from Widget.RatKing.Button.Base, which is Material's own button,
+  adds the two colours and changes nothing else.
+
+  Below API 28 these attributes do not exist, this file is not used, and buttons
+  keep the platform's near-black shadow.
+-->
+<resources>
+
+    <style name="Widget.RatKing.Button" parent="Widget.RatKing.Button.Base">
+        <item name="android:outlineAmbientShadowColor">@color/shadow_warm</item>
+        <item name="android:outlineSpotShadowColor">@color/shadow_warm</item>
+    </style>
+
+</resources>
