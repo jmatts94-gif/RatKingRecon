@@ -134,7 +134,13 @@ class BattleActivity : AppCompatActivity() {
             BattleAction.SPECIAL -> "unleashes Special for ${r.damageDealt}"
             BattleAction.DEFEND -> "braces"
         }
-        val reply = if (r.damageTaken > 0) " — takes ${r.damageTaken}" else ""
+        // Names the Rustbot's Special rather than letting a hit half again as
+        // big as usual look like an unexplained spike.
+        val reply = when {
+            r.damageTaken <= 0 -> ""
+            r.botUsedSpecial -> " — ${battle.botName} overloads for ${r.damageTaken}"
+            else -> " — takes ${r.damageTaken}"
+        }
         return "Round ${r.round}: ${battle.ratName} $verb$reply"
     }
 

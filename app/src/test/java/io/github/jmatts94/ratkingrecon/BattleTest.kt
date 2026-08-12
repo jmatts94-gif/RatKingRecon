@@ -88,11 +88,101 @@ class BattleTest {
     // --- the agreed difficulty curve -------------------------------------
 
     @Test
-    fun `ramp runs from forty five percent to parity at level twelve`() {
+    fun `ramp reaches parity at twelve and tops out past it`() {
         assertEquals(0.45, RustbotFactory.rampFor(1), 0.001)
         assertEquals(0.70, RustbotFactory.rampFor(6), 0.001)
         assertEquals(1.00, RustbotFactory.rampFor(12), 0.001)
-        assertEquals(1.00, RustbotFactory.rampFor(40), 0.001)
+
+        // Past parity, because a mirror match is not an even fight: the rat
+        // swings first and the Rustbot does not reply on the round it dies.
+        assertEquals(1.10, RustbotFactory.rampFor(14), 0.001)
+        assertEquals(1.10, RustbotFactory.rampFor(40), 0.001)
+        assertTrue("the ramp must climb past parity", RustbotFactory.rampFor(40) > 1.0)
+    }
+
+    // --- the Rustbot's Special --------------------------------------------
+
+    @Test
+    fun `the bot special lands on its own cadence, out of phase with the rat`() {
+        val b = battle(ratPower = 1, ratHp = 500, botPower = 4, botHp = 500)
+
+        // Rounds 1 and 2 are plain swings; the third is the Special.
+        assertFalse(b.advance(BattleAction.ATTACK).botUsedSpecial)
+        assertFalse(b.advance(BattleAction.ATTACK).botUsedSpecial)
+
+        val special = b.advance(BattleAction.ATTACK)
+        assertTrue("the bot should special on round 3", special.botUsedSpecial)
+        assertEquals(6, special.damageTaken)
+
+        assertFalse(b.advance(BattleAction.ATTACK).botUsedSpecial)
+        assertFalse(b.advance(BattleAction.ATTACK).botUsedSpecial)
+        assertTrue("and again three rounds later", b.advance(BattleAction.ATTACK).botUsedSpecial)
+    }
+
+    @Test
+    fun `the bot special deals one and a half times its power`() {
+        assertEquals(6, battle(botPower = 4).botSpecialDamage())
+        assertEquals(5, battle(botPower = 3).botSpecialDamage())
+        assertEquals(2, battle(botPower = 1).botSpecialDamage())
+    }
+
+    @Test
+    fun `defending halves the bot special too`() {
+        val b = battle(ratPower = 1, ratHp = 500, botPower = 6, botHp = 500)
+        b.advance(BattleAction.ATTACK)
+        b.advance(BattleAction.ATTACK)
+
+        val blocked = b.advance(BattleAction.DEFEND)
+        assertTrue(blocked.botUsedSpecial)
+        assertEquals("9 halved", 4, blocked.damageTaken)
+    }
+
+    @Test
+    fun `a dying bot lands no special`() {
+        // Three swings of 10 exactly finish 30 HP, so the bot dies on the very
+        // round its Special was due.
+        val b = battle(ratPower = 10, ratHp = 500, botPower = 6, botHp = 30)
+
+        assertFalse(b.advance(BattleAction.ATTACK).botUsedSpecial)
+        assertFalse(b.advance(BattleAction.ATTACK).botUsedSpecial)
+
+        val last = b.advance(BattleAction.ATTACK)
+        assertEquals(BattleOutcome.PLAYER_WON, last.outcome)
+        assertEquals("a dead Rustbot does not swing", 0, last.damageTaken)
+        assertFalse(last.botUsedSpecial)
+    }
+
+    /** The bot having a Special is what makes an even fight actually even. */
+    @Test
+    fun `an ordinary encounter is now losable`() {
+        val rat = RatEntity(artKey = "flux_pic", name = "R", power = 5, toughness = 5, shiny = false)
+        val bot = RustbotFactory.forEncounter(20, rat)
+
+        assertTrue("the bot should out-stat the rat at the top of the ramp", bot.power > rat.power)
+
+        val result = AutoResolver.resolve(
+            Encounter(1, bot.name, bot.power, bot.toughness, 0).toBattle(rat)
+        )
+        assertEquals(BattleOutcome.PLAYER_LOST, result.outcome)
+    }
+
+    /** And the Shop is what turns it back around. */
+    @Test
+    fun `a combat item turns a losing encounter into a win`() {
+        val rat = RatEntity(artKey = "flux_pic", name = "R", power = 5, toughness = 5, shiny = false)
+        val bot = RustbotFactory.forEncounter(20, rat)
+        val encounter = Encounter(1, bot.name, bot.power, bot.toughness, 0)
+
+        assertEquals(
+            BattleOutcome.PLAYER_LOST,
+            AutoResolver.resolve(encounter.toBattle(rat)).outcome
+        )
+        assertEquals(
+            BattleOutcome.PLAYER_WON,
+            AutoResolver.resolve(
+                encounter.toBattle(rat, Loadout(ShopEffects.SURGE_MULTIPLIER))
+            ).outcome
+        )
     }
 
     @Test

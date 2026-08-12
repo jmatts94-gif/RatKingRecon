@@ -42,7 +42,9 @@ data class RoundResult(
     val damageTaken: Int,
     val ratHp: Int,
     val botHp: Int,
-    val outcome: BattleOutcome
+    val outcome: BattleOutcome,
+    /** Whether the Rustbot's reply this round was its Special. */
+    val botUsedSpecial: Boolean = false
 )
 
 /**
@@ -73,6 +75,20 @@ class Battle(
         const val SPECIAL_MULTIPLIER = 1.5
 
         /**
+         * Rounds between the Rustbot's Special.
+         *
+         * The same cadence the rat has, deliberately out of phase with it: the
+         * rat's lands on rounds 1, 4, 7 and the Rustbot's on 3, 6, 9, so the two
+         * big hits never fall in the same round and a fight has a rhythm rather
+         * than a pair of simultaneous spikes.
+         *
+         * The Rustbot had no Special at all before. Together with the rat
+         * striking first and being the only side able to block, that was most of
+         * why an ordinary encounter could not be lost.
+         */
+        const val BOT_SPECIAL_COOLDOWN = 3
+
+        /**
          * Safety net. A pathological pairing - a Rustbot whose halved damage
          * rounds to zero against a rat that keeps defending - could otherwise
          * loop forever. Reaching this decides the fight on remaining HP share.
@@ -94,6 +110,12 @@ class Battle(
 
     private var lastSpecialRound = -SPECIAL_COOLDOWN
 
+    /**
+     * Zero rather than negative, which is what puts the Rustbot's Special on
+     * round 3 while the rat's lands on round 1.
+     */
+    private var botLastSpecialRound = 0
+
     val log = mutableListOf<RoundResult>()
 
     /** Special is ready when enough rounds have passed since it was last used. */
@@ -108,6 +130,21 @@ class Battle(
     fun attackDamage(): Int = ratPower
 
     fun specialDamage(): Int = (ratPower * SPECIAL_MULTIPLIER).roundToInt()
+
+    /** Whether the Rustbot's reply next round will be its Special. */
+    val botSpecialReady: Boolean
+        get() = (round + 1) - botLastSpecialRound >= BOT_SPECIAL_COOLDOWN
+
+    fun botSpecialDamage(): Int = (botPower * SPECIAL_MULTIPLIER).roundToInt()
+
+    /**
+     * What the Rustbot's next unblocked hit will be.
+     *
+     * Public so the auto-resolver can decide whether blocking is worth it
+     * against the hit actually coming, rather than against a plain swing - a
+     * block chosen against the wrong number is a wasted round.
+     */
+    fun botNextDamage(): Int = if (botSpecialReady) botSpecialDamage() else botPower
 
     /**
      * Plays one round: the rat acts, then the Rustbot strikes back if it lives.
@@ -138,8 +175,13 @@ class Battle(
 
         // The Rustbot only swings if it survived the round.
         var taken = 0
+        var botSpecial = false
         if (botHp > 0) {
-            taken = if (action == BattleAction.DEFEND) botPower / 2 else botPower
+            botSpecial = round - botLastSpecialRound >= BOT_SPECIAL_COOLDOWN
+            if (botSpecial) botLastSpecialRound = round
+
+            val incoming = if (botSpecial) botSpecialDamage() else botPower
+            taken = if (action == BattleAction.DEFEND) incoming / 2 else incoming
             ratHp = max(0, ratHp - taken)
         }
 
@@ -150,7 +192,7 @@ class Battle(
             else -> BattleOutcome.ONGOING
         }
 
-        return RoundResult(round, action, dealt, taken, ratHp, botHp, outcome)
+        return RoundResult(round, action, dealt, taken, ratHp, botHp, outcome, botSpecial)
             .also { log += it }
     }
 
@@ -178,29 +220,39 @@ object AutoResolver {
     }
 
     /**
-     * Roughly what a competent player does: lead with Special whenever it is
-     * ready, block a hit that would otherwise be lethal, and swing the rest of
-     * the time.
+     * Roughly what a competent player does: kill if the swing finishes it,
+     * block a hit that would otherwise be lethal, lead with Special when it is
+     * ready, and swing the rest of the time.
      *
-     * Defending is only chosen when it actually changes the outcome of the
-     * round - if the halved hit would still be fatal there is nothing to gain,
-     * so the rat goes down attacking instead of stalling.
+     * Finishing comes before everything, because a dead Rustbot does not reply
+     * - spending the round blocking a hit that was never going to land throws
+     * the fight away. That ordering matters far more now the Rustbot has a
+     * Special of its own to survive.
      */
     private fun choose(battle: Battle): BattleAction {
-        if (battle.specialAvailable) return BattleAction.SPECIAL
+        if (battle.specialAvailable && battle.specialDamage() >= battle.botHp) {
+            return BattleAction.SPECIAL
+        }
+        if (battle.attackDamage() >= battle.botHp) return BattleAction.ATTACK
         if (blockingSavesUs(battle)) return BattleAction.DEFEND
+        if (battle.specialAvailable) return BattleAction.SPECIAL
         return BattleAction.ATTACK
     }
 
     /**
-     * True when the next hit is lethal but a halved one is not.
+     * True when the hit actually coming is lethal but a halved one is not.
+     *
+     * Measured against [Battle.botNextDamage] rather than the Rustbot's plain
+     * Power, because the hit on a Special round is half again as big - blocking
+     * against the wrong number either wastes a round or fails to save the rat
+     * from the one hit worth blocking.
      *
      * If blocking would not save the rat either, there is nothing to gain by
      * stalling - it goes down attacking, which at least leaves the Rustbot
      * damaged and keeps the fight from dragging to the round cap.
      */
     private fun blockingSavesUs(battle: Battle): Boolean {
-        val incoming = battle.botPower
+        val incoming = battle.botNextDamage()
         return incoming >= battle.ratHp && incoming / 2 < battle.ratHp
     }
 }

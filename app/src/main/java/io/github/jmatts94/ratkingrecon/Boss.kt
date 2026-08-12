@@ -32,6 +32,14 @@ import kotlin.math.roundToInt
  * hard, impossible. These values were picked from the same simulation to put the
  * first boss inside reach unaided, the middle three inside reach of a 75-Scrap
  * Power Surge, and the last two behind the Golden Wrench.
+ *
+ * They came down by a fifth when every Rustbot gained a Special and the ramp was
+ * allowed past parity. Bosses are built on top of the ordinary bot, so they
+ * collected both buffs for free - roughly a sixth more damage from the Special
+ * and a tenth more stats from the ramp - and the Rustbringer stopped being
+ * beatable even with a Wrench, which is the one thing these numbers exist to
+ * guarantee. A fifth is what the simulation says restores that without letting a
+ * Power Surge alone carry the last boss.
  */
 data class BossSpec(
     val id: String,
@@ -75,28 +83,28 @@ object Bosses {
             nameRes = R.string.boss_junk_golem,
             badgeRes = R.drawable.ic_hexagon,
             minLevel = 10, maxLevel = 15,
-            powerMult = 1.15, hpMult = 1.10, rewardMult = 3
+            powerMult = 1.12, hpMult = 1.08, rewardMult = 3
         ),
         BossSpec(
             id = "old_ironclaw",
             nameRes = R.string.boss_old_ironclaw,
             badgeRes = R.drawable.ic_toughness,
             minLevel = 20, maxLevel = 25,
-            powerMult = 1.20, hpMult = 1.20, rewardMult = 4
+            powerMult = 1.16, hpMult = 1.16, rewardMult = 4
         ),
         BossSpec(
             id = "boiler_baron",
             nameRes = R.string.boss_boiler_baron,
             badgeRes = R.drawable.ic_flask,
             minLevel = 30, maxLevel = 35,
-            powerMult = 1.25, hpMult = 1.30, rewardMult = 5
+            powerMult = 1.20, hpMult = 1.24, rewardMult = 5
         ),
         BossSpec(
             id = "circuit_reaper",
             nameRes = R.string.boss_circuit_reaper,
             badgeRes = R.drawable.ic_power,
             minLevel = 40, maxLevel = 45,
-            powerMult = 1.30, hpMult = 1.40, rewardMult = 6
+            powerMult = 1.24, hpMult = 1.32, rewardMult = 6
         ),
         BossSpec(
             id = "rustbringer",
@@ -104,7 +112,7 @@ object Bosses {
             badgeRes = R.drawable.ic_star,
             // Open-ended: the last boss stays available for the rest of the game.
             minLevel = 50, maxLevel = Int.MAX_VALUE,
-            powerMult = 1.40, hpMult = 1.50, rewardMult = 8
+            powerMult = 1.32, hpMult = 1.40, rewardMult = 8
         )
     )
 

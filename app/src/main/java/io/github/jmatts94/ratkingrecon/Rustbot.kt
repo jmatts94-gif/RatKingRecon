@@ -20,15 +20,37 @@ data class Rustbot(
  * Scaled against the rat being sent rather than against player level alone.
  * Rat stats never grow with level - Power and Toughness always roll 1..5, and
  * only the Fusion Pot raises them - so level-only scaling would leave anyone
- * who does not splice facing unwinnable fights. Level instead decides how close
- * to parity the Rustbot gets: a gentle slope from 45% at level 1 to an even
- * match from level 12 on, with no step anywhere along it.
+ * who does not splice facing unwinnable fights. Level decides how close to the
+ * rat the Rustbot gets: a gentle slope from 45% at level 1, through an even
+ * match at level 12, and on past it.
+ *
+ * Past it, which is the point. The ramp used to stop dead at parity, and a
+ * mirror match is not an even fight: the rat swings first, the Rustbot does not
+ * retaliate on the round it dies, and only the rat has a Special and a block. A
+ * sweep of every stat pairing at every level found the player winning 4000 out
+ * of 4000. Letting the ramp climb to [MAX_RATIO] is half the answer - the other
+ * half is the Rustbot Special in [Battle].
  */
 object RustbotFactory {
 
     private const val START_RATIO = 0.45
     private const val RATIO_PER_LEVEL = 0.05
     private const val PARITY_LEVEL = 12
+
+    /**
+     * How far past the rat a Rustbot can be scaled, at the top of the ramp.
+     *
+     * Reached at level 14 and flat from there, and deliberately small. Rat stats
+     * are single digits and the bot's are rounded to integers, so this ratio is
+     * not a dial that turns smoothly - it only bites when the multiplication
+     * crosses a whole number, and one point of bot Toughness is ten HP.
+     * Measured across the stat range, 1.30 left almost nothing winnable and
+     * 1.05 changed nothing below Fusion-Pot sizes; this is the value where an
+     * ordinary encounter becomes losable without becoming hopeless.
+     *
+     * See the note on [forEncounter] for what this cannot fix.
+     */
+    private const val MAX_RATIO = 1.10
 
     /** Provisional naming - the species is "Rustbot", these are variants. */
     private val VARIANTS = listOf(
@@ -40,10 +62,24 @@ object RustbotFactory {
         "Rustbot Piston"
     )
 
-    /** How close to the rat's own stats a Rustbot gets at [playerLevel]. */
+    /** How close to - or past - the rat's own stats a Rustbot gets at [playerLevel]. */
     fun rampFor(playerLevel: Int): Double =
-        min(1.0, START_RATIO + RATIO_PER_LEVEL * (playerLevel - 1))
+        min(MAX_RATIO, START_RATIO + RATIO_PER_LEVEL * (playerLevel - 1))
 
+    /**
+     * The Rustbot for this encounter.
+     *
+     * One property of scaling off the rat is worth stating plainly, because it
+     * is not obvious and it is not fixed here: a better rat does not make a
+     * fight easier, because the Rustbot grows with it. Above parity it makes
+     * the fight *harder*, since a larger stat crosses the next whole number
+     * sooner - a 4 stays level with its Rustbot at 1.10 while a 5 does not.
+     * Fusion-Pot rats therefore meet stiffer opposition than hatched ones.
+     *
+     * Fixing that means breaking the link between bot Toughness and its HP, so
+     * difficulty can be dialled in something finer than ten-HP steps. That is a
+     * save-format change and a separate decision.
+     */
     fun forEncounter(playerLevel: Int, rat: RatEntity): Rustbot {
         val ramp = rampFor(playerLevel)
         return Rustbot(
