@@ -56,8 +56,18 @@ class StepTrackerService : Service(), SensorEventListener {
         /**
          * The live daily step count. Low importance and permanently silent, so
          * the running update never makes a sound however often it is re-posted.
+         *
+         * Versioned like the hatch channels, and bumped to v2 because v1 is
+         * already sitting on every device that ran an earlier build. A channel's
+         * settings are frozen when it is created - later attempts to change them
+         * are ignored, and deleting and recreating it does not help either,
+         * because the old settings are remembered - so a channel that shipped in
+         * a bad state can only be replaced, never repaired.
          */
-        private const val CHANNEL_STEPS = "steps_today_v1"
+        private const val CHANNEL_STEPS = "steps_today_v2"
+
+        /** Retired by [CHANNEL_STEPS]; removed so it stops showing in settings. */
+        private const val CHANNEL_STEPS_OLD = "steps_today_v1"
 
         private const val NOTIF_ONGOING = 1
         private const val NOTIF_HATCH = 2
@@ -318,6 +328,10 @@ class StepTrackerService : Service(), SensorEventListener {
             }
         )
 
+        // Leaves no orphan behind in the system settings list when the channel
+        // id is bumped. Safe to call for an id that was never created.
+        manager.deleteNotificationChannel(CHANNEL_STEPS_OLD)
+
         // Never alerts: this one is re-posted every time the sensor reports, so
         // an audible channel would buzz continuously all day.
         manager.createNotificationChannel(
@@ -375,7 +389,7 @@ class StepTrackerService : Service(), SensorEventListener {
             .setContentIntent(openAppIntent())
             // The channel covers Android 8 and up; this is what silences the
             // same notification on 7 and below, where there are no channels.
-            .setSilent(quiet)
+            .silenceWithoutGrouping(quiet)
             .build()
 
         getSystemService(NotificationManager::class.java)
@@ -417,8 +431,22 @@ class StepTrackerService : Service(), SensorEventListener {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(false)
             .setOnlyAlertOnce(true)
-            .setSilent(true)
             .setShowWhen(false)
+            // Deliberately NOT setSilent(true). That does more than mute: it
+            // stamps GROUP_ALERT_SUMMARY on the notification, which says "my
+            // group's summary does the alerting for me". Android auto-bundles
+            // several notifications from one app, so this became a group child
+            // deferring to a summary that was never posted, and the system threw
+            // it away - accepted by notify(), absent from getActiveNotifications,
+            // never in the shade. The foreground service notification survived
+            // precisely because it never called setSilent.
+            //
+            // Silence is the channel's job from API 26 up: IMPORTANCE_LOW with
+            // no sound and no vibration. Below that there are no channels, so it
+            // is spelled out here instead - none of which touches grouping.
+            .setSound(null)
+            .setVibrate(null)
+            .setDefaults(0)
             // Left standing when tapped: it is a live readout, not an
             // announcement, so dismissing it should be the player's choice.
             .setAutoCancel(false)
@@ -464,7 +492,13 @@ class StepTrackerService : Service(), SensorEventListener {
         }
 
         val summary = active.joinToString(", ") { posted ->
-            "id=${posted.id} channel=${posted.notification.channelId}"
+            // Channels only exist from API 26; below that the id alone is the
+            // whole story anyway, because there is nothing else to name.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                "id=${posted.id} channel=${posted.notification.channelId}"
+            } else {
+                "id=${posted.id}"
+            }
         }
 
         Log.d(TAG, "Active notifications for this app (${active.size}): [$summary]")
@@ -542,7 +576,7 @@ class StepTrackerService : Service(), SensorEventListener {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(openAppIntent())
-            .setSilent(quiet)
+            .silenceWithoutGrouping(quiet)
             .build()
 
         getSystemService(NotificationManager::class.java)
@@ -591,7 +625,7 @@ class StepTrackerService : Service(), SensorEventListener {
             .setContentIntent(fight)
             .addAction(0, getString(R.string.notif_action_fight), fight)
             .addAction(0, getString(R.string.notif_action_auto), auto)
-            .setSilent(quiet)
+            .silenceWithoutGrouping(quiet)
             .build()
 
         getSystemService(NotificationManager::class.java)

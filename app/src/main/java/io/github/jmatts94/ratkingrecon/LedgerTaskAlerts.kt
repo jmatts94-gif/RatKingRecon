@@ -110,7 +110,7 @@ class LedgerTaskAlarmReceiver : BroadcastReceiver() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(open)
-            .setSilent(quiet)
+            .silenceWithoutGrouping(quiet)
             .build()
 
         context.getSystemService(NotificationManager::class.java)

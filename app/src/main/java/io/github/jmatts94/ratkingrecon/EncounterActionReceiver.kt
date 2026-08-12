@@ -101,7 +101,7 @@ class EncounterActionReceiver : BroadcastReceiver() {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setAutoCancel(true)
-                .setSilent(quiet)
+                .silenceWithoutGrouping(quiet)
                 .build()
         )
     }
