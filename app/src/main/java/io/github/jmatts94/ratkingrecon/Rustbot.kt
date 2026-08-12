@@ -26,10 +26,10 @@ data class Rustbot(
  * Rat stats never grow with level - Power and Toughness always roll 1..5, and
  * only the Fusion Pot raises them - so level-only scaling would leave anyone
  * who does not splice facing unwinnable fights. Level decides how close to the
- * rat the Rustbot gets: a gentle slope from 45% at level 1, through an even
- * match at level 12, and on past it.
+ * rat the Rustbot gets: a slope from 75% at level 1, through an even match
+ * around level 8, to [MAX_RATIO] at level 11.
  *
- * Past it, which is the point. The ramp used to stop dead at parity, and a
+ * Past parity, which is the point. The ramp used to stop dead there, and a
  * mirror match is not an even fight: the rat swings first, the Rustbot does not
  * retaliate on the round it dies, and only the rat has a Special and a block. A
  * sweep of every stat pairing at every level found the player winning 4000 out
@@ -38,17 +38,32 @@ data class Rustbot(
  */
 object RustbotFactory {
 
-    private const val START_RATIO = 0.45
-    private const val RATIO_PER_LEVEL = 0.05
-    private const val PARITY_LEVEL = 12
+    /**
+     * Where the ramp begins, and how fast it climbs.
+     *
+     * It used to begin at 0.45 and add 0.05 a level, which made the first dozen
+     * levels a formality: measured across the stat range, a level 1 win left 82%
+     * of the rat's health and a level 5 win left 64%. The endgame was a real
+     * contest and almost nobody had walked far enough to see it - reaching the
+     * top of the old ramp took some 4500 steps of cumulative levelling.
+     *
+     * Starting at 0.75 costs a new player about half their health for a first
+     * win instead of a fifth. The slope is shallower to compensate, so the climb
+     * from there is gentler than it was and still tops out sooner: parity lands
+     * around level 8 and the cap at level 11.
+     */
+    private const val START_RATIO = 0.75
+    private const val RATIO_PER_LEVEL = 0.035
 
     /**
      * How far past the rat a Rustbot can be scaled, at the top of the ramp.
      *
-     * Reached at level 14 and flat from there. This is a real dial now that HP
-     * is scaled a point at a time rather than in tens - swept across all 144
-     * stat pairings the player wins 100% of encounters at 1.00, 73% at 1.05,
-     * 53% here, and 27% at 1.20, falling smoothly rather than in cliffs.
+     * Reached at level 11 and flat from there, and deliberately unchanged by the
+     * ramp being made steeper at the bottom: the endgame was already a contest,
+     * and only the walk up to it was not. This is a real dial now that HP is
+     * scaled a point at a time rather than in tens - swept across all 144 stat
+     * pairings the player wins 100% of encounters at 1.00, 73% at 1.05, 53%
+     * here, and 27% at 1.20, falling smoothly rather than in cliffs.
      *
      * Roughly even odds is the point. An encounter is a coin toss the player
      * can load: a Power Surge wins every pairing at every ratio tested, so a

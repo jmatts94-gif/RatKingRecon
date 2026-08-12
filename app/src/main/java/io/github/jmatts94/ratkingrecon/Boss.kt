@@ -83,7 +83,16 @@ object Bosses {
             nameRes = R.string.boss_junk_golem,
             badgeRes = R.drawable.ic_hexagon,
             minLevel = 10, maxLevel = 15,
-            powerMult = 1.12, hpMult = 1.08, rewardMult = 3
+            // Barely above a standard Rustbot, and that is the ramp's doing
+            // rather than a decision about the Junk Golem. It is met at level
+            // 10, which used to sit at 0.90 on a slow ramp and now sits at
+            // 1.065 on a fast one - so the ordinary fight at that level is
+            // already near the top of the curve, and anything much on top of it
+            // stops an average rat beating the first boss unaided, which is the
+            // one thing this rung of the ladder exists to allow. Its weight
+            // comes from a name, a badge and triple salvage; the escalation
+            // comes from the four bosses above it.
+            powerMult = 1.02, hpMult = 1.02, rewardMult = 3
         ),
         BossSpec(
             id = "old_ironclaw",

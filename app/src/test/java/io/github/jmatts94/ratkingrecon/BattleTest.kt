@@ -88,16 +88,22 @@ class BattleTest {
     // --- the agreed difficulty curve -------------------------------------
 
     @Test
-    fun `ramp reaches parity at twelve and tops out past it`() {
-        assertEquals(0.45, RustbotFactory.rampFor(1), 0.001)
-        assertEquals(0.70, RustbotFactory.rampFor(6), 0.001)
-        assertEquals(1.00, RustbotFactory.rampFor(12), 0.001)
+    fun `ramp starts high, passes parity around eight and caps at eleven`() {
+        // A first fight should cost something. Starting at 0.45 left 82% of a
+        // rat's health on a level one win, which is not a fight.
+        assertEquals(0.750, RustbotFactory.rampFor(1), 0.001)
+        assertEquals(0.925, RustbotFactory.rampFor(6), 0.001)
+        assertEquals(0.995, RustbotFactory.rampFor(8), 0.001)
 
         // Past parity, because a mirror match is not an even fight: the rat
         // swings first and the Rustbot does not reply on the round it dies.
-        assertEquals(1.10, RustbotFactory.rampFor(14), 0.001)
+        assertEquals(1.10, RustbotFactory.rampFor(11), 0.001)
         assertEquals(1.10, RustbotFactory.rampFor(40), 0.001)
         assertTrue("the ramp must climb past parity", RustbotFactory.rampFor(40) > 1.0)
+
+        // And it must only ever climb.
+        val curve = (1..20).map { RustbotFactory.rampFor(it) }
+        assertEquals(curve, curve.sorted())
     }
 
     // --- the Rustbot's Special --------------------------------------------
@@ -188,30 +194,36 @@ class BattleTest {
         )
     }
 
+    /**
+     * A first encounter should be won, and should cost something.
+     *
+     * It used to cost almost nothing: at 0.45 the Rustbot came out with 1 Power
+     * against a rat with 30 HP, and a level one win left 82% of that health.
+     * The ramp starts at 0.75 now, so the same fight takes about half.
+     */
     @Test
-    fun `a level one encounter is trivially winnable`() {
+    fun `a level one encounter is winnable but not free`() {
         val rat = RatEntity(artKey = "flux_pic", name = "R", power = 3, toughness = 3, shiny = false)
         val bot = RustbotFactory.forEncounter(1, rat)
-        assertEquals(1, bot.power)
 
-        // 45% of the rat's 30 HP, not 45% of its Toughness rounded to 1 and
-        // multiplied by ten. The old formula threw away most of the ramp here:
-        // it produced 10 where the ratio actually asks for 14.
-        assertEquals(14, bot.maxHp)
+        assertEquals(2, bot.power)
+        assertEquals("75% of the rat's 30 HP", 23, bot.maxHp)
 
         val result = AutoResolver.resolve(
             Battle("R", rat.power, rat.maxHp, bot.name, bot.power, bot.maxHp)
         )
         assertEquals(BattleOutcome.PLAYER_WON, result.outcome)
-        assertTrue("should barely be scratched", result.ratHp >= rat.maxHp - 5)
+        assertTrue("a first win should leave a mark", result.ratHp < rat.maxHp * 3 / 4)
+        assertTrue("but not be a near-death experience", result.ratHp > 0)
     }
 
     @Test
-    fun `an even match at parity is still winnable but close`() {
+    fun `a fight at the top of the ramp is winnable but close`() {
         val rat = RatEntity(artKey = "flux_pic", name = "R", power = 3, toughness = 3, shiny = false)
         val bot = RustbotFactory.forEncounter(12, rat)
-        assertEquals(3, bot.power)
-        assertEquals(30, bot.maxHp)
+
+        assertEquals("Power stops at parity", 3, bot.power)
+        assertEquals("110% of the rat's 30 HP", 33, bot.maxHp)
 
         val result = AutoResolver.resolve(
             Battle("R", rat.power, rat.maxHp, bot.name, bot.power, bot.maxHp)
