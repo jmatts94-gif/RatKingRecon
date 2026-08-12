@@ -12,6 +12,7 @@ import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import android.view.Choreographer
 import android.view.View
+import androidx.core.graphics.ColorUtils
 import kotlin.math.sin
 
 /**
@@ -51,16 +52,11 @@ object FrameClock {
  */
 class FrameOverlayDrawable(
     private val style: FrameStyle,
-    private val accent: Int
+    private val accent: Int,
+    private val accentAlt: Int = accent
 ) : Drawable() {
 
     private companion object {
-        // --- corner cogs ---
-        const val GEAR_TEETH = 8
-        const val GEAR_RADIUS_DP = 10f
-        const val GEAR_INSET_DP = 11f
-        const val GEAR_ALPHA = 240
-
         // --- the gear track running the perimeter ---
         const val TRACK_WIDTH_DP = 3f
         const val TRACK_TOOTH_DP = 3.5f
@@ -86,13 +82,22 @@ class FrameOverlayDrawable(
         const val PARTICLE_ALPHA = 220
         const val GLOW_ALPHA = 75
         const val GLOW_SCALE = 2.2f
+
+        // --- the breathing border ---
+        const val PULSE_WIDTH_DP = 3.5f
+        const val PULSE_HALO_WIDTH_DP = 7f
+        const val PULSE_HALO_ALPHA = 60
+        const val PULSE_MIN_ALPHA = 140
+        const val PULSE_MAX_ALPHA = 255
+
+        /** Breaths per turn of the shared clock, so a pulse lasts three seconds. */
+        const val PULSE_CYCLES = 2f
     }
 
     private var density = 1f
 
-    private val gearPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = accent
-        style = Paint.Style.FILL
+    private val pulsePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
     }
 
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -106,7 +111,6 @@ class FrameOverlayDrawable(
         style = Paint.Style.FILL
     }
 
-    private val gearPath = Path()
     private val borderPath = Path()
     private val borderRect = RectF()
 
@@ -127,39 +131,14 @@ class FrameOverlayDrawable(
     }
 
     /**
-     * Builds the cog outline, the border path and the marching dash phases.
+     * Builds the border path and the marching dash phases.
      *
-     * All three depend on density, and the border on bounds, so this is redone
-     * when either changes and never during an ordinary draw.
+     * Both depend on density, and the border on bounds, so this is redone when
+     * either changes and never during an ordinary draw.
      */
     private fun build() {
-        buildGear()
         buildTrack()
         built = true
-    }
-
-    /**
-     * A cog outline.
-     *
-     * Alternating radii around a circle: a tooth, a gap, a tooth. Cheap to
-     * stamp four times per draw once it exists.
-     */
-    private fun buildGear() {
-        gearPath.reset()
-
-        val outer = dp(GEAR_RADIUS_DP)
-        val inner = outer * 0.62f
-        val steps = GEAR_TEETH * 2
-        val step = (2.0 * Math.PI / steps).toFloat()
-
-        for (i in 0 until steps) {
-            val radius = if (i % 2 == 0) outer else inner
-            val angle = i * step
-            val x = (radius * Math.cos(angle.toDouble())).toFloat()
-            val y = (radius * Math.sin(angle.toDouble())).toFloat()
-            if (i == 0) gearPath.moveTo(x, y) else gearPath.lineTo(x, y)
-        }
-        gearPath.close()
     }
 
     /**
@@ -210,42 +189,60 @@ class FrameOverlayDrawable(
 
         when (style) {
             FrameStyle.STATIC -> Unit
-            FrameStyle.GEARS -> drawClockwork(canvas, b)
+            FrameStyle.GEARS -> drawClockwork(canvas)
             FrameStyle.STEAM -> drawSteam(canvas, b)
+            FrameStyle.PULSE -> drawPulse(canvas)
         }
     }
 
-    /** The track around the edge, then a cog at each corner sitting on top of it. */
-    private fun drawClockwork(canvas: Canvas, b: Rect) {
+    /**
+     * A toothed track travelling round the edge.
+     *
+     * Cogs used to sit at the four corners on top of this. They were dropped
+     * because they covered the card's own markers - the Battle Rat badge sits
+     * at the end of the name, exactly under the top-right one - and a frame
+     * that hides what the card is telling you is worse than a plainer frame.
+     */
+    private fun drawClockwork(canvas: Canvas) {
+        val effects = dashEffects ?: return
+
+        // Counted backwards so the teeth travel clockwise.
         val phase = FrameClock.phase()
+        val index = ((1f - phase) * DASH_STEPS).toInt().coerceIn(0, DASH_STEPS - 1)
 
-        dashEffects?.let { effects ->
-            // Negative so the teeth travel clockwise, the way the top-left cog
-            // turns, rather than against it.
-            val index = ((1f - phase) * DASH_STEPS).toInt().coerceIn(0, DASH_STEPS - 1)
-            trackPaint.pathEffect = effects[index]
-            trackPaint.alpha = TRACK_ALPHA
-            canvas.drawPath(borderPath, trackPaint)
-        }
-
-        val turn = phase * 360f
-        val inset = dp(GEAR_INSET_DP)
-
-        gearPaint.alpha = GEAR_ALPHA
-
-        // Opposite corners turn opposite ways, the way meshed gears do.
-        drawGearAt(canvas, b.left + inset, b.top + inset, turn)
-        drawGearAt(canvas, b.right - inset, b.top + inset, -turn)
-        drawGearAt(canvas, b.left + inset, b.bottom - inset, -turn)
-        drawGearAt(canvas, b.right - inset, b.bottom - inset, turn)
+        trackPaint.pathEffect = effects[index]
+        trackPaint.alpha = TRACK_ALPHA
+        canvas.drawPath(borderPath, trackPaint)
     }
 
-    private fun drawGearAt(canvas: Canvas, cx: Float, cy: Float, degrees: Float) {
-        val saved = canvas.save()
-        canvas.translate(cx, cy)
-        canvas.rotate(degrees)
-        canvas.drawPath(gearPath, gearPaint)
-        canvas.restoreToCount(saved)
+    /**
+     * A border breathing between two colours.
+     *
+     * Brass and Ember were both a single warm border and read as almost the
+     * same frame at a glance. This one moves instead of being another shade:
+     * the colour travels from hot orange to deep red and back, with the glow
+     * dimming as it cools, which separates the two without either of them
+     * leaving the palette.
+     *
+     * A wide faint halo under a solid core, the same two-pass trick the steam
+     * uses, because a flat stroke reads as a border rather than as a glow.
+     */
+    private fun drawPulse(canvas: Canvas) {
+        // Sine so the turn at each end is gradual: a linear ramp reads as a
+        // flicker at the top and bottom of the breath.
+        val wave = (sin((FrameClock.phase() * PULSE_CYCLES * 2f * Math.PI).toFloat()) + 1f) / 2f
+        val color = ColorUtils.blendARGB(accentAlt, accent, wave)
+
+        pulsePaint.color = color
+        pulsePaint.strokeWidth = dp(PULSE_HALO_WIDTH_DP)
+        pulsePaint.alpha = (PULSE_HALO_ALPHA * wave).toInt().coerceIn(0, 255)
+        canvas.drawPath(borderPath, pulsePaint)
+
+        pulsePaint.color = color
+        pulsePaint.strokeWidth = dp(PULSE_WIDTH_DP)
+        pulsePaint.alpha =
+            (PULSE_MIN_ALPHA + (PULSE_MAX_ALPHA - PULSE_MIN_ALPHA) * wave).toInt().coerceIn(0, 255)
+        canvas.drawPath(borderPath, pulsePaint)
     }
 
     /**

@@ -44,78 +44,124 @@ class FramesTest {
 
     // ---- pricing tiers -------------------------------------------------------
 
+    /**
+     * The tiers are drawn by price and tradeability, not by whether a frame
+     * moves.
+     *
+     * Ember animates and still sits in the base tier: it pulses between two
+     * colours because it was otherwise indistinguishable from Brass, which is a
+     * fix for a frame that already existed rather than a new premium feature.
+     * Repricing something players own to keep "animated means premium" tidy
+     * would have been the worse trade.
+     */
     @Test
-    fun `plain frames stay in the original price band`() {
-        val plain = Frames.all.filter { it.style == FrameStyle.STATIC }
+    fun `base tier frames stay in the original price band`() {
+        val base = Frames.all.filter { it.tradeable }
 
-        assertTrue("expected the two original frames", plain.size == 2)
-        for (frame in plain) {
+        assertTrue("expected the two original frames", base.size == 2)
+        for (frame in base) {
             assertTrue("${frame.id} priced ${frame.price}", frame.price in 150..200)
         }
     }
 
     @Test
-    fun `animated frames are priced into the premium band`() {
-        val animated = Frames.all.filterNot { it.style == FrameStyle.STATIC }
+    fun `premium frames are priced into the premium band`() {
+        val premium = Frames.all.filterNot { it.tradeable }
 
-        assertTrue("expected two animated frames", animated.size == 2)
-        for (frame in animated) {
+        assertTrue("expected two premium frames", premium.size == 2)
+        for (frame in premium) {
             assertTrue("${frame.id} priced ${frame.price}", frame.price in 350..500)
         }
     }
 
     @Test
-    fun `every animated frame costs more than every plain one`() {
-        val dearestPlain = Frames.all.filter { it.style == FrameStyle.STATIC }.maxOf { it.price }
-        val cheapestAnimated =
-            Frames.all.filterNot { it.style == FrameStyle.STATIC }.minOf { it.price }
+    fun `every premium frame costs more than every base one`() {
+        val dearestBase = Frames.all.filter { it.tradeable }.maxOf { it.price }
+        val cheapestPremium = Frames.all.filterNot { it.tradeable }.minOf { it.price }
 
         assertTrue(
-            "an animated frame must never be the cheaper option",
-            cheapestAnimated > dearestPlain
+            "a premium frame must never be the cheaper option",
+            cheapestPremium > dearestBase
         )
     }
 
+    /** Four frames, four different looks - which was the point of the pass. */
     @Test
-    fun `each animated frame has a style of its own`() {
+    fun `no two frames share an animation style`() {
         val styles = Frames.all.map { it.style }
+
         assertTrue(FrameStyle.GEARS in styles)
         assertTrue(FrameStyle.STEAM in styles)
+        assertTrue(FrameStyle.PULSE in styles)
         assertEquals(
-            "two frames sharing an animation would not be distinguishable",
-            Frames.all.filterNot { it.style == FrameStyle.STATIC }.size,
-            Frames.all.filterNot { it.style == FrameStyle.STATIC }.map { it.style }.distinct().size
+            "two frames sharing a style would not be distinguishable",
+            Frames.all.size,
+            styles.distinct().size
         )
+    }
+
+    /** A two-colour style needs two colours; a one-colour style must not break. */
+    @Test
+    fun `only the pulsing frame carries a second accent`() {
+        for (frame in Frames.all) {
+            if (frame.style == FrameStyle.PULSE) {
+                assertTrue(
+                    "${frame.id} pulses between one colour and itself",
+                    frame.accentColorRes != frame.accentAltColorRes
+                )
+            } else {
+                assertEquals(
+                    "${frame.id} should have no second accent",
+                    frame.accentColorRes,
+                    frame.accentAltColorRes
+                )
+            }
+        }
+    }
+
+    /** The moving parts must stand off the border, which is what made them invisible. */
+    @Test
+    fun `an animated frame never draws in its own border colour`() {
+        for (frame in Frames.all.filterNot { it.style == FrameStyle.STATIC }) {
+            assertTrue(
+                "${frame.id} draws its animation in its border colour",
+                frame.accentColorRes != frame.strokeColorRes
+            )
+        }
     }
 
     // ---- what the Trader may deal in ----------------------------------------
 
     @Test
-    fun `only the plain frames are tradeable`() {
+    fun `only the base tier frames are tradeable`() {
         assertEquals(
             listOf(Frames.BRASS.id, Frames.EMBER.id),
             Frames.tradeable.map { it.id }
         )
-        for (frame in Frames.all.filterNot { it.style == FrameStyle.STATIC }) {
+        for (frame in listOf(Frames.CLOCKWORK, Frames.BOILER)) {
             assertFalse("${frame.id} must not be tradeable", frame.tradeable)
         }
     }
 
     /**
      * The point of the rule: three relics is a much cheaper route than 350 to
-     * 500 Scrap, so the Trader handing over an animated frame would undercut
-     * the tier they are priced into.
+     * 500 Scrap, so the Trader handing over a premium frame would undercut the
+     * tier they are priced into.
+     *
+     * Phrased against price rather than against whether a frame animates, since
+     * Ember animates and is deliberately still base tier.
      */
     @Test
-    fun `the trader never offers an animated frame`() {
+    fun `the trader never offers a premium frame`() {
         val prefs = FakePrefs()
+        val cheapestPremium = Frames.all.filterNot { it.tradeable }.minOf { it.price }
 
         val offered = RelicTrader.availableFrames(prefs).mapNotNull { Frames.byId(it) }
 
         assertTrue(offered.isNotEmpty())
         assertTrue(
-            "the Trader offered an animated frame",
-            offered.all { it.style == FrameStyle.STATIC }
+            "the Trader offered a premium frame",
+            offered.all { it.price < cheapestPremium }
         )
     }
 

@@ -184,6 +184,7 @@ object Shop {
                 iconRes = when (frame.style) {
                     FrameStyle.GEARS -> R.drawable.ic_hexagon
                     FrameStyle.STEAM -> R.drawable.ic_flask
+                    FrameStyle.PULSE -> R.drawable.ic_sparkle
                     FrameStyle.STATIC -> R.drawable.ic_star
                 }
             )

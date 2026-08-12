@@ -8,11 +8,14 @@ enum class FrameStyle {
     /** A border colour and nothing else. Costs nothing to draw. */
     STATIC,
 
-    /** Gears turning slowly at the four corners. */
+    /** A toothed gear track running the whole perimeter. */
     GEARS,
 
     /** Steam drifting up the left and right edges. */
-    STEAM
+    STEAM,
+
+    /** A border glow breathing between two colours. */
+    PULSE
 }
 
 /**
@@ -34,6 +37,14 @@ data class CardFrame(
      * against, and left the steam almost invisible against white.
      */
     @param:ColorRes val accentColorRes: Int,
+    /**
+     * The far end of a two-colour animation, where there is one.
+     *
+     * Only [FrameStyle.PULSE] uses it; every other style leaves it equal to
+     * [accentColorRes], which makes a pulse between them a no-op rather than
+     * something that has to be guarded against.
+     */
+    @param:ColorRes val accentAltColorRes: Int = accentColorRes,
     val style: FrameStyle,
     val price: Int,
     /**
@@ -68,13 +79,23 @@ object Frames {
         tradeable = true
     )
 
+    /**
+     * The one base-tier frame that moves.
+     *
+     * Brass and Ember were both a single warm border and read as nearly the
+     * same frame, so this one breathes instead. Deliberately left at 200 and
+     * still tradeable: it is a colour that moves, not the machinery the premium
+     * pair carries, and repricing something players already own to enforce a
+     * tidy rule would be a worse trade than bending the rule.
+     */
     val EMBER = CardFrame(
         id = "ember",
         nameRes = R.string.shop_name_frame_ember,
-        descRes = R.string.shop_desc_frame,
+        descRes = R.string.shop_desc_frame_ember,
         strokeColorRes = R.color.terracotta,
-        accentColorRes = R.color.terracotta,
-        style = FrameStyle.STATIC,
+        accentColorRes = R.color.ember_hot,
+        accentAltColorRes = R.color.ember_deep,
+        style = FrameStyle.PULSE,
         price = 200,
         tradeable = true
     )

@@ -38,4 +38,8 @@
     -->
     <color name="brass_bright">#F2B831</color>
     <color name="boiler_glow">#FF8A3D</color>
+
+    <!-- The two ends of the Ember frame's pulse: hot orange down to deep red. -->
+    <color name="ember_hot">#FF8C42</color>
+    <color name="ember_deep">#B3301C</color>
 </resources>

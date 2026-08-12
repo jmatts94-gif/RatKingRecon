@@ -45,6 +45,7 @@
     <string name="shop_name_frame_brass">Brass Frame</string>
     <string name="shop_name_frame_ember">Ember Frame</string>
     <string name="shop_desc_frame">A trim for every card in the Ledger.</string>
+    <string name="shop_desc_frame_ember">A border that glows from orange to red and back. Animated.</string>
 
     <!-- price in Scrap -->
     <string name="shop_price">%1$d Scrap</string>
@@ -366,7 +367,7 @@ RARE DROP: %2$s</string>
 
     <!-- Animated Binder frames -->
     <string name="shop_name_frame_clockwork">Clockwork Frame</string>
-    <string name="shop_desc_frame_clockwork">Copper border with cogs turning at each corner. Animated.</string>
+    <string name="shop_desc_frame_clockwork">Copper border with a brass gear track running its edge. Animated.</string>
     <string name="shop_name_frame_boiler">Boiler Frame</string>
     <string name="shop_desc_frame_boiler">Pewter border with steam drifting up both edges. Animated.</string>
 

@@ -97,7 +97,8 @@ class RatCardAdapter(
                 // stand off the edge they sit against to read at all.
                 holder.overlay.background = FrameOverlayDrawable(
                     frame.style,
-                    ContextCompat.getColor(context, frame.accentColorRes)
+                    ContextCompat.getColor(context, frame.accentColorRes),
+                    ContextCompat.getColor(context, frame.accentAltColorRes)
                 ).apply { setDensity(context.resources.displayMetrics.density) }
             }
         }
