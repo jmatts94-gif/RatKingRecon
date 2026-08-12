@@ -111,8 +111,13 @@ class HatchBoostTest {
  * [strongestAvailable] always reports nobody, which switches off the encounter
  * roll - it shares [GameEngine.onSteps] with hatching but has nothing to do with
  * boosts, and leaving it live would make these tests randomly do extra work.
+ * That same property is why [DailyStepsTest] borrows it: it wants a plain walk,
+ * with no fight breaking out partway through.
+ *
+ * Shared rather than file-private, alongside [FakePrefs], so the step tests can
+ * drive [GameEngine.onSteps] without a second copy of this drifting from it.
  */
-private class FakeRatDao : RatDao {
+internal class FakeRatDao : RatDao {
 
     val rows = mutableListOf<RatEntity>()
     private var nextId = 1L

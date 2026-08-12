@@ -69,6 +69,8 @@ object GameEngine {
         val encounter: Encounter? = null,
         /** A boss was banked. Deliberately not a fight - see [Bosses]. */
         val bossBanked: BossSpec? = null,
+        /** Today's running total after these steps, for the live count notification. */
+        val stepsToday: Int = 0,
         val changed: Boolean = false
     )
 
@@ -132,6 +134,10 @@ object GameEngine {
         editor.putFloat(KEY_TOTAL_STEPS, totalSteps)
         editor.putLong(KEY_LIFETIME_STEPS, lifetimeStepsOf(prefs) + gained)
 
+        // Same steps, a separate bucket that empties at midnight. Kept apart from
+        // the lifetime total above on purpose - see [DailySteps].
+        val stepsToday = DailySteps.add(prefs, editor, gained)
+
         val bounty = resolveBounty(prefs, editor, totalSteps)
 
         var level = levelOf(prefs)
@@ -176,6 +182,7 @@ object GameEngine {
             bountyReward = bounty.first,
             bountyFailed = bounty.second,
             encounter = encounter,
+            stepsToday = stepsToday,
             changed = true
         )
     }

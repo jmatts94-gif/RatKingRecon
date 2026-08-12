@@ -170,23 +170,43 @@ class LedgerTasksActivity : AppCompatActivity() {
 
         // Only overwrite tasks that are NOT currently running, so an unclaimed
         // reward cannot be rerolled out from under the player.
-        if (!prefs.getBoolean("M1_ACTIVE", false)) {
-            editor.putString("M1_TITLE", "${prefixes.random()} ${suffixes.random()}")
-            editor.putInt("M1_REQ", (2..4).random())
-            editor.putInt("M1_REWARD", (15..30).random())
-        }
-        if (!prefs.getBoolean("M2_ACTIVE", false)) {
-            editor.putString("M2_TITLE", "${prefixes.random()} ${suffixes.random()}")
-            editor.putInt("M2_REQ", (4..7).random())
-            editor.putInt("M2_REWARD", (40..70).random())
-        }
-        if (!prefs.getBoolean("M3_ACTIVE", false)) {
-            editor.putString("M3_TITLE", "${prefixes.random()} ${suffixes.random()}")
-            editor.putInt("M3_REQ", 1) // 1 just means "needs a Shiny"
-            editor.putInt("M3_REWARD", (100..200).random())
+        for (taskId in arrayOf("M1", "M2", "M3")) {
+            if (!prefs.getBoolean("${taskId}_ACTIVE", false)) rollTask(editor, taskId)
         }
 
         editor.putInt("LAST_ROLL_DAY", currentDay).apply()
+    }
+
+    /**
+     * Gives one task a fresh name, requirement and payout.
+     *
+     * Split out of [checkDailyReroll] so a claim can reuse it. A claimed task
+     * used to keep the name and reward it was completed with until the next
+     * calendar day rolled over, which read as the board being broken: the task
+     * was startable again, but advertising a job the player had just finished.
+     *
+     * The reroll is the same either way - the only difference is what prompts
+     * it - so both paths land here rather than keeping two copies of the bands.
+     */
+    private fun rollTask(editor: SharedPreferences.Editor, taskId: String) {
+        editor.putString("${taskId}_TITLE", "${prefixes.random()} ${suffixes.random()}")
+
+        when (taskId) {
+            "M1" -> {
+                editor.putInt("M1_REQ", (2..4).random())
+                editor.putInt("M1_REWARD", (15..30).random())
+            }
+
+            "M2" -> {
+                editor.putInt("M2_REQ", (4..7).random())
+                editor.putInt("M2_REWARD", (40..70).random())
+            }
+
+            "M3" -> {
+                editor.putInt("M3_REQ", 1) // 1 just means "needs a Shiny"
+                editor.putInt("M3_REWARD", (100..200).random())
+            }
+        }
     }
 
     /**
@@ -287,6 +307,12 @@ class LedgerTasksActivity : AppCompatActivity() {
 
         editor.putInt(GameEngine.KEY_SCRAP, prefs.getInt(GameEngine.KEY_SCRAP, 0) + rewardAmount)
         editor.putBoolean("${taskId}_ACTIVE", false)
+
+        // Rerolled here rather than waiting for the next daily pass, so the slot
+        // offers a new job the moment this one is banked. Safe against the daily
+        // reroll: that only touches tasks which are not running, and this one has
+        // just been marked inactive, so at worst it is rerolled again tomorrow.
+        rollTask(editor, taskId)
         editor.apply()
 
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()

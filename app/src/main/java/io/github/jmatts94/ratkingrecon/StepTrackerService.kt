@@ -51,8 +51,24 @@ class StepTrackerService : Service(), SensorEventListener {
          */
         private const val CHANNEL_HATCH_QUIET = "hatch_alerts_quiet_v1"
 
+        /**
+         * The live daily step count. Low importance and permanently silent, so
+         * the running update never makes a sound however often it is re-posted.
+         */
+        private const val CHANNEL_STEPS = "steps_today_v1"
+
         private const val NOTIF_ONGOING = 1
         private const val NOTIF_HATCH = 2
+
+        /**
+         * The daily count, and a banked boss.
+         *
+         * Both are separate ids rather than reusing an existing one: the step
+         * count is re-posted constantly and would otherwise wipe out whatever
+         * alert it collided with.
+         */
+        private const val NOTIF_STEPS = 3
+        private const val NOTIF_BOSS = 4
 
         const val ACTION_STATE_CHANGED = "io.github.jmatts94.ratkingrecon.STATE_CHANGED"
 
@@ -176,6 +192,19 @@ class StepTrackerService : Service(), SensorEventListener {
         // the only way in to the fight, so hiding it would strand the encounter.
         outcome.encounter?.let { notifyEncounter(it) }
 
+        // A banked boss follows the hatch rules instead: suppressed when the app
+        // is open and covered by the notifications switch. Both are safe here in
+        // a way they would not be for an encounter, because the boss is already
+        // recorded in the save - MainActivity raises the fight on its next
+        // onResume whether or not this alert was ever shown.
+        outcome.bossBanked?.let {
+            if (!AppVisibility.isForeground && GameSettings.notificationsEnabled(prefs)) {
+                notifyBossBanked(it)
+            }
+        }
+
+        notifyStepsToday(outcome.stepsToday)
+
         sendBroadcast(
             Intent(ACTION_STATE_CHANGED)
                 .setPackage(packageName)
@@ -257,6 +286,21 @@ class StepTrackerService : Service(), SensorEventListener {
                 setSound(null, null)
             }
         )
+
+        // Never alerts: this one is re-posted every time the sensor reports, so
+        // an audible channel would buzz continuously all day.
+        manager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_STEPS,
+                getString(R.string.channel_steps_name),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = getString(R.string.channel_steps_desc)
+                enableVibration(false)
+                setSound(null, null)
+                setShowBadge(false)
+            }
+        )
     }
 
     private fun startInForeground() {
@@ -305,6 +349,71 @@ class StepTrackerService : Service(), SensorEventListener {
 
         getSystemService(NotificationManager::class.java)
             .notify(NOTIF_HATCH, notification)
+    }
+
+    /**
+     * The running count of today's steps.
+     *
+     * Deliberately a second notification rather than the foreground-service one
+     * above. That notification is pinned - Android will not let a foreground
+     * service drop it - and the player asked to be able to clear this away. So
+     * it stands on its own: not ongoing, so it swipes off like anything else,
+     * and re-posted on the next batch of steps, so clearing it costs the feature
+     * only until the player walks again.
+     *
+     * setOnlyAlertOnce is belt and braces next to a silent low-importance
+     * channel; on Android 7 and below, where there are no channels, it and
+     * setSilent are what keep the update quiet.
+     */
+    private fun notifyStepsToday(steps: Int) {
+        val notification = NotificationCompat.Builder(this, CHANNEL_STEPS)
+            .setContentTitle(getString(R.string.notif_steps_title))
+            .setContentText(getString(R.string.notif_steps_text, steps))
+            .setSmallIcon(R.drawable.ic_footprint)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOngoing(false)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setShowWhen(false)
+            // Left standing when tapped: it is a live readout, not an
+            // announcement, so dismissing it should be the player's choice.
+            .setAutoCancel(false)
+            .setContentIntent(openAppIntent())
+            .build()
+
+        getSystemService(NotificationManager::class.java)
+            .notify(NOTIF_STEPS, notification)
+    }
+
+    /**
+     * Announces a boss banked while the player was walking.
+     *
+     * Carries no action buttons, and that is the point. An ordinary encounter
+     * offers Auto-Resolve so it can be settled from the lock screen; a boss must
+     * not be, so the only thing this notification does is open the app, where
+     * [MainActivity] builds the fight in front of the player.
+     */
+    private fun notifyBossBanked(spec: BossSpec) {
+        val quiet = !GameSettings.soundEnabled(prefs)
+
+        val notification = NotificationCompat.Builder(
+            this,
+            EncounterActionReceiver.channelFor(quiet)
+        )
+            .setContentTitle(getString(R.string.notif_boss_title))
+            .setContentText(getString(R.string.notif_boss_text, getString(spec.nameRes)))
+            .setSmallIcon(spec.badgeRes)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_EVENT)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(true)
+            .setContentIntent(openAppIntent())
+            .setSilent(quiet)
+            .build()
+
+        getSystemService(NotificationManager::class.java)
+            .notify(NOTIF_BOSS, notification)
     }
 
     /**

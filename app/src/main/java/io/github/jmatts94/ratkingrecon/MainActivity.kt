@@ -81,10 +81,16 @@ class MainActivity : AppCompatActivity() {
 
     private var currentExp = 0
 
-    // Cumulative reading when this launch began, so the header can show a
-    // session total rather than the device's since-boot count.
-    private var launchBaselineSteps = 0f
-    private var stepsSinceLaunch = 0
+    /**
+     * Steps walked today, read straight from the save.
+     *
+     * This used to be a session count derived from a baseline captured when the
+     * Activity was created, which meant backgrounding the app - or Android
+     * quietly destroying it - restarted the number at zero while the service
+     * carried on banking the walk correctly. Reading a persisted total instead
+     * makes the display survive anything short of midnight.
+     */
+    private var stepsToday = 0
 
     private fun checkExpedition() {
         if (!isExpeditionActive) {
@@ -132,7 +138,7 @@ class MainActivity : AppCompatActivity() {
         // Hold on to the dialog's step readout so the service's updates can keep
         // it live, and let go of it again once the dialog is gone.
         bountyStepText = dialog.findViewById<TextView>(R.id.bountyStepCountText)
-        bountyStepText?.text = stepsSinceLaunch.toString()
+        bountyStepText?.text = stepsToday.toString()
         dialog.setOnDismissListener { bountyStepText = null }
 
         // 2. Roll a fresh offer per tier. Opening the board again re-rolls, so
@@ -421,9 +427,9 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    /** Pushes the running step total to the header and, if open, the Contract Board. */
+    /** Pushes today's step total to the header and, if open, the Contract Board. */
     private fun updateStepDisplays() {
-        val display = stepsSinceLaunch.toString()
+        val display = stepsToday.toString()
         stepCountText.text = display
         bountyStepText?.text = display
     }
@@ -583,9 +589,7 @@ class MainActivity : AppCompatActivity() {
         currentExp = GameEngine.expOf(sharedPreferences)
         maxExp = GameEngine.maxExpFor(playerLevel)
 
-        val total = GameEngine.totalStepsOf(sharedPreferences)
-        if (launchBaselineSteps == 0f && total > 0f) launchBaselineSteps = total
-        stepsSinceLaunch = (total - launchBaselineSteps).toInt().coerceAtLeast(0)
+        stepsToday = DailySteps.today(sharedPreferences)
     }
 
 }

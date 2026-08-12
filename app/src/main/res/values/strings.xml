@@ -351,6 +351,17 @@ RARE DROP: %2$s</string>
     <string name="notif_result_title_win">Rustbot scrapped!</string>
     <string name="notif_result_title_loss">Your rat was beaten</string>
 
+    <!-- Boss notification. No Auto-Resolve action on purpose: a boss is banked
+         rather than raised, so the only way to meet it is to open the game. -->
+    <string name="notif_boss_title">A boss Rustbot is waiting!</string>
+    <string name="notif_boss_text">%1$s has blocked the tunnels. Open the game to face it.</string>
+
+    <!-- Live daily step count -->
+    <string name="channel_steps_name">Daily Step Count</string>
+    <string name="channel_steps_desc">A running count of the steps you have walked today. Silent, and safe to swipe away.</string>
+    <string name="notif_steps_title">Steps today</string>
+    <string name="notif_steps_text">%1$d steps</string>
+
     <!-- Header stats -->
     <string name="header_level_default">Lvl 1</string>
     <string name="header_steps_default">0</string>
