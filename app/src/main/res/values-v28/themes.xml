@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shadow strength, from API 28 up.
+
+  Elevation on its own was not enough: the framework's default shadow alphas are
+  set for a white material surface, and over a warm cream background at those
+  values a 6dp lift is nearly invisible. These deepen both the ambient and the
+  spot shadow so the same elevation actually reads.
+
+  Deliberately overriding Theme.RatKingRecon rather than Base.Theme, and
+  inheriting from Base rather than restating it. The palette stays defined once,
+  in values/themes.xml, and the night variant keeps overriding Base underneath
+  this - so this file adds two properties and knows nothing about colour.
+
+  Below API 28 the attributes do not exist and shadows keep the platform
+  defaults, which is a slightly flatter screen rather than a broken one.
+-->
+<resources>
+    <style name="Theme.RatKingRecon" parent="Base.Theme.RatKingRecon">
+        <item name="android:ambientShadowAlpha">0.18</item>
+        <item name="android:spotShadowAlpha">0.38</item>
+    </style>
+</resources>

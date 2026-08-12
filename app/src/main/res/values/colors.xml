@@ -42,4 +42,14 @@
     <!-- The two ends of the Ember frame's pulse: hot orange down to deep red. -->
     <color name="ember_hot">#FF8C42</color>
     <color name="ember_deep">#B3301C</color>
+
+    <!--
+      What a shadow is made of here.
+
+      Android casts shadows in near-black by default, which over cream reads as
+      grey haze rather than depth - the surface looks dirty instead of lifted.
+      A deep warm brown is the same colour the palette already uses for text,
+      taken darker, so a shadow looks like less light rather than like soot.
+    -->
+    <color name="shadow_warm">#4A2F0F</color>
 </resources>
