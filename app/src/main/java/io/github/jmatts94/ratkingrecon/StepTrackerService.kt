@@ -20,6 +20,7 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 
 /**
  * Keeps counting steps while the app is closed or the screen is locked, and
@@ -63,12 +64,16 @@ class StepTrackerService : Service(), SensorEventListener {
         /**
          * The daily count, and a banked boss.
          *
-         * Both are separate ids rather than reusing an existing one: the step
-         * count is re-posted constantly and would otherwise wipe out whatever
-         * alert it collided with.
+         * 5 and 6 because 3 and 4 belong to [EncounterActionReceiver] - the
+         * encounter alert and its result. Ids are per-app, not per-class, and
+         * these two both shipped on top of that pair: the step count is
+         * re-posted on every batch of steps, so it was overwriting the encounter
+         * alert, which is the only way in to a fight.
+         *
+         * [LedgerTaskAlerts] owns 20 upwards.
          */
-        private const val NOTIF_STEPS = 3
-        private const val NOTIF_BOSS = 4
+        private const val NOTIF_STEPS = 5
+        private const val NOTIF_BOSS = 6
 
         const val ACTION_STATE_CHANGED = "io.github.jmatts94.ratkingrecon.STATE_CHANGED"
 
@@ -133,6 +138,15 @@ class StepTrackerService : Service(), SensorEventListener {
         prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
         createChannels()
         startInForeground()
+
+        // One line at startup saying whether anything we post can be seen at
+        // all. Without it, a blocked app and a broken feature look identical
+        // from the outside - both are simply nothing appearing.
+        Log.i(
+            TAG,
+            "Step tracking started. Notifications enabled for this app: " +
+                NotificationManagerCompat.from(this).areNotificationsEnabled()
+        )
 
         sensorThread = HandlerThread("step-sensor").apply { start() }
 
@@ -366,6 +380,12 @@ class StepTrackerService : Service(), SensorEventListener {
      * setSilent are what keep the update quiet.
      */
     private fun notifyStepsToday(steps: Int) {
+        // notify() is a silent no-op when the app cannot post - POST_NOTIFICATIONS
+        // denied on 13+, or the app or channel muted in system settings. Nothing
+        // throws and nothing returns a failure, so without this the feature just
+        // appears not to exist. See [canPostNotifications].
+        if (!canPostNotifications(CHANNEL_STEPS)) return
+
         val notification = NotificationCompat.Builder(this, CHANNEL_STEPS)
             .setContentTitle(getString(R.string.notif_steps_title))
             .setContentText(getString(R.string.notif_steps_text, steps))
@@ -382,8 +402,51 @@ class StepTrackerService : Service(), SensorEventListener {
             .setContentIntent(openAppIntent())
             .build()
 
+        Log.d(TAG, "Posting daily step count: $steps steps (id=$NOTIF_STEPS, channel=$CHANNEL_STEPS)")
+
         getSystemService(NotificationManager::class.java)
             .notify(NOTIF_STEPS, notification)
+    }
+
+    /**
+     * Whether a notification posted to [channelId] can actually be seen.
+     *
+     * There is no error path out of [NotificationManager.notify]: if the app is
+     * not allowed to post, it returns normally and nothing appears. Three
+     * separate things cause that, and none of them is visible from the call
+     * site - POST_NOTIFICATIONS denied on Android 13+, notifications turned off
+     * for the whole app, or this one channel muted to IMPORTANCE_NONE.
+     *
+     * Logged rather than merely returned, because the symptom on a device is a
+     * feature that looks unimplemented, and the log is the only thing that
+     * distinguishes "never fired" from "fired and was dropped".
+     */
+    private fun canPostNotifications(channelId: String): Boolean {
+        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            Log.w(
+                TAG,
+                "Notifications are blocked for this app, so nothing will be posted. " +
+                    "On Android 13+ this is usually POST_NOTIFICATIONS being denied; " +
+                    "it is also what the system's per-app notification toggle does."
+            )
+            return false
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = getSystemService(NotificationManager::class.java)
+                .getNotificationChannel(channelId)
+
+            if (channel == null) {
+                Log.w(TAG, "Channel $channelId does not exist; createChannels() has not run.")
+                return false
+            }
+            if (channel.importance == NotificationManager.IMPORTANCE_NONE) {
+                Log.w(TAG, "Channel $channelId is muted in system settings.")
+                return false
+            }
+        }
+
+        return true
     }
 
     /**
