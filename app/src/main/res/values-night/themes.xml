@@ -13,6 +13,8 @@
         <item name="android:statusBarColor">@color/cream</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">@color/tan</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <!-- API 27+, and minSdk is 24. See the light theme for why this is
+             suppressed rather than split into a values-night-v27 variant. -->
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>
 </resources>

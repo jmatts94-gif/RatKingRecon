@@ -13,7 +13,15 @@
         <item name="android:statusBarColor">@color/cream</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">@color/tan</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <!--
+          API 27+, and minSdk is 24. Not split into a values-v27 variant because
+          the platform simply ignores a theme attribute it does not know, so the
+          only thing a variant would buy is three more copies of this style to
+          keep in step - there is already a night one that exists purely to be
+          identical. On 24-26 the navigation bar keeps light icons on tan, which
+          is legible; from 27 it gets the dark ones the palette wants.
+        -->
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>
 
     <style name="Theme.RatKingRecon" parent="Base.Theme.RatKingRecon" />
