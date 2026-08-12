@@ -5,16 +5,22 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app_gradient"
-    android:clipChildren="false"
     android:clipToPadding="false"
     android:fitsSystemWindows="true">
 
     <!--
-      clipChildren is off all the way down, and that is what makes the depth
-      visible at all rather than merely present. An elevation shadow is drawn
-      outside the view that casts it, so a parent clipping to its children's
-      bounds cuts the shadow off flush against the edge - the lift is computed,
-      then thrown away, and the result looks flat for no apparent reason.
+      clipChildren is off on the plain containers, and that is what makes the
+      depth visible rather than merely present. An elevation shadow is drawn
+      outside the view casting it, so a parent clipping to its children's bounds
+      cuts the shadow off flush against the edge - the lift is computed, then
+      thrown away, and the result looks flat for no apparent reason.
+
+      It is deliberately NOT off on the ScrollView above, and must not be. That
+      clip is the scroll viewport: without it the content is no longer confined
+      to the scrolling area and draws over whatever sits outside it, which on
+      the Shop meant rows sliding straight across the pinned back button.
+      clipToPadding is the one a scroll container wants - it lets a shadow reach
+      into the padding without letting the content escape the view.
     -->
     <LinearLayout
         android:layout_width="match_parent"

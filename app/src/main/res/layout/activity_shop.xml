@@ -64,8 +64,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingHorizontal="16dp"
-        android:clipToPadding="false"
-        android:clipChildren="false">
+        android:clipToPadding="false">
 
         <LinearLayout
             android:id="@+id/shopCategoryContainer"
