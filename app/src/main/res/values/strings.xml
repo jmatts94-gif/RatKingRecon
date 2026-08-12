@@ -221,6 +221,8 @@ RARE DROP: %2$s</string>
     <!-- bot name -->
     <string name="debug_encounter_raised">Debug: %1$s blocks your path.</string>
     <string name="debug_encounter_no_rat">Debug: no rat is fit to fight.</string>
+    <!-- scrap added, rats minted -->
+    <string name="debug_bundle_granted">Debug: +%1$d Scrap and %2$d rats.</string>
 
     <!-- The contract currently running -->
     <string name="contract_active_title">Contract In Progress</string>

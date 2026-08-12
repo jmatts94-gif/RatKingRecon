@@ -282,6 +282,30 @@ object GameEngine {
         return encounter
     }
 
+    /**
+     * Rolls one ordinary rat and puts it in the Ledger.
+     *
+     * Split out for the same reason [raiseEncounter] was: so a rat minted
+     * anywhere other than a walk is the same rat a walk would have produced.
+     * It rolls through [rollRat], so the species pool, the 1-to-5 stat range and
+     * the one-in-ten shiny are not restated anywhere, and it books the hatch the
+     * way [onSteps] does - Room assigns the id, then the collection milestones
+     * are re-read because the collection just changed.
+     *
+     * Consumables are spent exactly as they would be by a walked hatch. That is
+     * the point of sharing the path, even though it means an armed serum is
+     * used up by the first rat this mints.
+     */
+    fun mintRat(dao: RatDao, prefs: SharedPreferences): RatEntity {
+        val editor = prefs.edit()
+        val rolled = rollRat(prefs, editor)
+        editor.apply()
+
+        val stored = rolled.copy(id = dao.insert(rolled))
+        Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+        return stored
+    }
+
     /** Rolls a rat, consuming any active consumables. */
     private fun rollRat(prefs: SharedPreferences, editor: SharedPreferences.Editor): RatEntity {
         val mutagen = prefs.getBoolean(KEY_MUTAGEN, false)

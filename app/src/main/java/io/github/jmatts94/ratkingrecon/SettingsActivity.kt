@@ -42,6 +42,10 @@ class SettingsActivity : AppCompatActivity() {
          * which is common enough to make the feature look broken.
          */
         val IMPORT_TYPES = arrayOf("*/*")
+
+        /** What the debug top-up hands over. Debug builds only; see [grantDebugBundle]. */
+        const val DEBUG_SCRAP = 1_500
+        const val DEBUG_RATS = 10
     }
 
     private lateinit var statusText: TextView
@@ -122,17 +126,59 @@ class SettingsActivity : AppCompatActivity() {
         // Debug builds only, and behind a long press with nothing advertising
         // it. BuildConfig.DEBUG is a genuine compile-time false in release - AGP
         // writes `= false` there and `Boolean.parseBoolean("true")` in debug
-        // precisely so this folds - so the registration below is compiled out
-        // and there is no way to reach it in a release build.
+        // precisely so this folds - so the registrations below are compiled out
+        // and there is no way to reach either in a release build.
         //
-        // The method it calls does still sit in the release DEX as dead code,
-        // because minification is off. Turning R8 on removes it; until then the
-        // guarantee is unreachability, not absence.
+        // R8 is on for release now, so the methods they call are dropped from
+        // the release DEX as well: nothing reaches them, so nothing keeps them.
+        // The guarantee is absence rather than merely unreachability.
         if (BuildConfig.DEBUG) {
             versionText.setOnLongClickListener {
                 forceDebugEncounter()
                 true
             }
+
+            // The line above the version, in the same card and behind the same
+            // gesture, so both cheats are found the same way or not at all.
+            findViewById<TextView>(R.id.aboutNameText).setOnLongClickListener {
+                grantDebugBundle()
+                true
+            }
+        }
+    }
+
+    /**
+     * Debug only: tops up Scrap and fills out the Ledger.
+     *
+     * The rats come from [GameEngine.mintRat], which is the roll a walked hatch
+     * makes - same species pool, same stat range, same shiny odds, same Room
+     * insert, same milestone refresh. Nothing here mints a rat of its own, so a
+     * cheated Ledger cannot hold anything the game could not have produced, and
+     * this cannot drift from the real hatch as that changes.
+     *
+     * One consequence of using the real path: an armed serum or gleam is spent
+     * by the first rat, exactly as it would be by the next walked hatch.
+     */
+    private fun grantDebugBundle() {
+        lifecycleScope.launch {
+            val prefs = RatRepository.prefs(this@SettingsActivity)
+
+            val minted = withContext(Dispatchers.IO) {
+                val dao = RatRepository.dao(this@SettingsActivity)
+                List(DEBUG_RATS) { GameEngine.mintRat(dao, prefs) }
+            }
+
+            // Re-read rather than captured before the inserts: a bounty or a
+            // task could have paid out while those were running.
+            prefs.edit()
+                .putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + DEBUG_SCRAP)
+                .apply()
+
+            Toast.makeText(
+                this@SettingsActivity,
+                getString(R.string.debug_bundle_granted, DEBUG_SCRAP, minted.size),
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 

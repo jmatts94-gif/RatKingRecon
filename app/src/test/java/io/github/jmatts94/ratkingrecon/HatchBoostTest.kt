@@ -66,6 +66,53 @@ class HatchBoostTest {
         assertTrue("toughness was ${rat.toughness}", rat.toughness in 1..5)
     }
 
+    /**
+     * The debug top-up mints through the same roll a walk does.
+     *
+     * Worth pinning because the whole reason [GameEngine.mintRat] exists is to
+     * stop a second way of making a rat appearing beside the first: a cheat that
+     * rolled its own would drift the moment the hatch rules changed.
+     */
+    @Test
+    fun `a minted rat is an ordinary rat, and lands in the Ledger`() {
+        val prefs = FakePrefs()
+        val dao = FakeRatDao()
+
+        val minted = GameEngine.mintRat(dao, prefs)
+
+        assertTrue("power was ${minted.power}", minted.power in 1..5)
+        assertTrue("toughness was ${minted.toughness}", minted.toughness in 1..5)
+        assertTrue("species off roster", Roster.all.any { it.artKey == minted.artKey })
+        assertEquals("the rat should have been inserted", 1, dao.rows.size)
+        assertTrue("Room should have assigned an id", minted.id != 0L)
+    }
+
+    @Test
+    fun `minting repeatedly fills the Ledger without reusing an id`() {
+        val prefs = FakePrefs()
+        val dao = FakeRatDao()
+
+        val minted = List(10) { GameEngine.mintRat(dao, prefs) }
+
+        assertEquals(10, dao.rows.size)
+        assertEquals("ids must be distinct", 10, minted.map { it.id }.distinct().size)
+    }
+
+    /** A minted rat honours an armed boost, the same way the next walked hatch would. */
+    @Test
+    fun `a minted rat spends an armed serum exactly once`() {
+        val prefs = FakePrefs()
+        val dao = FakeRatDao()
+        prefs.edit().putBoolean(GameEngine.KEY_MUTAGEN, true).apply()
+
+        val first = GameEngine.mintRat(dao, prefs)
+        val second = GameEngine.mintRat(dao, prefs)
+
+        assertTrue("boosted power was ${first.power}", first.power in 6..10)
+        assertTrue("the serum should not carry over", second.power in 1..5)
+        assertFalse(prefs.getBoolean(GameEngine.KEY_MUTAGEN, false))
+    }
+
     /** The point of the Hatching Boosts wording on the Shop screen. */
     @Test
     fun `a boost never touches a rat that is already collected`() {
