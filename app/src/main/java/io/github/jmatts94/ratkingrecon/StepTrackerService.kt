@@ -425,10 +425,57 @@ class StepTrackerService : Service(), SensorEventListener {
             .setContentIntent(openAppIntent())
             .build()
 
-        Log.d(TAG, "Posting daily step count: $steps steps (id=$NOTIF_STEPS, channel=$CHANNEL_STEPS)")
+        val manager = getSystemService(NotificationManager::class.java)
 
-        getSystemService(NotificationManager::class.java)
-            .notify(NOTIF_STEPS, notification)
+        Log.d(
+            TAG,
+            "About to post step count: $steps steps. " +
+                "NOTIF_STEPS=$NOTIF_STEPS channel=$CHANNEL_STEPS | " +
+                "NOTIF_ONGOING=$NOTIF_ONGOING channel=$CHANNEL_ONGOING | " +
+                "same id? ${NOTIF_STEPS == NOTIF_ONGOING}"
+        )
+
+        try {
+            manager.notify(NOTIF_STEPS, notification)
+            Log.d(TAG, "notify($NOTIF_STEPS) returned without throwing")
+        } catch (t: Throwable) {
+            Log.e(TAG, "notify($NOTIF_STEPS) threw ${t.javaClass.simpleName}: ${t.message}", t)
+            return
+        }
+
+        logActiveNotifications(manager)
+    }
+
+    /**
+     * What the system says this app actually has on screen, right after posting.
+     *
+     * The decisive check. [NotificationManager.notify] reports nothing back, so
+     * a post that is accepted and a post that is dropped look identical at the
+     * call site. This asks the other side of the fence: if the id just posted is
+     * missing from the active list, the system took it and discarded it, and
+     * whatever is in the list instead says what it kept.
+     */
+    private fun logActiveNotifications(manager: NotificationManager) {
+        val active = try {
+            manager.activeNotifications
+        } catch (t: Throwable) {
+            Log.w(TAG, "Could not read active notifications: ${t.javaClass.simpleName}")
+            return
+        }
+
+        val summary = active.joinToString(", ") { posted ->
+            "id=${posted.id} channel=${posted.notification.channelId}"
+        }
+
+        Log.d(TAG, "Active notifications for this app (${active.size}): [$summary]")
+
+        if (active.none { it.id == NOTIF_STEPS }) {
+            Log.w(
+                TAG,
+                "id=$NOTIF_STEPS is NOT in the active list immediately after posting it. " +
+                    "The system accepted the call and dropped the notification."
+            )
+        }
     }
 
     /**
