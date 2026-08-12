@@ -135,24 +135,31 @@
           not a rectangle.
         -->
         <!--
-          The egg and the streak tile sit side by side so the egg keeps its full
-          260dp and stays exactly as it was. On a 360dp screen the 20dp padding
-          leaves 320dp, so the tile takes the ~56dp that remains beside it - a
-          narrow column rather than a card, which is all the room there is
-          without shrinking the egg.
+          The egg and its companion tile, three parts to one, both square.
+
+          Sized off the width available rather than pinned to a fixed 260dp,
+          which is what lets the tile be a tile. A fixed egg leaves 60dp beside
+          it on a 360dp screen, and nothing square and readable fits in 60dp -
+          the tile could only be the narrow strip it was. Sharing the row as a
+          weighted chain gives both of them the same shape and lets them grow
+          together on a larger screen instead of leaving it empty.
         -->
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="bottom"
             android:clipChildren="false"
             android:clipToPadding="false"
             android:layout_marginBottom="20dp">
 
         <FrameLayout
-            android:layout_width="260dp"
-            android:layout_height="260dp"
+            android:id="@+id/eggPanel"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="H,1:1"
+            app:layout_constraintHorizontal_weight="3"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/streakTile"
+            app:layout_constraintTop_toTopOf="parent"
             android:background="@drawable/bg_egg_panel"
             android:elevation="14dp"
             android:outlineAmbientShadowColor="@color/shadow_warm"
@@ -176,39 +183,49 @@
                 android:src="@drawable/egg_stage_0" />
         </FrameLayout>
 
-            <!-- Streak tile: lantern, then the count. Opens today's quest. -->
+            <!--
+              Streak tile: lantern, then the count. Opens today's quest.
+
+              Square, and a third of the egg's width, so it reads as a smaller
+              copy of the panel next to it rather than a strip stuck to its
+              side. It carries the egg's 14dp elevation rather than the 6dp the
+              currency pills use - the two of them are one object on the screen
+              and a matched pair should cast a matched shadow.
+            -->
             <LinearLayout
                 android:id="@+id/streakTile"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintDimensionRatio="H,1:1"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintStart_toEndOf="@id/eggPanel"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="@id/eggPanel"
+                android:layout_marginStart="8dp"
                 android:orientation="vertical"
                 android:gravity="center"
                 android:background="@drawable/bg_pill_tan"
-                android:elevation="6dp"
+                android:elevation="14dp"
                 android:outlineAmbientShadowColor="@color/shadow_warm"
                 android:outlineSpotShadowColor="@color/shadow_warm"
                 tools:targetApi="28"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="10dp"
-                android:layout_marginStart="4dp"
+                android:padding="6dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <!--
-                  44dp rather than 30. The lantern is the whole point of the
-                  tile - four brightness steps are only worth having if the
-                  difference between them can be seen without looking twice -
-                  and at 30dp the lit glass was a few pixels of a small icon.
-
-                  44 is what the width allows, not a free choice. The egg is
-                  260dp and a 360dp screen leaves 320dp inside the padding, so
-                  the gap and the tile together have 60dp: 4dp of gap, 6dp of
-                  padding either side, and the rest is this.
+                  The lantern takes the whole tile bar the count beneath it,
+                  the way the egg takes its whole panel bar its padding. Given
+                  in weight rather than dp because the tile itself is measured,
+                  not fixed: whatever width the row leaves over, the lantern
+                  grows into.
                 -->
                 <ImageView
                     android:id="@+id/streakLantern"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:scaleType="fitCenter"
                     android:src="@drawable/ic_lantern"
                     android:importantForAccessibility="no" />
 
@@ -216,13 +233,13 @@
                     android:id="@+id/streakCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:includeFontPadding="false"
                     android:textColor="@color/text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold"
                     android:text="@string/header_scrap_default" />
             </LinearLayout>
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!--
           The Shop takes the slot the two consumables used to occupy, but is
