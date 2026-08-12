@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The large rounded amber-gradient square the egg sits on. -->
+<!--
+  The large rounded amber square the egg sits on.
+
+  Radial rather than linear now, centred a little above the middle, so the panel
+  reads as lit from above-left instead of as a flat wash. Same two colours the
+  linear version used - this changes where they fall, not what they are.
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <gradient
-        android:angle="270"
-        android:startColor="#F2C578"
-        android:endColor="@color/amber"
-        android:type="linear" />
+        android:type="radial"
+        android:centerX="0.42"
+        android:centerY="0.34"
+        android:gradientRadius="78%p"
+        android:startColor="#F7D69B"
+        android:centerColor="#F2C578"
+        android:endColor="@color/amber" />
     <corners android:radius="24dp" />
 </shape>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The soft pool of shadow the egg sits in.
+
+  A contact shadow rather than an elevation one: elevation would trace the
+  ImageView's rectangle, and the egg is an egg. Drawn as a squashed oval fading
+  to nothing, which is what tells the eye the egg is resting on the panel rather
+  than printed on it.
+
+  Warm rather than neutral - a grey shadow on an amber panel reads as dirt.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:centerX="0.5"
+        android:centerY="0.5"
+        android:gradientRadius="50%"
+        android:startColor="#4D8A5A1E"
+        android:centerColor="#268A5A1E"
+        android:endColor="#008A5A1E" />
+</shape>
