@@ -26,6 +26,14 @@ data class CardFrame(
     @param:StringRes val nameRes: Int,
     @param:StringRes val descRes: Int,
     @param:ColorRes val strokeColorRes: Int,
+    /**
+     * What the moving parts are drawn in.
+     *
+     * Separate from the border on purpose. Drawing the animation in the border's
+     * own colour is what made the cogs read as texture on the edge they sat
+     * against, and left the steam almost invisible against white.
+     */
+    @param:ColorRes val accentColorRes: Int,
     val style: FrameStyle,
     val price: Int,
     /**
@@ -54,6 +62,7 @@ object Frames {
         nameRes = R.string.shop_name_frame_brass,
         descRes = R.string.shop_desc_frame,
         strokeColorRes = R.color.amber_dark,
+        accentColorRes = R.color.amber_dark,
         style = FrameStyle.STATIC,
         price = 200,
         tradeable = true
@@ -64,6 +73,7 @@ object Frames {
         nameRes = R.string.shop_name_frame_ember,
         descRes = R.string.shop_desc_frame,
         strokeColorRes = R.color.terracotta,
+        accentColorRes = R.color.terracotta,
         style = FrameStyle.STATIC,
         price = 200,
         tradeable = true
@@ -74,6 +84,9 @@ object Frames {
         nameRes = R.string.shop_name_frame_clockwork,
         descRes = R.string.shop_desc_frame_clockwork,
         strokeColorRes = R.color.copper,
+        // Bright brass against the copper border, so the machinery reads as
+        // machinery rather than as more of the edge it sits on.
+        accentColorRes = R.color.brass_bright,
         style = FrameStyle.GEARS,
         price = 350,
         tradeable = false
@@ -84,6 +97,9 @@ object Frames {
         nameRes = R.string.shop_name_frame_boiler,
         descRes = R.string.shop_desc_frame_boiler,
         strokeColorRes = R.color.pewter,
+        // Warm, because it is a boiler. Pewter steam on a white card was very
+        // nearly invisible.
+        accentColorRes = R.color.boiler_glow,
         style = FrameStyle.STEAM,
         price = 500,
         tradeable = false

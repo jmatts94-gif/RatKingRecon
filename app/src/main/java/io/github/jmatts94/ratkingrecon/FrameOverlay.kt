@@ -1,12 +1,13 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.ColorFilter
+import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import android.view.Choreographer
@@ -39,52 +40,106 @@ object FrameClock {
  * the ticker only has to invalidate - it never has to walk the cards setting
  * values on them.
  *
- * Nothing is allocated in [draw]. The gear outline is built once here, and the
- * paints are reused; a card being redrawn twenty-five times a second is not a
- * place to be making objects.
+ * Nothing is allocated in [draw]. The cog outline and the border path are built
+ * once per card, and the dash effects that march the gear track are pre-built
+ * one per phase step, because a DashPathEffect cannot have its phase changed
+ * after construction and building one per frame would allocate on every tick.
+ *
+ * [accent] is the frame's own accent rather than its border colour: drawing the
+ * moving parts in the border's colour is what made the cogs read as texture and
+ * left the steam almost invisible.
  */
 class FrameOverlayDrawable(
     private val style: FrameStyle,
-    private val tint: Int
+    private val accent: Int
 ) : Drawable() {
 
     private companion object {
-        /** Corner gears. */
+        // --- corner cogs ---
         const val GEAR_TEETH = 8
-        const val GEAR_RADIUS_DP = 7f
-        const val GEAR_INSET_DP = 9f
+        const val GEAR_RADIUS_DP = 10f
+        const val GEAR_INSET_DP = 11f
+        const val GEAR_ALPHA = 240
 
-        /** Steam. Few and faint - it is a frame, not weather. */
-        const val PARTICLES_PER_EDGE = 4
-        const val PARTICLE_RADIUS_DP = 2.5f
-        const val PARTICLE_DRIFT_DP = 6f
+        // --- the gear track running the perimeter ---
+        const val TRACK_WIDTH_DP = 3f
+        const val TRACK_TOOTH_DP = 3.5f
+        const val TRACK_GAP_DP = 3.5f
+        const val TRACK_INSET_DP = 3.5f
+        const val TRACK_CORNER_DP = 11f
+        const val TRACK_ALPHA = 210
+
+        /**
+         * How many phases of the marching track are pre-built.
+         *
+         * The track advances one tooth-and-gap per cycle, so this is how many
+         * positions that travel is cut into. Twenty-four is past the point the
+         * step is visible at this speed, and twenty-four small immutable objects
+         * built once per card is cheaper than one per frame forever.
+         */
+        const val DASH_STEPS = 24
+
+        // --- steam ---
+        const val PARTICLES_PER_EDGE = 6
+        const val PARTICLE_RADIUS_DP = 3.2f
+        const val PARTICLE_DRIFT_DP = 7f
+        const val PARTICLE_ALPHA = 220
+        const val GLOW_ALPHA = 75
+        const val GLOW_SCALE = 2.2f
     }
 
     private var density = 1f
 
     private val gearPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        this.color = tint
+        color = accent
         style = Paint.Style.FILL
     }
 
+    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = accent
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.BUTT
+    }
+
     private val steamPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        this.color = tint
+        color = accent
         style = Paint.Style.FILL
     }
 
     private val gearPath = Path()
-    private var gearBuilt = false
+    private val borderPath = Path()
+    private val borderRect = RectF()
+
+    private var dashEffects: Array<DashPathEffect>? = null
+    private var built = false
 
     /** Set by the view before this is attached, so dp can become px. */
     fun setDensity(value: Float) {
         density = value
-        gearBuilt = false
+        built = false
     }
 
     private fun dp(value: Float) = value * density
 
+    override fun onBoundsChange(bounds: Rect) {
+        super.onBoundsChange(bounds)
+        built = false
+    }
+
     /**
-     * A cog outline, built once.
+     * Builds the cog outline, the border path and the marching dash phases.
+     *
+     * All three depend on density, and the border on bounds, so this is redone
+     * when either changes and never during an ordinary draw.
+     */
+    private fun build() {
+        buildGear()
+        buildTrack()
+        built = true
+    }
+
+    /**
+     * A cog outline.
      *
      * Alternating radii around a circle: a tooth, a gap, a tooth. Cheap to
      * stamp four times per draw once it exists.
@@ -105,29 +160,78 @@ class FrameOverlayDrawable(
             if (i == 0) gearPath.moveTo(x, y) else gearPath.lineTo(x, y)
         }
         gearPath.close()
+    }
 
-        gearBuilt = true
+    /**
+     * The perimeter track, as a rounded rectangle stroked with a dashed effect.
+     *
+     * One path and one stroke rather than a tooth per notch: the dash does the
+     * repetition, and animating its phase is what makes the teeth travel. The
+     * corners follow the card's own radius, so the track reads as part of the
+     * frame rather than a rectangle laid over a rounded card.
+     */
+    private fun buildTrack() {
+        val b = bounds
+        if (b.isEmpty) return
+
+        val inset = dp(TRACK_INSET_DP)
+        val width = dp(TRACK_WIDTH_DP)
+        trackPaint.strokeWidth = width
+
+        borderRect.set(
+            b.left + inset,
+            b.top + inset,
+            b.right - inset,
+            b.bottom - inset
+        )
+
+        borderPath.reset()
+        borderPath.addRoundRect(
+            borderRect,
+            dp(TRACK_CORNER_DP),
+            dp(TRACK_CORNER_DP),
+            Path.Direction.CW
+        )
+
+        val tooth = dp(TRACK_TOOTH_DP)
+        val gap = dp(TRACK_GAP_DP)
+        val span = tooth + gap
+        val intervals = floatArrayOf(tooth, gap)
+
+        dashEffects = Array(DASH_STEPS) { step ->
+            DashPathEffect(intervals, span * step / DASH_STEPS)
+        }
     }
 
     override fun draw(canvas: Canvas) {
         val b = bounds
         if (b.isEmpty) return
+        if (!built) build()
 
         when (style) {
             FrameStyle.STATIC -> Unit
-            FrameStyle.GEARS -> drawGears(canvas, b)
+            FrameStyle.GEARS -> drawClockwork(canvas, b)
             FrameStyle.STEAM -> drawSteam(canvas, b)
         }
     }
 
-    /** Four cogs, one per corner, turning together. */
-    private fun drawGears(canvas: Canvas, b: Rect) {
-        if (!gearBuilt) buildGear()
+    /** The track around the edge, then a cog at each corner sitting on top of it. */
+    private fun drawClockwork(canvas: Canvas, b: Rect) {
+        val phase = FrameClock.phase()
 
-        val turn = FrameClock.phase() * 360f
+        dashEffects?.let { effects ->
+            // Negative so the teeth travel clockwise, the way the top-left cog
+            // turns, rather than against it.
+            val index = ((1f - phase) * DASH_STEPS).toInt().coerceIn(0, DASH_STEPS - 1)
+            trackPaint.pathEffect = effects[index]
+            trackPaint.alpha = TRACK_ALPHA
+            canvas.drawPath(borderPath, trackPaint)
+        }
+
+        val turn = phase * 360f
         val inset = dp(GEAR_INSET_DP)
 
-        gearPaint.alpha = 170
+        gearPaint.alpha = GEAR_ALPHA
 
         // Opposite corners turn opposite ways, the way meshed gears do.
         drawGearAt(canvas, b.left + inset, b.top + inset, turn)
@@ -151,11 +255,15 @@ class FrameOverlayDrawable(
      * so they are spread through the cycle without any state being kept. Alpha
      * fades in at the bottom and out at the top, which is what stops a particle
      * from visibly popping when it wraps.
+     *
+     * Two circles per particle: a wide faint one for the glow and a smaller
+     * solid one for the wisp itself. A single flat circle read as a dot rather
+     * than as something hot.
      */
     private fun drawSteam(canvas: Canvas, b: Rect) {
         val radius = dp(PARTICLE_RADIUS_DP)
         val drift = dp(PARTICLE_DRIFT_DP)
-        val inset = dp(6f)
+        val inset = dp(7f)
         val phase = FrameClock.phase()
         val height = b.height().toFloat()
 
@@ -179,8 +287,13 @@ class FrameOverlayDrawable(
                     else -> 1f
                 }
 
-                steamPaint.alpha = (fade * 110f).toInt().coerceIn(0, 255)
-                canvas.drawCircle(x, y, radius * (0.7f + 0.3f * fade), steamPaint)
+                val size = radius * (0.7f + 0.3f * fade)
+
+                steamPaint.alpha = (fade * GLOW_ALPHA).toInt().coerceIn(0, 255)
+                canvas.drawCircle(x, y, size * GLOW_SCALE, steamPaint)
+
+                steamPaint.alpha = (fade * PARTICLE_ALPHA).toInt().coerceIn(0, 255)
+                canvas.drawCircle(x, y, size, steamPaint)
             }
         }
     }

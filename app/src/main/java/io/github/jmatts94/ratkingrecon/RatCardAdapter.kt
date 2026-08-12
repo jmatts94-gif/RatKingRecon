@@ -93,9 +93,11 @@ class RatCardAdapter(
                 (Frames.STROKE_DP * context.resources.displayMetrics.density).toInt()
 
             if (frame.style != FrameStyle.STATIC) {
+                // The accent, not the border colour: the moving parts have to
+                // stand off the edge they sit against to read at all.
                 holder.overlay.background = FrameOverlayDrawable(
                     frame.style,
-                    ContextCompat.getColor(context, frame.strokeColorRes)
+                    ContextCompat.getColor(context, frame.accentColorRes)
                 ).apply { setDensity(context.resources.displayMetrics.density) }
             }
         }

@@ -30,4 +30,12 @@
          as part of the workshop rather than as a sticker on top of it. -->
     <color name="copper">#B87333</color>
     <color name="pewter">#9A8B76</color>
+
+    <!--
+      The moving parts of an animated frame, deliberately brighter than the
+      border they sit on. Copper cogs on a copper border read as texture rather
+      than as machinery, and pewter steam on white barely reads at all.
+    -->
+    <color name="brass_bright">#F2B831</color>
+    <color name="boiler_glow">#FF8A3D</color>
 </resources>
