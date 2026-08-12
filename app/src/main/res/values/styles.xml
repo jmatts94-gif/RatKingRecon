@@ -18,4 +18,30 @@
 
     <style name="Widget.RatKing.Button" parent="Widget.RatKing.Button.Base" />
 
+    <!--
+      Screen transitions, hung off the theme so every Activity gets them and a
+      screen added later does not have to remember to.
+
+      200ms, which is at the quick end of what reads as a transition at all.
+      This runs on every tap of every menu button, so the budget is what the eye
+      needs to follow one screen replacing another and not a frame more.
+    -->
+    <style name="Animation.RatKing.Screen" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/screen_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/screen_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/screen_pop_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/screen_pop_exit</item>
+    </style>
+
+    <!--
+      The same movement for the dialogs that stand in for screens - the Contract
+      Board, the contract already running, the enlarged rat. Applied per dialog
+      rather than through the theme, because windowAnimationStyle on the theme
+      governs Activities and these are Dialogs.
+    -->
+    <style name="Animation.RatKing.Dialog" parent="@android:style/Animation.Dialog">
+        <item name="android:windowEnterAnimation">@anim/screen_enter</item>
+        <item name="android:windowExitAnimation">@anim/screen_pop_exit</item>
+    </style>
+
 </resources>

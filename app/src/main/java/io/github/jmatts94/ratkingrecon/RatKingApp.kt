@@ -32,6 +32,11 @@ class RatKingApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        // Decoding happens off-thread, so this is done at launch rather than at
+        // the moment a cue is wanted - otherwise the first hatch of a session,
+        // the one most worth hearing, is the one that makes no sound.
+        GameSounds.warmUp(this)
+
         // Counting started/stopped rather than resumed/paused means a dialog or a
         // transient overlay does not read as "the app went away".
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {

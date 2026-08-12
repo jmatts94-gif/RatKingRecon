@@ -248,6 +248,7 @@ class LedgerTasksActivity : AppCompatActivity() {
         Relics.rollFor(tier)?.let { relic ->
             Relics.grant(prefs, editor, relic)
             message = getString(R.string.task_success_relic, rewardAmount, getString(relic.nameRes))
+            GameSounds.play(this, GameSounds.Cue.RELIC)
         }
 
         editor.putInt(GameEngine.KEY_SCRAP, prefs.getInt(GameEngine.KEY_SCRAP, 0) + rewardAmount)

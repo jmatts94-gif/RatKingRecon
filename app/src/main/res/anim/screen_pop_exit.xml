@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The screen being dismissed: fades out while dropping back the way it came.
+
+  Reverses screen_enter exactly, so a screen leaves along the path it arrived
+  on and Back reads as undoing the tap that opened it.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/accelerate_quint"
+    android:shareInterpolator="true">
+
+    <alpha
+        android:fromAlpha="1.0"
+        android:toAlpha="0.0"
+        android:duration="200" />
+
+    <translate
+        android:fromYDelta="0"
+        android:toYDelta="8%p"
+        android:duration="200" />
+</set>

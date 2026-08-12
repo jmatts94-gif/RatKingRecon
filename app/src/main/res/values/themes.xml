@@ -14,6 +14,8 @@
         <item name="android:windowLightStatusBar">true</item>
         <!-- Warm shadows on every button; see values-v28/styles.xml. -->
         <item name="materialButtonStyle">@style/Widget.RatKing.Button</item>
+        <!-- Screen transitions, for every Activity at once. -->
+        <item name="android:windowAnimationStyle">@style/Animation.RatKing.Screen</item>
         <item name="android:navigationBarColor">@color/tan</item>
         <!--
           API 27+, and minSdk is 24. Not split into a values-v27 variant because

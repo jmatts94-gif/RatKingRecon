@@ -14,6 +14,7 @@
         <item name="android:windowLightStatusBar">true</item>
         <!-- Kept in step with the light theme, which this deliberately mirrors. -->
         <item name="materialButtonStyle">@style/Widget.RatKing.Button</item>
+        <item name="android:windowAnimationStyle">@style/Animation.RatKing.Screen</item>
         <item name="android:navigationBarColor">@color/tan</item>
         <!-- API 27+, and minSdk is 24. See the light theme for why this is
              suppressed rather than split into a values-night-v27 variant. -->

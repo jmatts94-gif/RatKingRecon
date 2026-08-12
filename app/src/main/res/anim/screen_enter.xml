@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A screen arriving: fades up while rising a little.
+
+  The travel is small on purpose - eight percent of the screen rather than a
+  full slide - because this runs on every tap of every menu button and a
+  gesture that reads as movement the first time reads as a delay the twentieth.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/decelerate_quint"
+    android:shareInterpolator="true">
+
+    <alpha
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0"
+        android:duration="200" />
+
+    <translate
+        android:fromYDelta="8%p"
+        android:toYDelta="0"
+        android:duration="200" />
+</set>

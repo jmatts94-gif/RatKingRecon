@@ -237,6 +237,7 @@ class SettingsActivity : AppCompatActivity() {
         val dialog = android.app.Dialog(this)
         dialog.setContentView(R.layout.dialog_confirm_reset)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
 
         dialog.findViewById<Button>(R.id.resetConfirmButton).setOnClickListener {
             dialog.dismiss()
@@ -293,6 +294,7 @@ class SettingsActivity : AppCompatActivity() {
         val dialog = android.app.Dialog(this)
         dialog.setContentView(R.layout.dialog_confirm_import)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
 
         dialog.findViewById<Button>(R.id.importConfirmButton).setOnClickListener {
             dialog.dismiss()

@@ -134,6 +134,7 @@ class MainActivity : AppCompatActivity() {
 
         // Optional: Make the background behind the popup slightly transparent dark
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
 
         // Hold on to the dialog's step readout so the service's updates can keep
         // it live, and let go of it again once the dialog is gone.
@@ -188,6 +189,7 @@ class MainActivity : AppCompatActivity() {
         val dialog = android.app.Dialog(this)
         dialog.setContentView(R.layout.dialog_active_contract)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
 
         val nameText = dialog.findViewById<TextView>(R.id.activeContractName)
         val stepsText = dialog.findViewById<TextView>(R.id.activeContractSteps)
@@ -374,6 +376,11 @@ class MainActivity : AppCompatActivity() {
         petImage.setImageResource(RatArt.resId(artKey))
         revealUntil = System.currentTimeMillis() + REVEAL_MS
         Toast.makeText(this, getString(R.string.toast_hatch_joined, name), Toast.LENGTH_LONG).show()
+
+        // The notification carries the sound when the app is away; this is the
+        // same moment heard while the player is watching it, where the alert is
+        // deliberately suppressed.
+        GameSounds.play(this, GameSounds.Cue.HATCH)
     }
 
     private fun updateScreen() {
@@ -421,6 +428,7 @@ class MainActivity : AppCompatActivity() {
         val dialog = android.app.Dialog(this)
         dialog.setContentView(R.layout.dialog_unlock)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
         dialog.findViewById<Button>(R.id.unlockConfirmButton).setOnClickListener {
             dialog.dismiss()
         }

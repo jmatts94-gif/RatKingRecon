@@ -183,6 +183,7 @@ class BattleActivity : AppCompatActivity() {
             }
 
             if (resolution.won) {
+                GameSounds.play(this@BattleActivity, GameSounds.Cue.VICTORY)
                 lines += getString(
                     R.string.battle_won, resolution.ratName, resolution.botName, resolution.reward
                 )
