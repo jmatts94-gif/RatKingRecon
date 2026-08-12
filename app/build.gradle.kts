@@ -28,6 +28,23 @@ android {
     }
 
     buildTypes {
+        debug {
+            // So the About screen can be asked which build is installed.
+            //
+            // Both build types carry the same applicationId and, since release
+            // is signed with the debug key too, the same certificate - which
+            // means either APK installs straight over the other with nothing on
+            // screen to say so. The debug-only triggers then appear to be
+            // broken, when what has actually happened is that a release build
+            // replaced the debug one.
+            //
+            // Deliberately not an applicationIdSuffix, which would let both sit
+            // side by side but would give the debug build its own save, and a
+            // player's collection appearing to vanish is a worse surprise than
+            // the one this is fixing.
+            versionNameSuffix = "-debug"
+        }
+
         release {
             // Signed with the debug key on purpose. An unsigned APK cannot be
             // installed on anything, so a release build would be untestable and
