@@ -1,7 +1,26 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
 }
+
+/**
+ * The real signing key, if this machine has one.
+ *
+ * keystore.properties and the .jks it points at are both gitignored and must
+ * stay that way: the file holds the password in plain text, and the key itself
+ * is the app's identity on Play - an upload signed by a different key is
+ * rejected as a different app, permanently. There is no recovery from losing
+ * it, only a new listing.
+ *
+ * Absent on a fresh clone, which is deliberate. The build falls back to the
+ * debug key rather than failing, so anyone can check the project out and build
+ * it; only a machine holding the real key produces a publishable APK.
+ */
+val releaseKeystore: Properties? = rootProject.file("keystore.properties")
+    .takeIf { it.exists() }
+    ?.let { file -> Properties().apply { file.inputStream().use { load(it) } } }
 
 android {
     namespace = "io.github.jmatts94.ratkingrecon"
@@ -27,6 +46,19 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        create("release") {
+            // Left unconfigured when there is no keystore.properties. Nothing
+            // references this config in that case - see the release build type.
+            releaseKeystore?.let { props ->
+                storeFile = rootProject.file(props.getProperty("storeFile"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // So the About screen can be asked which build is installed.
@@ -46,12 +78,25 @@ android {
         }
 
         release {
-            // Signed with the debug key on purpose. An unsigned APK cannot be
-            // installed on anything, so a release build would be untestable and
-            // unshareable without it. This must be swapped for a real keystore
-            // before a Play upload - the debug key is shared by every Android
-            // install on the machine and identifies nobody.
-            signingConfig = signingConfigs.getByName("debug")
+            /*
+             * The real key when this machine has one, the debug key otherwise.
+             *
+             * An unsigned APK cannot be installed on anything, so falling back
+             * keeps a release build testable and shareable on a machine without
+             * the keystore. What it does not do is make that build publishable:
+             * the debug key ships with the SDK, is shared by every Android
+             * install on the machine, and identifies nobody. Check which key an
+             * APK actually carries before uploading it -
+             *
+             *   apksigner verify --print-certs <apk>
+             *
+             * "CN=Android Debug" means the fallback was used.
+             */
+            signingConfig = if (releaseKeystore != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
 
             // R8: shrink, optimise and obfuscate. Safe to turn on here because
             // nothing in the app reaches for a class by name - no reflection, no
