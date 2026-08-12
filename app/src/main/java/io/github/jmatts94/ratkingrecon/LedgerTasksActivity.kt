@@ -30,13 +30,6 @@ class LedgerTasksActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
 
-    private val timeM1 = 2 * 60 * 60 * 1000L   // 2 Hours
-    private val timeM2 = 8 * 60 * 60 * 1000L   // 8 Hours
-    private val timeM3 = 24 * 60 * 60 * 1000L  // 24 Hours
-
-    private val prefixes = arrayOf("The Rust", "The Toxic", "The Abandoned", "The Glowing", "The Flooded", "The Iron")
-    private val suffixes = arrayOf("Pipes", "Factory", "Sewer", "Crater", "Warehouse", "Subway", "Scrapyard")
-
     /**
      * What the tasks gate on: best Power, best Toughness, owns-a-shiny.
      *
@@ -95,7 +88,7 @@ class LedgerTasksActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
-        checkDailyReroll()
+        LedgerTasks.rerollForNewDay(prefs)
         refresh()
         ticker.postDelayed(tick, TICK_MS)
     }
@@ -139,14 +132,14 @@ class LedgerTasksActivity : AppCompatActivity() {
 
     private fun bindTasks(stats: RosterStats) {
         setupTask(
-            "M1", stats.power, stats.allPower, timeM1,
+            LedgerTasks.M1, stats.power, stats.allPower,
             findViewById(R.id.titleM1), findViewById(R.id.reqM1),
             findViewById(R.id.rewardM1), findViewById(R.id.btnMission1),
             R.string.stat_power
         )
 
         setupTask(
-            "M2", stats.toughness, stats.allToughness, timeM2,
+            LedgerTasks.M2, stats.toughness, stats.allToughness,
             findViewById(R.id.titleM2), findViewById(R.id.reqM2),
             findViewById(R.id.rewardM2), findViewById(R.id.btnMission2),
             R.string.stat_toughness
@@ -155,58 +148,11 @@ class LedgerTasksActivity : AppCompatActivity() {
         // The shiny task has no numeric stat, so it passes a value that clears
         // its stored requirement of 1 only when a shiny actually exists.
         setupTask(
-            "M3", if (stats.shiny) 1 else 0, if (stats.allShiny) 1 else 0, timeM3,
+            LedgerTasks.M3, if (stats.shiny) 1 else 0, if (stats.allShiny) 1 else 0,
             findViewById(R.id.titleM3), findViewById(R.id.reqM3),
             findViewById(R.id.rewardM3), findViewById(R.id.btnMission3),
             statNameRes = 0
         )
-    }
-
-    private fun checkDailyReroll() {
-        val currentDay = (System.currentTimeMillis() / (1000 * 60 * 60 * 24)).toInt()
-        if (currentDay == prefs.getInt("LAST_ROLL_DAY", 0)) return
-
-        val editor = prefs.edit()
-
-        // Only overwrite tasks that are NOT currently running, so an unclaimed
-        // reward cannot be rerolled out from under the player.
-        for (taskId in arrayOf("M1", "M2", "M3")) {
-            if (!prefs.getBoolean("${taskId}_ACTIVE", false)) rollTask(editor, taskId)
-        }
-
-        editor.putInt("LAST_ROLL_DAY", currentDay).apply()
-    }
-
-    /**
-     * Gives one task a fresh name, requirement and payout.
-     *
-     * Split out of [checkDailyReroll] so a claim can reuse it. A claimed task
-     * used to keep the name and reward it was completed with until the next
-     * calendar day rolled over, which read as the board being broken: the task
-     * was startable again, but advertising a job the player had just finished.
-     *
-     * The reroll is the same either way - the only difference is what prompts
-     * it - so both paths land here rather than keeping two copies of the bands.
-     */
-    private fun rollTask(editor: SharedPreferences.Editor, taskId: String) {
-        editor.putString("${taskId}_TITLE", "${prefixes.random()} ${suffixes.random()}")
-
-        when (taskId) {
-            "M1" -> {
-                editor.putInt("M1_REQ", (2..4).random())
-                editor.putInt("M1_REWARD", (15..30).random())
-            }
-
-            "M2" -> {
-                editor.putInt("M2_REQ", (4..7).random())
-                editor.putInt("M2_REWARD", (40..70).random())
-            }
-
-            "M3" -> {
-                editor.putInt("M3_REQ", 1) // 1 just means "needs a Shiny"
-                editor.putInt("M3_REWARD", (100..200).random())
-            }
-        }
     }
 
     /**
@@ -218,27 +164,24 @@ class LedgerTasksActivity : AppCompatActivity() {
      * on combat duty.
      */
     private fun setupTask(
-        taskId: String, playerStat: Int, unrestrictedStat: Int, durationMs: Long,
+        tier: LedgerTaskTier, playerStat: Int, unrestrictedStat: Int,
         titleTxt: TextView, reqTxt: TextView, rewardTxt: TextView, btn: Button,
         @StringRes statNameRes: Int
     ) {
-        val isActive = prefs.getBoolean("${taskId}_ACTIVE", false)
-        val endTime = prefs.getLong("${taskId}_END_TIME", 0L)
-        val reqAmount = prefs.getInt("${taskId}_REQ", 1)
-        val rewardAmount = prefs.getInt("${taskId}_REWARD", 10)
+        val isActive = LedgerTasks.isRunning(prefs, tier)
+        val endTime = prefs.getLong(LedgerTasks.endTimeKey(tier.id), 0L)
+        val offer = LedgerTasks.stored(prefs, tier)
+        val reqAmount = offer.requirement
+        val rewardAmount = offer.reward
         val now = System.currentTimeMillis()
 
-        titleTxt.text = prefs.getString("${taskId}_TITLE", getString(R.string.task_unknown_sector))
+        titleTxt.text = offer.title.ifBlank { getString(R.string.task_unknown_sector) }
         reqTxt.text = if (statNameRes == 0) {
             getString(R.string.task_requires_shiny)
         } else {
             getString(R.string.task_requires_stat, reqAmount, getString(statNameRes))
         }
-        rewardTxt.text = getString(
-            R.string.task_reward_line,
-            (durationMs / (1000 * 60 * 60)).toInt(),
-            rewardAmount
-        )
+        rewardTxt.text = getString(R.string.task_reward_line, tier.hours, rewardAmount)
 
         // Re-enabled explicitly: the screen redraws in place now rather than
         // being recreated, so a button disabled by a previous pass would stay
@@ -249,7 +192,7 @@ class LedgerTasksActivity : AppCompatActivity() {
             isActive && now >= endTime -> {
                 btn.text = getString(R.string.task_claim)
                 tintButton(btn, R.color.amber)
-                btn.setOnClickListener { claim(taskId, rewardAmount) }
+                btn.setOnClickListener { claim(tier, rewardAmount) }
             }
 
             isActive -> {
@@ -262,7 +205,7 @@ class LedgerTasksActivity : AppCompatActivity() {
             playerStat >= reqAmount -> {
                 btn.text = getString(R.string.task_start)
                 tintButton(btn, R.color.amber)
-                btn.setOnClickListener { start(taskId, durationMs) }
+                btn.setOnClickListener { start(tier) }
             }
 
             else -> {
@@ -281,19 +224,19 @@ class LedgerTasksActivity : AppCompatActivity() {
         }
     }
 
-    private fun start(taskId: String, durationMs: Long) {
-        val endAt = System.currentTimeMillis() + durationMs
+    private fun start(tier: LedgerTaskTier) {
+        val endAt = System.currentTimeMillis() + tier.durationMs
         prefs.edit()
-            .putBoolean("${taskId}_ACTIVE", true)
-            .putLong("${taskId}_END_TIME", endAt)
+            .putBoolean(LedgerTasks.activeKey(tier.id), true)
+            .putLong(LedgerTasks.endTimeKey(tier.id), endAt)
             .apply()
 
         // Nothing else is watching the clock, so the alert is armed here.
-        LedgerTaskAlarms.schedule(this, taskId, endAt)
+        LedgerTaskAlarms.schedule(this, tier.id, endAt)
         refresh()
     }
 
-    private fun claim(taskId: String, rewardAmount: Int) {
+    private fun claim(tier: LedgerTaskTier, rewardAmount: Int) {
         val editor = prefs.edit()
 
         var message = getString(R.string.task_success, rewardAmount)
@@ -306,13 +249,11 @@ class LedgerTasksActivity : AppCompatActivity() {
         }
 
         editor.putInt(GameEngine.KEY_SCRAP, prefs.getInt(GameEngine.KEY_SCRAP, 0) + rewardAmount)
-        editor.putBoolean("${taskId}_ACTIVE", false)
+        editor.putBoolean(LedgerTasks.activeKey(tier.id), false)
 
         // Rerolled here rather than waiting for the next daily pass, so the slot
-        // offers a new job the moment this one is banked. Safe against the daily
-        // reroll: that only touches tasks which are not running, and this one has
-        // just been marked inactive, so at worst it is rerolled again tomorrow.
-        rollTask(editor, taskId)
+        // offers a new job the moment this one is banked.
+        LedgerTasks.reroll(editor, tier)
         editor.apply()
 
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
