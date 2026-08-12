@@ -99,8 +99,10 @@ class LedgerTasksActivity : AppCompatActivity() {
     }
 
     private fun refresh() {
+        // Total held, not distinct kinds. The old label said "recovered" while
+        // showing a set size that could never pass four however many dropped.
         findViewById<TextView>(R.id.relicCountText).text =
-            getString(R.string.task_relics, prefs.getStringSet("RELICS", emptySet())?.size ?: 0)
+            getString(R.string.task_relics, Relics.total(prefs))
 
         val cached = rosterStats
         if (cached != null) {
@@ -240,12 +242,12 @@ class LedgerTasksActivity : AppCompatActivity() {
         val editor = prefs.edit()
 
         var message = getString(R.string.task_success, rewardAmount)
-        if ((1..100).random() <= 25) {
-            val relic = RELICS.random()
-            val held = prefs.getStringSet("RELICS", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
-            held.add(relic)
-            editor.putStringSet("RELICS", held)
-            message = getString(R.string.task_success_relic, rewardAmount, relic)
+
+        // Scaled by tier now, and counted rather than collected: a second Rusted
+        // Gear used to be dropped on the floor by the Set that stored it.
+        Relics.rollFor(tier)?.let { relic ->
+            Relics.grant(prefs, editor, relic)
+            message = getString(R.string.task_success_relic, rewardAmount, getString(relic.nameRes))
         }
 
         editor.putInt(GameEngine.KEY_SCRAP, prefs.getInt(GameEngine.KEY_SCRAP, 0) + rewardAmount)
@@ -271,11 +273,3 @@ class LedgerTasksActivity : AppCompatActivity() {
         btn.backgroundTintList = ContextCompat.getColorStateList(this, colorRes)
     }
 }
-
-/** Relic names are stored verbatim in the save, so these strings must not change. */
-private val RELICS = arrayOf(
-    "⚙️ Rusted Gear",
-    "🧪 Glowing Vial",
-    "📜 Tattered Blueprint",
-    "🔧 Heavy Wrench"
-)

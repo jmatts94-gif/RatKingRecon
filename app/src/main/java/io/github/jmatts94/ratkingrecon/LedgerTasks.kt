@@ -27,7 +27,16 @@ data class LedgerTaskTier(
     val id: String,
     val durationMs: Long,
     val requirements: IntRange,
-    val rewards: IntRange
+    val rewards: IntRange,
+    /**
+     * Chance of a relic on claim, as a proportion.
+     *
+     * Belongs to the tier because it used to be one flat 25% for the whole
+     * board, which made the two-hour task about twelve times the best
+     * relic-per-hour rate in the game and gave nobody a reason to run the long
+     * ones. See [Relics.rollFor].
+     */
+    val relicChance: Double
 ) {
     /** Whole hours, which is the only unit the board displays. */
     val hours: Int get() = (durationMs / (1000 * 60 * 60)).toInt()
@@ -70,14 +79,18 @@ object LedgerTasks {
         id = "M1",
         durationMs = 2 * 60 * 60 * 1000L,
         requirements = 2..4,
-        rewards = 15..30
+        rewards = 15..30,
+        relicChance = 0.10
     )
 
     val M2 = LedgerTaskTier(
         id = "M2",
         durationMs = 8 * 60 * 60 * 1000L,
         requirements = 4..7,
-        rewards = 40..70
+        rewards = 40..70,
+        // The rate the whole board used to run at, kept as the middle of the
+        // new spread so the change reads as M1 down and M3 up.
+        relicChance = 0.25
     )
 
     /**
@@ -89,7 +102,8 @@ object LedgerTasks {
         id = "M3",
         durationMs = 24 * 60 * 60 * 1000L,
         requirements = 1..1,
-        rewards = 100..200
+        rewards = 100..200,
+        relicChance = 0.50
     )
 
     val all: List<LedgerTaskTier> = listOf(M1, M2, M3)

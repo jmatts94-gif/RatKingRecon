@@ -53,6 +53,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".RelicTraderActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".AchievementsActivity"
             android:exported="false" />
 

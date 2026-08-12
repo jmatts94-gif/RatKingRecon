@@ -171,8 +171,8 @@
 
     <!-- Ledger Tasks (timed roster jobs). mission_checking_roster is shared with
          the Contract Board dialog, so it keeps its original name. -->
-    <!-- number of relics recovered -->
-    <string name="task_relics">Relics recovered: %1$d</string>
+    <!-- total relics held, counting duplicates -->
+    <string name="task_relics">Relics held: %1$d</string>
     <string name="task_unknown_sector">Unknown Sector</string>
     <string name="task_claim">Claim Reward</string>
     <string name="task_start">Start Task</string>
@@ -361,6 +361,54 @@ RARE DROP: %2$s</string>
     <string name="channel_steps_desc">A running count of the steps you have walked today. Silent, and safe to swipe away.</string>
     <string name="notif_steps_title">Steps today</string>
     <string name="notif_steps_text">%1$d steps</string>
+
+    <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
+    <string name="relic_rusted_gear">⚙️ Rusted Gear</string>
+    <string name="relic_glowing_vial">🧪 Glowing Vial</string>
+    <string name="relic_tattered_blueprint">📜 Tattered Blueprint</string>
+    <string name="relic_heavy_wrench">🔧 Heavy Wrench</string>
+
+    <!-- Relic Trader -->
+    <string name="shop_name_relic_trader">Relic Trader</string>
+    <string name="shop_desc_relic_trader">Trades in relics rather than Scrap. Bring three of a kind.</string>
+    <string name="tooltip_trader_title">Relic Trader</string>
+    <string name="tooltip_trader_body">Relics drop from Ledger Tasks — rarely from the short ones, often from the long. Three of a kind buys something here.</string>
+    <string name="shop_open">Open</string>
+    <!-- description, discount in Scrap -->
+    <string name="shop_voucher_applied">%1$s  ·  Voucher: %2$d Scrap off</string>
+
+    <!-- This screen is reached from the Shop, not the home screen, so it does
+         not borrow btn_back_to_workshop like everything else does. -->
+    <string name="btn_back_to_shop">Back to Shop</string>
+    <string name="trader_title">Relic Trader</string>
+    <string name="trader_subtitle">Three of a kind for each trade. Relics come from Ledger Tasks.</string>
+    <!-- total relics held -->
+    <string name="trader_total">%1$d held</string>
+    <!-- relic name, how many held -->
+    <string name="trader_count_pill">%1$s\n%2$d</string>
+
+    <string name="trade_gear_title">Scrap Buyout</string>
+    <string name="trade_gear_body">A fair price for a bag of gears. Pays 150–250 Scrap.</string>
+    <string name="trade_vial_title">Binder Frame</string>
+    <string name="trade_vial_body">Your pick of a card frame for the Binder.</string>
+    <string name="trade_blueprint_title">Combat Requisition</string>
+    <string name="trade_blueprint_body">Your pick of a Power Surge or a Golden Wrench.</string>
+    <string name="trade_wrench_title">Hatchery Voucher</string>
+    <string name="trade_wrench_body">100 Scrap off your next Masterwork Hatchery pull. Stacks.</string>
+
+    <!-- needed, relic name, held -->
+    <string name="trade_cost">Costs %1$d × %2$s   ·   you hold %3$d</string>
+    <string name="trade_action">Trade</string>
+    <string name="trade_unavailable">Unavailable</string>
+    <string name="trade_pick_frame">Pick a frame</string>
+    <string name="trade_pick_buff">Pick an item</string>
+    <string name="trade_cancel">Cancel</string>
+    <!-- what was traded for -->
+    <string name="trade_done">Traded for: %1$s</string>
+    <!-- needed, relic name, held -->
+    <string name="trade_not_enough">Needs %1$d × %2$s. You hold %3$d.</string>
+    <string name="trade_owns_every_frame">You already own every frame.</string>
+    <string name="trade_buff_armed">You already have a combat item armed. Use it first.</string>
 
     <!-- Header stats -->
     <string name="header_level_default">Lvl 1</string>

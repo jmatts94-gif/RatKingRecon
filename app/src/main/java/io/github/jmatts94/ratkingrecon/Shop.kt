@@ -23,6 +23,16 @@ sealed interface ShopEffect {
     /** Bought once, then equipped or unequipped. Purely visual. */
     data class Cosmetic(val id: String) : ShopEffect
 
+    /**
+     * Opens a screen of its own instead of buying anything.
+     *
+     * Carries no price: the Relic Trader deals in relics, and the Shop's whole
+     * purchase path - the affordability check, the button label - is denominated
+     * in Scrap. A row that opens a door is a better fit than four rows the Shop
+     * would have to learn a second currency for.
+     */
+    data class Screen(val id: String) : ShopEffect
+
     /** On the shelf but not for sale, so it carries no price. */
     data object ComingSoon : ShopEffect
 }
@@ -72,6 +82,9 @@ object Shop {
     /** Ids for the immediate-effect items, dispatched in ShopActivity. */
     const val ACTION_QUICK_RETURN = "quick_return"
     const val ACTION_MASTERWORK = "masterwork_hatch"
+
+    /** Screens reachable from a shop row. */
+    const val SCREEN_RELIC_TRADER = "relic_trader"
 
     private val hatching = ShopCategory(
         titleRes = R.string.shop_cat_hatching,
@@ -169,10 +182,22 @@ object Shop {
         )
     )
 
-    /** Deliberately bare - heading only - until an event fills it. */
     private val featured = ShopCategory(
         titleRes = R.string.shop_cat_featured,
-        subtitleRes = R.string.shop_cat_featured_sub
+        subtitleRes = R.string.shop_cat_featured_sub,
+        items = listOf(
+            ShopItem(
+                // Priced in relics, not Scrap, so this row carries no Scrap
+                // price at all - see [ShopEffect.Screen].
+                price = 0,
+                effect = ShopEffect.Screen(SCREEN_RELIC_TRADER),
+                nameRes = R.string.shop_name_relic_trader,
+                bodyRes = R.string.shop_desc_relic_trader,
+                iconRes = R.drawable.ic_flask,
+                tooltipTitleRes = R.string.tooltip_trader_title,
+                tooltipBodyRes = R.string.tooltip_trader_body
+            )
+        )
     )
 
     val categories = listOf(hatching, combat, expeditions, cosmetic, featured)

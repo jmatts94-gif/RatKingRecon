@@ -101,6 +101,26 @@ object ShopEffects {
     /** Revive tokens held. Bought ahead of a loss rather than paid for after one. */
     const val KEY_REVIVE_TOKENS = "REVIVE_TOKENS"
 
+    /**
+     * Masterwork Hatchery discount vouchers held, traded for at the Relic Trader.
+     *
+     * A charge rather than a flag so they stack, but only one is ever applied to
+     * a purchase - banking three does not make the next hatch free, it makes the
+     * next three cheaper.
+     */
+    const val KEY_MASTERWORK_VOUCHER = "MASTERWORK_VOUCHER"
+
+    /** Scrap off one Masterwork pull. */
+    const val MASTERWORK_VOUCHER_VALUE = 100
+
+    /** What the Hatchery costs right now, with a voucher applied if one is held. */
+    fun masterworkPrice(prefs: SharedPreferences): Int =
+        if (charges(prefs, KEY_MASTERWORK_VOUCHER) > 0) {
+            (Masterwork.PRICE - MASTERWORK_VOUCHER_VALUE).coerceAtLeast(0)
+        } else {
+            Masterwork.PRICE
+        }
+
     fun charges(prefs: SharedPreferences, key: String): Int = prefs.getInt(key, 0)
 
     fun addCharge(prefs: SharedPreferences, key: String) {

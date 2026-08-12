@@ -130,6 +130,17 @@ class ShopActivity : AppCompatActivity() {
             return
         }
 
+        // Settled before the Scrap check: this row costs nothing, it opens a
+        // door. onResume redraws when the player comes back, so a voucher
+        // traded for in there is priced in the moment they return.
+        if (effect is ShopEffect.Screen) {
+            when (effect.id) {
+                Shop.SCREEN_RELIC_TRADER ->
+                    startActivity(android.content.Intent(this, RelicTraderActivity::class.java))
+            }
+            return
+        }
+
         // Equipping something already owned is free, so it settles before the
         // affordability check rather than after it.
         if (effect is ShopEffect.Cosmetic && ShopEffects.ownsCosmetic(prefs, effect.id)) {
@@ -147,8 +158,9 @@ class ShopActivity : AppCompatActivity() {
             return
         }
 
+        val price = effectivePrice(item)
         val scrap = prefs.getInt(GameEngine.KEY_SCRAP, 0)
-        if (scrap < item.price) {
+        if (scrap < price) {
             toast(getString(R.string.shop_too_poor))
             return
         }
@@ -176,9 +188,10 @@ class ShopActivity : AppCompatActivity() {
             }
 
             ShopEffect.ComingSoon -> return
+            is ShopEffect.Screen -> return
         }
 
-        prefs.edit().putInt(GameEngine.KEY_SCRAP, scrap - item.price).apply()
+        prefs.edit().putInt(GameEngine.KEY_SCRAP, scrap - price).apply()
         toast(getString(R.string.shop_activated, getString(item.nameRes)))
         refresh()
     }
@@ -208,15 +221,39 @@ class ShopActivity : AppCompatActivity() {
                 stored
             }
 
+            // Priced here rather than before the insert, for the same reason the
+            // Scrap is re-read: this runs across a suspension point, and the
+            // voucher could not be spent for a hatch that never happened.
+            val price = effectivePrice(item)
+            val discounted = price < item.price
+
             val scrap = prefs.getInt(GameEngine.KEY_SCRAP, 0)
             prefs.edit()
-                .putInt(GameEngine.KEY_SCRAP, (scrap - item.price).coerceAtLeast(0))
+                .putInt(GameEngine.KEY_SCRAP, (scrap - price).coerceAtLeast(0))
                 .apply()
+
+            // Only now, with the rat minted and the Scrap taken.
+            if (discounted) ShopEffects.spendCharge(prefs, ShopEffects.KEY_MASTERWORK_VOUCHER)
 
             busy = false
             toast(getString(R.string.shop_masterwork_done, hatched.name))
             refresh()
         }
+    }
+
+    /**
+     * What [item] costs right now.
+     *
+     * Only the Hatchery ever differs from its catalogue price, and only while a
+     * Relic Trader voucher is held. Routed through one function because the
+     * price is read in three places - the button label, the affordability check
+     * and the deduction - and two of them disagreeing is how a player gets
+     * charged a price the button never showed.
+     */
+    private fun effectivePrice(item: ShopItem): Int {
+        val effect = item.effect
+        val isMasterwork = effect is ShopEffect.Action && effect.id == Shop.ACTION_MASTERWORK
+        return if (isMasterwork) ShopEffects.masterworkPrice(prefs) else item.price
     }
 
     // ---- drawing -------------------------------------------------------------
@@ -260,6 +297,9 @@ class ShopActivity : AppCompatActivity() {
         is ShopEffect.ComingSoon ->
             Label(getString(R.string.shop_coming_soon_btn), enabled = false)
 
+        is ShopEffect.Screen ->
+            Label(getString(R.string.shop_open), enabled = true, fill = R.color.amber)
+
         is ShopEffect.Flag ->
             if (prefs.getBoolean(effect.key, false)) {
                 Label(getString(R.string.shop_active), enabled = false)
@@ -278,12 +318,25 @@ class ShopActivity : AppCompatActivity() {
         else -> Label(price(item), enabled = true)
     }
 
-    private fun price(item: ShopItem): String = getString(R.string.shop_price, item.price)
+    private fun price(item: ShopItem): String =
+        getString(R.string.shop_price, effectivePrice(item))
 
     /** The item's description, plus how many are held when that is the point of it. */
     private fun bodyFor(item: ShopItem): String {
         val text = getString(item.bodyRes)
         val effect = item.effect
+
+        // Says why the Hatchery is cheaper than its advertised price, rather
+        // than leaving a discount to be noticed or not.
+        if (effect is ShopEffect.Action && effect.id == Shop.ACTION_MASTERWORK) {
+            val vouchers = ShopEffects.charges(prefs, ShopEffects.KEY_MASTERWORK_VOUCHER)
+            return if (vouchers > 0) {
+                getString(R.string.shop_voucher_applied, text, ShopEffects.MASTERWORK_VOUCHER_VALUE)
+            } else {
+                text
+            }
+        }
+
         if (effect !is ShopEffect.Charge) return text
 
         val held = ShopEffects.charges(prefs, effect.key)
