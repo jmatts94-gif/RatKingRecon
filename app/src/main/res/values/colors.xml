@@ -25,4 +25,9 @@
 
     <!-- Dismiss actions: warm terracotta rather than a clashing red -->
     <color name="terracotta">#C1673F</color>
+
+    <!-- Animated Binder frames. Kept inside the warm palette so a frame reads
+         as part of the workshop rather than as a sticker on top of it. -->
+    <color name="copper">#B87333</color>
+    <color name="pewter">#9A8B76</color>
 </resources>

@@ -25,6 +25,18 @@ class GalleryActivity : AppCompatActivity() {
     private var deployedRatId: Long = -1L
     private var expeditionEndTime: Long = 0L
 
+    /**
+     * Drives the animated Binder frames, if one is equipped.
+     *
+     * One ticker for the whole screen rather than an animation per card - the
+     * grid does not recycle, so every rat owned is a live view and per-card
+     * animators would scale with the collection. See [FrameAnimator].
+     */
+    private val frameAnimator = FrameAnimator()
+
+    /** The scroll listener is registered once, not once per grid rebuild. */
+    private var scrollWatched = false
+
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     /**
@@ -52,6 +64,19 @@ class GalleryActivity : AppCompatActivity() {
         super.onResume()
         // This runs every time you open the Binder!
         updateCollectionProgress()
+        frameAnimator.start()
+    }
+
+    /** Nothing should be turning behind a dialog, another screen or a dark display. */
+    override fun onPause() {
+        super.onPause()
+        frameAnimator.stop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        frameAnimator.stop()
+        frameAnimator.clear()
     }
 
     /**
@@ -178,30 +203,42 @@ class GalleryActivity : AppCompatActivity() {
     }
 
     /**
-     * The Shop frame currently equipped, as a stroke colour and width.
+     * The frame currently equipped, or null when none is.
      *
-     * Null when none is on, in which case the card keeps the border set in
-     * item_rat_card.xml. Purely a border swap - no card data is touched.
+     * Looked up in [Frames] rather than matched here, so a frame added to the
+     * catalogue turns up on the cards without this needing to hear about it.
      */
-    private fun equippedFrame(): Pair<Int, Int>? =
-        when (ShopEffects.equippedCosmetic(RatRepository.prefs(this))) {
-            Shop.FRAME_BRASS -> R.color.amber_dark to dp(3)
-            Shop.FRAME_EMBER -> R.color.terracotta to dp(3)
-            else -> null
-        }
+    private fun equippedFrame(): CardFrame? =
+        Frames.byId(ShopEffects.equippedCosmetic(RatRepository.prefs(this)))
 
     private fun populateGrid(petGrid: GridLayout, pets: List<RatEntity>) {
         val prefs = RatRepository.prefs(this)
         val layoutInflater = LayoutInflater.from(this)
         val frame = equippedFrame()
 
+        // The grid is rebuilt from scratch on every filter change, so the
+        // previous set of cards is gone and nothing should still be ticking.
+        frameAnimator.stop()
+        frameAnimator.clear()
+
         for (pet in pets) {
             val cardView = layoutInflater.inflate(R.layout.item_rat_card, petGrid, false)
 
-            frame?.let { (colorRes, width) ->
+            frame?.let { equipped ->
                 (cardView as com.google.android.material.card.MaterialCardView).apply {
-                    strokeColor = ContextCompat.getColor(this@GalleryActivity, colorRes)
-                    strokeWidth = width
+                    strokeColor = ContextCompat.getColor(this@GalleryActivity, equipped.strokeColorRes)
+                    strokeWidth = dp(Frames.STROKE_DP)
+                }
+
+                // Only an animated frame gets an overlay drawable at all; a
+                // static one stays exactly as cheap as it has always been.
+                if (equipped.style != FrameStyle.STATIC) {
+                    val overlay = cardView.findViewById<View>(R.id.cardFrameOverlay)
+                    overlay.background = FrameOverlayDrawable(
+                        equipped.style,
+                        ContextCompat.getColor(this@GalleryActivity, equipped.strokeColorRes)
+                    ).apply { setDensity(resources.displayMetrics.density) }
+                    frameAnimator.track(overlay)
                 }
             }
             val cardImage = cardView.findViewById<ImageView>(R.id.cardImage)
@@ -235,6 +272,37 @@ class GalleryActivity : AppCompatActivity() {
             cardView.setOnClickListener { showEnlargedRat(pet) }
 
             petGrid.addView(cardView)
+        }
+
+        if (!frameAnimator.hasWork) return
+
+        // Deferred to after layout: the cards have no position until then, so
+        // asking which are on screen now would put every one of them in the
+        // visible set.
+        petGrid.post {
+            frameAnimator.refreshVisible()
+            frameAnimator.start()
+        }
+        watchScrolling(petGrid)
+    }
+
+    /**
+     * Keeps the animator's idea of what is on screen up to date.
+     *
+     * Registered on the tree rather than on a named ScrollView because the grid
+     * has no id of its own to hang this on, and any scroll in this window is
+     * one worth reacting to.
+     *
+     * Recomputing here rather than on every tick is what keeps the cost flat as
+     * the collection grows: the walk over all cards happens when the player
+     * drags, not twenty-five times a second.
+     */
+    private fun watchScrolling(petGrid: GridLayout) {
+        if (scrollWatched) return
+        scrollWatched = true
+
+        petGrid.viewTreeObserver.addOnScrollChangedListener {
+            frameAnimator.refreshVisible()
         }
     }
 

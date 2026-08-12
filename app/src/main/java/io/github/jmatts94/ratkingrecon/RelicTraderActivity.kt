@@ -167,10 +167,8 @@ class RelicTraderActivity : AppCompatActivity() {
         RelicRefusal.BuffAlreadyArmed -> getString(R.string.trade_buff_armed)
     }
 
-    private fun frameNameRes(id: String): Int = when (id) {
-        Shop.FRAME_BRASS -> R.string.shop_name_frame_brass
-        else -> R.string.shop_name_frame_ember
-    }
+    private fun frameNameRes(id: String): Int =
+        Frames.byId(id)?.nameRes ?: R.string.shop_name_frame_brass
 
     // ---- drawing -------------------------------------------------------------
 

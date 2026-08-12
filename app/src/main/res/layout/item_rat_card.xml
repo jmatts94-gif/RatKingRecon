@@ -78,4 +78,18 @@
                 android:gravity="center" />
         </LinearLayout>
     </LinearLayout>
+
+    <!--
+      Draws the animated Binder frame over the card. Last child of the
+      MaterialCardView, which is a FrameLayout, so it sits on top without
+      affecting the layout underneath. Left with no background unless an
+      animated frame is equipped, in which case it costs nothing.
+
+      Not the card's own foreground: Material uses that for its ripple and
+      checked overlays.
+    -->
+    <View
+        android:id="@+id/cardFrameOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </com.google.android.material.card.MaterialCardView>

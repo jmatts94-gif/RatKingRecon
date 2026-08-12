@@ -102,9 +102,16 @@ object RelicTrader {
         )
     )
 
-    /** The frames the player could still be given, in catalogue order. */
+    /**
+     * The frames the player could still be given, in catalogue order.
+     *
+     * Only the tradeable ones. The animated frames are deliberately kept out:
+     * three relics is a far cheaper route than 350 to 500 Scrap, and letting
+     * this hand one over would undercut the tier they are priced into.
+     */
     fun availableFrames(prefs: SharedPreferences): List<String> =
-        listOf(Shop.FRAME_BRASS, Shop.FRAME_EMBER)
+        Frames.tradeable
+            .map { it.id }
             .filterNot { ShopEffects.ownsCosmetic(prefs, it) }
 
     /**

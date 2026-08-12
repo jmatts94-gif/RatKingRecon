@@ -362,6 +362,12 @@ RARE DROP: %2$s</string>
     <string name="notif_steps_title">Steps today</string>
     <string name="notif_steps_text">%1$d steps</string>
 
+    <!-- Animated Binder frames -->
+    <string name="shop_name_frame_clockwork">Clockwork Frame</string>
+    <string name="shop_desc_frame_clockwork">Copper border with cogs turning at each corner. Animated.</string>
+    <string name="shop_name_frame_boiler">Boiler Frame</string>
+    <string name="shop_desc_frame_boiler">Pewter border with steam drifting up both edges. Animated.</string>
+
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
     <string name="relic_rusted_gear">⚙️ Rusted Gear</string>
     <string name="relic_glowing_vial">🧪 Glowing Vial</string>

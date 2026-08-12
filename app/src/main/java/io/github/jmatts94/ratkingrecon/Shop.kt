@@ -75,9 +75,13 @@ data class ShopCategory(
  */
 object Shop {
 
-    /** Ids for the two Binder frames. Stored in the save, so they must not change. */
-    const val FRAME_BRASS = "brass"
-    const val FRAME_EMBER = "ember"
+    /**
+     * The two frames that shipped, kept as named constants because the rest of
+     * the app refers to them by name. Every frame, including these, is described
+     * in [Frames].
+     */
+    val FRAME_BRASS = Frames.BRASS.id
+    val FRAME_EMBER = Frames.EMBER.id
 
     /** Ids for the immediate-effect items, dispatched in ShopActivity. */
     const val ACTION_QUICK_RETURN = "quick_return"
@@ -161,25 +165,29 @@ object Shop {
         )
     )
 
+    /**
+     * Every frame in [Frames], in catalogue order.
+     *
+     * Built from the catalogue rather than listed again here, so a frame added
+     * there goes on sale at the price it declares. The plain frames stay at 200;
+     * the animated pair is dearer, which is the whole distinction between them.
+     */
     private val cosmetic = ShopCategory(
         titleRes = R.string.shop_cat_cosmetic,
         subtitleRes = R.string.shop_cat_cosmetic_sub,
-        items = listOf(
+        items = Frames.all.map { frame ->
             ShopItem(
-                price = 200,
-                effect = ShopEffect.Cosmetic(FRAME_BRASS),
-                nameRes = R.string.shop_name_frame_brass,
-                bodyRes = R.string.shop_desc_frame,
-                iconRes = R.drawable.ic_star
-            ),
-            ShopItem(
-                price = 200,
-                effect = ShopEffect.Cosmetic(FRAME_EMBER),
-                nameRes = R.string.shop_name_frame_ember,
-                bodyRes = R.string.shop_desc_frame,
-                iconRes = R.drawable.ic_hexagon
+                price = frame.price,
+                effect = ShopEffect.Cosmetic(frame.id),
+                nameRes = frame.nameRes,
+                bodyRes = frame.descRes,
+                iconRes = when (frame.style) {
+                    FrameStyle.GEARS -> R.drawable.ic_hexagon
+                    FrameStyle.STEAM -> R.drawable.ic_flask
+                    FrameStyle.STATIC -> R.drawable.ic_star
+                }
             )
-        )
+        }
     )
 
     private val featured = ShopCategory(
