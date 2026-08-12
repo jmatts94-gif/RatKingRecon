@@ -116,20 +116,22 @@
         </LinearLayout>
     </HorizontalScrollView>
 
-    <ScrollView
+    <!--
+      A RecyclerView rather than a GridLayout in a ScrollView. The old grid
+      inflated one live view per rat and kept every one of them attached, so a
+      long-running collection cost memory and layout time in proportion to its
+      size. Three columns, as before.
+    -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/petGrid"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <GridLayout
-            android:id="@+id/petGrid"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:columnCount="3"
-            android:alignmentMode="alignBounds"
-            android:useDefaultMargins="true"
-            android:layout_gravity="center_horizontal" />
-    </ScrollView>
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingHorizontal="4dp"
+        android:paddingBottom="8dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="3" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/returnToBaseButton"

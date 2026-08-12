@@ -16,10 +16,9 @@ import kotlin.math.sin
 /**
  * The one clock every animated frame reads.
  *
- * A single monotonic phase rather than an animator per card. The Binder grid
- * does not recycle its views - it is a GridLayout in a ScrollView, so every rat
- * the player owns is a live view at once - and a save with three hundred rats
- * would otherwise mean three hundred running animators, most of them off screen.
+ * A single monotonic phase rather than an animator per card. Recycling bounds
+ * how many cards exist, but an animator each would still mean one object and
+ * one callback per card on screen, all computing the same number.
  *
  * Every card turning in step is a consequence of sharing the clock, and a
  * welcome one: a wall of gears at random offsets reads as noise.
@@ -196,13 +195,13 @@ class FrameOverlayDrawable(
 /**
  * Drives every animated frame on a screen from one Choreographer callback.
  *
- * Two things keep this affordable on a grid that never recycles:
+ * One ticker rather than an animator per card, and it invalidates only the
+ * cards currently attached to the window. Since the Binder became a
+ * RecyclerView that set is roughly a screenful however large the collection
+ * grows, and RecyclerView reports it exactly - a card is attached or it is not,
+ * so nothing here has to measure anything against the viewport.
  *
- * Only cards actually on screen are invalidated. The visible set is recomputed
- * when the grid scrolls rather than on every tick, so a save with hundreds of
- * rats costs about a screenful of redraws either way.
- *
- * And it runs at [FRAME_MS] rather than at display rate. A gear taking six
+ * It also runs at [FRAME_MS] rather than at display rate. A gear taking six
  * seconds to turn does not need ninety frames a second to look smooth, and the
  * difference is most of the battery this could otherwise spend.
  */
@@ -213,12 +212,11 @@ class FrameAnimator {
         const val FRAME_MS = 40L
     }
 
-    private val overlays = mutableListOf<View>()
-    private var visible: List<View> = emptyList()
+    /** The card overlays currently on screen. */
+    private val attached = mutableListOf<View>()
+
     private var running = false
     private var lastFrameAt = 0L
-
-    private val visibleRect = Rect()
 
     private val callback = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
@@ -227,42 +225,34 @@ class FrameAnimator {
             val now = SystemClock.uptimeMillis()
             if (now - lastFrameAt >= FRAME_MS) {
                 lastFrameAt = now
-                for (view in visible) view.invalidate()
+                for (i in attached.indices) attached[i].invalidate()
             }
 
             Choreographer.getInstance().postFrameCallback(this)
         }
     }
 
-    /** Registers a card overlay. Ignored when the frame does not animate. */
-    fun track(overlay: View) {
-        overlays += overlay
+    /** Called when a card scrolls into view. */
+    fun attach(overlay: View) {
+        if (!attached.contains(overlay)) attached += overlay
+        if (running) return
+        start()
     }
 
-    /** Drops every tracked card, for a grid about to be rebuilt. */
+    /** Called when a card scrolls off, or its holder is recycled. */
+    fun detach(overlay: View) {
+        attached -= overlay
+    }
+
+    /** Drops everything, for a screen going away. */
     fun clear() {
-        overlays.clear()
-        visible = emptyList()
-    }
-
-    val hasWork: Boolean get() = overlays.isNotEmpty()
-
-    /**
-     * Recomputes which cards are on screen.
-     *
-     * Called on scroll and after layout rather than per tick: this is the walk
-     * over every card, and doing it twenty-five times a second is exactly the
-     * cost this class exists to avoid.
-     */
-    fun refreshVisible() {
-        visible = overlays.filter { it.isShown && it.getLocalVisibleRect(visibleRect) }
+        attached.clear()
     }
 
     fun start() {
-        if (running || overlays.isEmpty()) return
+        if (running || attached.isEmpty()) return
         running = true
         lastFrameAt = 0L
-        refreshVisible()
         Choreographer.getInstance().postFrameCallback(callback)
     }
 

@@ -2,12 +2,9 @@ package io.github.jmatts94.ratkingrecon
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
-import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -15,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,37 +26,14 @@ class GalleryActivity : AppCompatActivity() {
     /**
      * Drives the animated Binder frames, if one is equipped.
      *
-     * One ticker for the whole screen rather than an animation per card - the
-     * grid does not recycle, so every rat owned is a live view and per-card
-     * animators would scale with the collection. See [FrameAnimator].
+     * One ticker for the whole screen rather than an animation per card, fed by
+     * the adapter as cards attach and detach. See [FrameAnimator].
      */
     private val frameAnimator = FrameAnimator()
 
-    /** The scroll listener is registered once, not once per grid rebuild. */
-    private var scrollWatched = false
+    private lateinit var adapter: RatCardAdapter
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
-
-    /**
-     * The star marker, sized to sit beside text.
-     *
-     * The vector is a 24dp icon, which swamps an 11sp card label, so the bounds
-     * are set explicitly rather than taken from the drawable.
-     */
-    private fun starIcon(sizeDp: Int): Drawable? {
-        val icon = ContextCompat.getDrawable(this, R.drawable.ic_star) ?: return null
-        val size = dp(sizeDp)
-        icon.setBounds(0, 0, size, size)
-        return icon
-    }
-
-    /** The Battle Rat marker, bounded the same way [starIcon] is and for the same reason. */
-    private fun battleIcon(sizeDp: Int): Drawable? {
-        val icon = ContextCompat.getDrawable(this, R.drawable.ic_power) ?: return null
-        val size = dp(sizeDp)
-        icon.setBounds(0, 0, size, size)
-        return icon
-    }
 
     override fun onResume() {
         super.onResume()
@@ -131,6 +106,16 @@ class GalleryActivity : AppCompatActivity() {
 
         spliceButton.setOnClickListener { spliceWeakestPair(sharedPreferences) }
 
+        // The frame is fixed for the life of this screen: equipping one happens
+        // in the Shop, and coming back here builds the adapter again.
+        adapter = RatCardAdapter(
+            prefs = RatRepository.prefs(this),
+            equippedFrame = equippedFrame(),
+            animator = frameAnimator,
+            onCardClick = { showEnlargedRat(it) }
+        )
+        findViewById<RecyclerView>(R.id.petGrid).adapter = adapter
+
         // --- SORTING LOGIC ---
         findViewById<Button>(R.id.btnAll).setOnClickListener { renderGrid("ALL") }
         findViewById<Button>(R.id.btnPower).setOnClickListener { renderGrid("POWER") }
@@ -184,11 +169,15 @@ class GalleryActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Swaps the list behind the grid.
+     *
+     * Sorting and filtering happen in SQL rather than in memory, and the result
+     * is handed to the adapter, which diffs it against what is already shown -
+     * so changing filter moves the cards that moved rather than rebuilding all
+     * of them.
+     */
     private fun renderGrid(filter: String) {
-        val petGrid = findViewById<GridLayout>(R.id.petGrid)
-        petGrid.removeAllViews() // Wipe the grid clean
-
-        // Sorting and filtering happen in SQL rather than in memory.
         lifecycleScope.launch {
             val filteredList = withContext(Dispatchers.IO) {
                 val dao = RatRepository.dao(this@GalleryActivity)
@@ -198,7 +187,7 @@ class GalleryActivity : AppCompatActivity() {
                     else -> dao.all()
                 }
             }
-            populateGrid(petGrid, filteredList)
+            adapter.submitList(filteredList)
         }
     }
 
@@ -210,101 +199,6 @@ class GalleryActivity : AppCompatActivity() {
      */
     private fun equippedFrame(): CardFrame? =
         Frames.byId(ShopEffects.equippedCosmetic(RatRepository.prefs(this)))
-
-    private fun populateGrid(petGrid: GridLayout, pets: List<RatEntity>) {
-        val prefs = RatRepository.prefs(this)
-        val layoutInflater = LayoutInflater.from(this)
-        val frame = equippedFrame()
-
-        // The grid is rebuilt from scratch on every filter change, so the
-        // previous set of cards is gone and nothing should still be ticking.
-        frameAnimator.stop()
-        frameAnimator.clear()
-
-        for (pet in pets) {
-            val cardView = layoutInflater.inflate(R.layout.item_rat_card, petGrid, false)
-
-            frame?.let { equipped ->
-                (cardView as com.google.android.material.card.MaterialCardView).apply {
-                    strokeColor = ContextCompat.getColor(this@GalleryActivity, equipped.strokeColorRes)
-                    strokeWidth = dp(Frames.STROKE_DP)
-                }
-
-                // Only an animated frame gets an overlay drawable at all; a
-                // static one stays exactly as cheap as it has always been.
-                if (equipped.style != FrameStyle.STATIC) {
-                    val overlay = cardView.findViewById<View>(R.id.cardFrameOverlay)
-                    overlay.background = FrameOverlayDrawable(
-                        equipped.style,
-                        ContextCompat.getColor(this@GalleryActivity, equipped.strokeColorRes)
-                    ).apply { setDensity(resources.displayMetrics.density) }
-                    frameAnimator.track(overlay)
-                }
-            }
-            val cardImage = cardView.findViewById<ImageView>(R.id.cardImage)
-            val cardName = cardView.findViewById<TextView>(R.id.cardName)
-            val cardPower = cardView.findViewById<TextView>(R.id.cardPower)
-            val cardToughness = cardView.findViewById<TextView>(R.id.cardToughness)
-
-            // The stat icons live in item_rat_card.xml, so these are bare numbers.
-            cardImage.setImageResource(pet.imageRes)
-            cardPower.text = pet.power.toString()
-            cardToughness.text = pet.toughness.toString()
-
-            cardName.text = pet.name
-            // Shiny marks the start of the label, Battle Rat the end, so a rat
-            // that is both keeps both markers instead of one hiding the other.
-            val onDuty = BattleRat.isBattleRat(prefs, pet.id)
-            if (pet.shiny) {
-                cardName.setTextColor(ContextCompat.getColor(this, R.color.shiny_gold))
-                cardName.setCompoundDrawablesRelative(
-                    starIcon(14), null, if (onDuty) battleIcon(14) else null, null
-                )
-                cardName.compoundDrawablePadding = dp(3)
-            } else {
-                cardName.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
-                cardName.setCompoundDrawablesRelative(
-                    null, null, if (onDuty) battleIcon(14) else null, null
-                )
-                cardName.compoundDrawablePadding = dp(3)
-            }
-
-            cardView.setOnClickListener { showEnlargedRat(pet) }
-
-            petGrid.addView(cardView)
-        }
-
-        if (!frameAnimator.hasWork) return
-
-        // Deferred to after layout: the cards have no position until then, so
-        // asking which are on screen now would put every one of them in the
-        // visible set.
-        petGrid.post {
-            frameAnimator.refreshVisible()
-            frameAnimator.start()
-        }
-        watchScrolling(petGrid)
-    }
-
-    /**
-     * Keeps the animator's idea of what is on screen up to date.
-     *
-     * Registered on the tree rather than on a named ScrollView because the grid
-     * has no id of its own to hang this on, and any scroll in this window is
-     * one worth reacting to.
-     *
-     * Recomputing here rather than on every tick is what keeps the cost flat as
-     * the collection grows: the walk over all cards happens when the player
-     * drags, not twenty-five times a second.
-     */
-    private fun watchScrolling(petGrid: GridLayout) {
-        if (scrollWatched) return
-        scrollWatched = true
-
-        petGrid.viewTreeObserver.addOnScrollChangedListener {
-            frameAnimator.refreshVisible()
-        }
-    }
 
     private fun showEnlargedRat(pet: RatEntity) {
         val prefs = RatRepository.prefs(this)
@@ -330,12 +224,13 @@ class GalleryActivity : AppCompatActivity() {
         if (pet.shiny) {
             nameText.setTextColor(ContextCompat.getColor(this, R.color.shiny_gold))
             nameText.setCompoundDrawablesRelative(
-                starIcon(22), null, if (onDuty) battleIcon(22) else null, null
+                CardIcons.star(this, 22), null,
+                if (onDuty) CardIcons.battle(this, 22) else null, null
             )
         } else {
             nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
             nameText.setCompoundDrawablesRelative(
-                null, null, if (onDuty) battleIcon(22) else null, null
+                null, null, if (onDuty) CardIcons.battle(this, 22) else null, null
             )
         }
         nameText.compoundDrawablePadding = dp(6)

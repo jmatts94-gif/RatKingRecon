@@ -63,6 +63,10 @@ ksp {
 dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.viewpager2)
+    // Declared rather than taken transitively from viewpager2: the Binder grid
+    // depends on it directly, so it should not be at the mercy of another
+    // library's dependency graph.
+    implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
