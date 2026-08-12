@@ -86,6 +86,11 @@ object EncounterResolver {
             // the reduced rate Bosses.rewardFor already worked into the amount
             // banked above when the encounter was built.
             encounter.bossId?.let { badgeEarned = Bosses.markDefeated(prefs, it) }
+
+            // The single point every win passes through, hand-played or
+            // auto-resolved, which is why the quest is told about it here
+            // rather than in either screen.
+            DailyQuest.record(prefs, QuestType.WIN_FIGHT)
         } else {
             // A Shop Revive Token is spent here rather than offered: it was
             // bought ahead of time precisely so the loss does not cost 30

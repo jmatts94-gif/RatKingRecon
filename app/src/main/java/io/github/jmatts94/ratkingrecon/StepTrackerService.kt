@@ -235,6 +235,13 @@ class StepTrackerService : Service(), SensorEventListener {
             }
         }
 
+        // The two daily-loop alerts that can only be noticed while walking. Both
+        // gate themselves on the notifications switch inside DailyAlerts.
+        if (outcome.bossTeaser) DailyAlerts.postBossTeaser(this)
+        outcome.contractPaidName?.let {
+            DailyAlerts.postContractPaid(this, it, outcome.bountyReward)
+        }
+
         notifyStepsToday(outcome.stepsToday)
 
         sendBroadcast(

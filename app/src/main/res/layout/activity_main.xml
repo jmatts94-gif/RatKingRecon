@@ -134,6 +134,22 @@
           own - elevation would trace the ImageView's rectangle, and the egg is
           not a rectangle.
         -->
+        <!--
+          The egg and the streak tile sit side by side so the egg keeps its full
+          260dp and stays exactly as it was. On a 360dp screen the 20dp padding
+          leaves 320dp, so the tile takes the ~56dp that remains beside it - a
+          narrow column rather than a card, which is all the room there is
+          without shrinking the egg.
+        -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="bottom"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:layout_marginBottom="20dp">
+
         <FrameLayout
             android:layout_width="260dp"
             android:layout_height="260dp"
@@ -160,6 +176,43 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/egg_stage_0" />
         </FrameLayout>
+
+            <!-- Streak tile: lantern, then the count. Opens today's quest. -->
+            <LinearLayout
+                android:id="@+id/streakTile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/bg_pill_tan"
+                android:elevation="6dp"
+                android:outlineAmbientShadowColor="@color/shadow_warm"
+                android:outlineSpotShadowColor="@color/shadow_warm"
+                tools:targetApi="28"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="10dp"
+                android:layout_marginStart="8dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:id="@+id/streakLantern"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/ic_lantern"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:id="@+id/streakCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:text="@string/header_scrap_default" />
+            </LinearLayout>
+        </LinearLayout>
 
         <!--
           The Shop takes the slot the two consumables used to occupy, but is

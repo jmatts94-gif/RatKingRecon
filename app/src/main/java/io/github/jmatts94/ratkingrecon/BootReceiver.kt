@@ -32,6 +32,10 @@ class BootReceiver : BroadcastReceiver() {
                 // Alarms do not survive a reboot, so a running Ledger Task
                 // would otherwise finish in silence.
                 LedgerTaskAlarms.scheduleAll(context)
+
+                // Same reason: a phone restarted during the day would otherwise
+                // lose tonight's streak reminder.
+                DailyAlerts.scheduleStreakReminder(context)
             }
         }
     }

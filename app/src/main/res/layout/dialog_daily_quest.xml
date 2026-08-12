@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Today's quest, opened from the streak tile beside the egg. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_card_white"
+    android:layout_margin="24dp"
+    android:padding="22dp">
+
+    <ImageView
+        android:id="@+id/questLantern"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:src="@drawable/ic_lantern"
+        android:layout_marginBottom="10dp"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/quest_dialog_title"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp"
+        android:letterSpacing="0.08" />
+
+    <TextView
+        android:id="@+id/questTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAlignment="center"
+        android:textColor="@color/text_primary"
+        android:textSize="19sp"
+        android:textStyle="bold" />
+
+    <ProgressBar
+        android:id="@+id/questProgressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_marginTop="14dp"
+        android:progressDrawable="@drawable/progress_amber"
+        android:max="100" />
+
+    <TextView
+        android:id="@+id/questProgressText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textColor="@color/text_muted"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/questStreakText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:textAlignment="center"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/questRewardText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAlignment="center"
+        android:text="@string/quest_reward_line"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/questCloseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="@string/quest_close"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        app:backgroundTint="@color/amber"
+        app:cornerRadius="16dp"
+        app:elevation="4dp" />
+
+</LinearLayout>

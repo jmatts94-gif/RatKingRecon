@@ -44,6 +44,11 @@
             android:name=".LedgerTaskAlarmReceiver"
             android:exported="false" />
 
+        <!-- Wakes in the evening to check the streak; internal only. -->
+        <receiver
+            android:name=".StreakReminderReceiver"
+            android:exported="false" />
+
         <activity
             android:name=".ShopActivity"
             android:exported="false" />

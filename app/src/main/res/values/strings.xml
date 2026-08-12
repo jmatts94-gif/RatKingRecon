@@ -455,6 +455,48 @@ RARE DROP: %2$s</string>
     <string name="trader_empty_title">The bench is bare.</string>
     <string name="trader_empty_body">Relics turn up when a Ledger Task is claimed — the longer the job, the better the odds.</string>
 
+    <!-- Daily quest and streak -->
+    <string name="quest_steps_title">Walk %1$d steps</string>
+    <string name="quest_fight_title">Win a Rustbot fight</string>
+    <string name="quest_hatch_title">Hatch a rat</string>
+    <string name="quest_dialog_title">Today\'s Round</string>
+    <!-- progress, target -->
+    <string name="quest_progress">%1$d / %2$d</string>
+    <string name="quest_done">Done for today.</string>
+    <string name="quest_reward_line">Reward: 20–40 Scrap, or a relic.</string>
+    <!-- streak length -->
+    <string name="quest_streak">Streak: %1$d days</string>
+    <string name="quest_streak_one">Streak: 1 day</string>
+    <string name="quest_streak_none">No streak yet.</string>
+    <string name="quest_grace">One day missed — finish today to keep the streak.</string>
+    <string name="quest_close">Close</string>
+    <!-- scrap paid -->
+    <string name="quest_paid_scrap">Round complete! +%1$d Scrap.</string>
+    <!-- relic name -->
+    <string name="quest_paid_relic">Round complete! Recovered %1$s.</string>
+
+    <!-- Tasks screen -->
+    <string name="btn_tasks">Tasks</string>
+    <string name="tasks_title">Tasks</string>
+    <string name="tasks_section_contracts">Contracts</string>
+    <string name="tasks_section_contracts_sub">Short walking jobs against the clock. One at a time.</string>
+    <string name="tasks_section_ledger">Ledger Tasks</string>
+    <string name="tasks_section_ledger_sub">Longer jobs your roster qualifies for on its best stats.</string>
+
+    <!-- Retention notifications -->
+    <string name="channel_daily_name">Daily Round</string>
+    <string name="channel_daily_desc">Streak reminders, and news worth walking back for.</string>
+    <string name="channel_daily_quiet_name">Daily Round (Silent)</string>
+    <string name="notif_boss_teaser_title">Something is following you</string>
+    <string name="notif_boss_teaser_text">The scrap is moving where nothing should be. Keep walking.</string>
+    <!-- contract name, scrap paid -->
+    <string name="notif_contract_paid_title">Contract complete</string>
+    <string name="notif_contract_paid_text">%1$s paid out. +%2$d Scrap.</string>
+    <string name="notif_streak_title">Your lantern is going out</string>
+    <!-- streak length -->
+    <string name="notif_streak_text">Today\'s round is unfinished. %1$d days on the line.</string>
+    <string name="notif_streak_text_grace">Today\'s round is unfinished. Miss it and the streak resets.</string>
+
     <!-- Header stats -->
     <string name="header_level_default">Lvl 1</string>
     <string name="header_steps_default">0</string>

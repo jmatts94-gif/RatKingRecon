@@ -218,6 +218,9 @@ class ShopActivity : AppCompatActivity() {
                 // mints carries no column marking it as one.
                 Milestones.recordMasterworkPull(prefs)
                 Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+
+                // "Any hatch method" includes the bought one.
+                DailyQuest.record(prefs, QuestType.HATCH)
                 stored
             }
 

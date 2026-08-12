@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A hanging storm lantern: hoop, cap, glass, base.
+
+  Deliberately a lantern and not a flame. Every fitness app on the phone uses a
+  flame for a calorie streak, and a flame here would read as one - this is a
+  walking streak, and a lantern that is lit or not lit says the same thing
+  without borrowing somebody else's meaning.
+
+  The glass is a separate path so the glow can be tinted and faded on its own
+  while the metalwork stays put; see FRAME-free handling in MainActivity.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Hanging hoop -->
+    <path
+        android:strokeColor="@color/text_primary"
+        android:strokeWidth="1.3"
+        android:fillColor="#00000000"
+        android:pathData="M10.4,3.2 A1.7,1.7 0 1,1 13.6,3.2" />
+
+    <!-- Cap -->
+    <path
+        android:fillColor="@color/text_primary"
+        android:pathData="M7.6,5.1 L16.4,5.1 L15.2,7.3 L8.8,7.3 Z" />
+
+    <!-- Glass. Tinted at runtime to carry the glow. -->
+    <path
+        android:name="glass"
+        android:fillColor="@color/amber"
+        android:pathData="M8.9,7.6 L15.1,7.6 L16.1,16.4 L7.9,16.4 Z" />
+
+    <!-- Glass frame, over the top of it -->
+    <path
+        android:strokeColor="@color/text_primary"
+        android:strokeWidth="1.2"
+        android:fillColor="#00000000"
+        android:pathData="M8.9,7.6 L15.1,7.6 L16.1,16.4 L7.9,16.4 Z" />
+
+    <!-- Vertical bar, so the glass reads as panes -->
+    <path
+        android:strokeColor="@color/text_primary"
+        android:strokeWidth="0.9"
+        android:pathData="M12,7.6 L12,16.4" />
+
+    <!-- Base -->
+    <path
+        android:fillColor="@color/text_primary"
+        android:pathData="M7,16.8 L17,16.8 L17,19 L7,19 Z" />
+</vector>

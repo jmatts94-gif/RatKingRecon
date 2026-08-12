@@ -60,6 +60,29 @@ object GameEngine {
 
     private const val KEY_LAST_ENCOUNTER_STEPS = "LAST_ENCOUNTER_STEPS"
 
+    // --- the boss teaser, which watches rather than decides -------------------
+
+    /**
+     * Steps walked since a boss was last banked.
+     *
+     * Only the teaser reads this. [maybeBankBoss] is untouched and still decides
+     * by its per-step roll, so this counter neither causes nor prevents a boss -
+     * it is a statistical guess at when one is due, and nothing more.
+     *
+     * The guess: at [Bosses.CHANCE_PER_STEP] one boss is expected every 1/0.0004
+     * = 2500 steps, so a walk somewhere past 70% of that is a fair moment to say
+     * something feels close without promising anything.
+     */
+    private const val KEY_BOSS_TEASER_STEPS = "BOSS_TEASER_STEPS"
+
+    /** The step count this cycle's teaser fires at, rolled once per cycle. */
+    private const val KEY_BOSS_TEASER_AT = "BOSS_TEASER_AT"
+
+    /** Set once the teaser has fired, so a cycle cannot produce a second. */
+    private const val KEY_BOSS_TEASER_SENT = "BOSS_TEASER_SENT"
+
+    private val BOSS_TEASER_RANGE = 1_750..2_000
+
     /** What a batch of steps produced. All fields are "nothing happened" by default. */
     data class Outcome(
         val hatched: RatEntity? = null,
@@ -71,6 +94,12 @@ object GameEngine {
         val bossBanked: BossSpec? = null,
         /** Today's running total after these steps, for the live count notification. */
         val stepsToday: Int = 0,
+        /** What the daily quest paid, on the batch of steps that finished it. */
+        val questReward: QuestReward? = null,
+        /** True on the one batch of steps that crosses the boss teaser mark. */
+        val bossTeaser: Boolean = false,
+        /** The contract that paid out on these steps, for the alert. */
+        val contractPaidName: String? = null,
         val changed: Boolean = false
     )
 
@@ -138,6 +167,9 @@ object GameEngine {
         // the lifetime total above on purpose - see [DailySteps].
         val stepsToday = DailySteps.add(prefs, editor, gained)
 
+        // Read before resolving, because resolving clears the contract and the
+        // alert wants to name what paid.
+        val contractName = ActiveContract.load(prefs)?.name
         val bounty = resolveBounty(prefs, editor, totalSteps)
 
         var level = levelOf(prefs)
@@ -167,6 +199,15 @@ object GameEngine {
             Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
         }
 
+        // The daily quest, after the steps and the hatch are both banked so it
+        // sees the state they left. A walking quest reads DailySteps directly,
+        // so it only needs telling that something moved; a hatching one is told
+        // about the hatch. Whichever the day is not asking for returns null.
+        var questReward = DailyQuest.record(prefs, QuestType.STEPS)
+        if (hatched != null && questReward == null) {
+            questReward = DailyQuest.record(prefs, QuestType.HATCH)
+        }
+
         // Rolled after EXP is banked so a hatch and an encounter can both land
         // from one batch of steps without competing for it.
         val encounter = maybeTriggerEncounter(dao, prefs, totalSteps, gained, level)
@@ -174,6 +215,10 @@ object GameEngine {
         // Independent of the encounter above: a boss is banked, not fought, so
         // the two do not compete and neither blocks the other.
         val bossBanked = maybeBankBoss(prefs, gained, level)
+
+        // After the roll, so a batch that actually banked a boss resets the
+        // counter rather than teasing something that has already arrived.
+        val teaser = advanceBossTeaser(prefs, gained, level, bossBanked != null)
 
         return Outcome(
             hatched = hatched,
@@ -183,6 +228,9 @@ object GameEngine {
             bountyFailed = bounty.second,
             encounter = encounter,
             stepsToday = stepsToday,
+            questReward = questReward,
+            bossTeaser = teaser,
+            contractPaidName = contractName?.takeIf { bounty.first > 0 },
             changed = true
         )
     }
@@ -196,6 +244,53 @@ object GameEngine {
     private fun seedLifetimeIfAbsent(prefs: SharedPreferences) {
         if (prefs.contains(KEY_LIFETIME_STEPS)) return
         prefs.edit().putLong(KEY_LIFETIME_STEPS, seedLifetimeFor(levelOf(prefs))).apply()
+    }
+
+    /**
+     * Moves the teaser counter on, and says whether this batch crossed the mark.
+     *
+     * Deliberately observational. It is told what [maybeBankBoss] decided rather
+     * than having any say in it, and it only ever counts steps and compares a
+     * number - a teaser that fired could not summon a boss, and one that never
+     * fired could not prevent one.
+     *
+     * Counts nothing while a boss is already banked and waiting, or while the
+     * player's level sits between tiers, because in neither case is there a
+     * boss coming to be near.
+     */
+    private fun advanceBossTeaser(
+        prefs: SharedPreferences,
+        gained: Int,
+        playerLevel: Int,
+        justBanked: Boolean
+    ): Boolean {
+        if (justBanked) {
+            prefs.edit()
+                .putInt(KEY_BOSS_TEASER_STEPS, 0)
+                .putInt(KEY_BOSS_TEASER_AT, BOSS_TEASER_RANGE.random())
+                .putBoolean(KEY_BOSS_TEASER_SENT, false)
+                .apply()
+            return false
+        }
+
+        if (Bosses.bankedId(prefs) != null) return false
+        if (Bosses.forLevel(playerLevel) == null) return false
+        if (prefs.getBoolean(KEY_BOSS_TEASER_SENT, false)) return false
+
+        // Rolled on first use as well as after a bank, so a save that predates
+        // the teaser gets a mark rather than firing at zero.
+        val mark = prefs.getInt(KEY_BOSS_TEASER_AT, 0).takeIf { it > 0 }
+            ?: BOSS_TEASER_RANGE.random().also { prefs.edit().putInt(KEY_BOSS_TEASER_AT, it).apply() }
+
+        val walked = prefs.getInt(KEY_BOSS_TEASER_STEPS, 0) + gained
+        val crossed = walked >= mark
+
+        prefs.edit()
+            .putInt(KEY_BOSS_TEASER_STEPS, walked)
+            .putBoolean(KEY_BOSS_TEASER_SENT, crossed)
+            .apply()
+
+        return crossed
     }
 
     /**
@@ -303,6 +398,10 @@ object GameEngine {
 
         val stored = rolled.copy(id = dao.insert(rolled))
         Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+
+        // A rat is a rat however it arrived, so a minted one counts towards a
+        // hatching quest exactly as a walked one does.
+        DailyQuest.record(prefs, QuestType.HATCH)
         return stored
     }
 

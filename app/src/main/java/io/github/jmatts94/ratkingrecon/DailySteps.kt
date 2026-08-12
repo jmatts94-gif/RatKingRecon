@@ -39,6 +39,35 @@ object DailySteps {
     }
 
     /**
+     * The instant the local day containing [now] began.
+     *
+     * Lives here because this object already owns what "a day" means to the
+     * player, and the daily quest needs the same boundary. Two encodings of one
+     * boundary is fine; two boundaries would not be - the Ledger Task reroll
+     * already runs on a UTC day index, and a third would be one too many.
+     */
+    fun localMidnight(now: Long = System.currentTimeMillis()): Long {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = now
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return calendar.timeInMillis
+    }
+
+    /**
+     * Whole days from one local midnight to another.
+     *
+     * Rounded rather than divided, because the clocks going forward makes a day
+     * 23 hours long and back makes it 25 - either of which truncates to the
+     * wrong answer, and a streak that breaks on the last Sunday in October is a
+     * bug nobody would find until October.
+     */
+    fun daysBetween(from: Long, to: Long): Int =
+        Math.round((to - from) / 86_400_000.0).toInt()
+
+    /**
      * Today's count, or zero once the date has turned over.
      *
      * Rolls over on read rather than on a timer, so a phone that walked nothing

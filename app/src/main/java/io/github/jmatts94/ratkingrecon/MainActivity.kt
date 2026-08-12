@@ -299,6 +299,12 @@ class MainActivity : AppCompatActivity() {
         //    Android 12+ refuses foreground-service starts from the background.
         startTrackingIfAllowed()
 
+        // Rolls today's quest if the date has turned over, and books tonight's
+        // streak reminder. Re-booking every launch is harmless - the alarm is a
+        // single slot and setting it again just moves it.
+        DailyQuest.ensureToday(sharedPreferences)
+        DailyAlerts.scheduleStreakReminder(this)
+
         // 5. Button Listeners
         //
         // Both consumables are bought in the Shop now. Nothing on this screen
@@ -329,6 +335,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.settingsButton).setOnClickListener {
             startActivity(android.content.Intent(this, SettingsActivity::class.java))
         }
+
+        findViewById<View>(R.id.streakTile).setOnClickListener { showDailyQuest() }
 
         findViewById<Button>(R.id.achievementsButton).setOnClickListener {
             startActivity(android.content.Intent(this, AchievementsActivity::class.java))
@@ -388,6 +396,7 @@ class MainActivity : AppCompatActivity() {
         scrapText.text = sharedPreferences.getInt(GameEngine.KEY_SCRAP, 0).toString()
         playerLevelText.text = "Lvl $playerLevel"
         updateStepDisplays()
+        updateStreakTile()
 
         // 1. Update the Visual Bar
         val expBar = findViewById<ProgressBar>(R.id.expProgressBar)
@@ -432,6 +441,73 @@ class MainActivity : AppCompatActivity() {
         dialog.findViewById<Button>(R.id.unlockConfirmButton).setOnClickListener {
             dialog.dismiss()
         }
+        dialog.show()
+    }
+
+    /**
+     * Paints the streak tile: the count, and how lit the lantern is.
+     *
+     * Four discrete stages rather than a continuous fade, which is what the
+     * lantern is for - it is read at a glance beside the egg, and a value that
+     * creeps up by a percent is not readable at a glance. A quest that can only
+     * be unfinished or finished simply uses the two ends.
+     */
+    private fun updateStreakTile() {
+        DailyQuest.ensureToday(sharedPreferences)
+
+        findViewById<TextView>(R.id.streakCount).text = Streak.count(sharedPreferences).toString()
+
+        val percent = DailyQuest.percent(sharedPreferences)
+        val stage = when {
+            percent >= 100 -> 1.0f
+            percent >= 66 -> 0.72f
+            percent >= 33 -> 0.5f
+            else -> 0.28f
+        }
+        findViewById<ImageView>(R.id.streakLantern).alpha = stage
+    }
+
+    /** Today's quest, its progress and what it pays. */
+    private fun showDailyQuest() {
+        DailyQuest.ensureToday(sharedPreferences)
+
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_daily_quest)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
+
+        val type = DailyQuest.type(sharedPreferences)
+        val target = DailyQuest.target(sharedPreferences)
+        val progress = DailyQuest.progress(sharedPreferences)
+        val percent = DailyQuest.percent(sharedPreferences)
+        val streak = Streak.count(sharedPreferences)
+
+        dialog.findViewById<TextView>(R.id.questTitle).text =
+            if (type == QuestType.STEPS) {
+                getString(DailyQuest.titleRes(type), target)
+            } else {
+                getString(DailyQuest.titleRes(type))
+            }
+
+        dialog.findViewById<ProgressBar>(R.id.questProgressBar).progress = percent
+        dialog.findViewById<TextView>(R.id.questProgressText).text =
+            if (DailyQuest.isComplete(sharedPreferences)) {
+                getString(R.string.quest_done)
+            } else {
+                getString(R.string.quest_progress, progress, target)
+            }
+
+        dialog.findViewById<TextView>(R.id.questStreakText).text = when {
+            Streak.onGraceDay(sharedPreferences) -> getString(R.string.quest_grace)
+            streak == 0 -> getString(R.string.quest_streak_none)
+            streak == 1 -> getString(R.string.quest_streak_one)
+            else -> getString(R.string.quest_streak, streak)
+        }
+
+        dialog.findViewById<ImageView>(R.id.questLantern).alpha =
+            if (percent >= 100) 1.0f else 0.28f + (percent / 100f) * 0.72f
+
+        dialog.findViewById<Button>(R.id.questCloseButton).setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 
