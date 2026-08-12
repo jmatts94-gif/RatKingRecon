@@ -96,7 +96,7 @@ class LedgerTaskAlarmReceiver : BroadcastReceiver() {
         val open = PendingIntent.getActivity(
             context,
             0,
-            Intent(context, LedgerTasksActivity::class.java)
+            Intent(context, TasksActivity::class.java)
                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
             PendingIntent.FLAG_IMMUTABLE
         )

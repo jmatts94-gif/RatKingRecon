@@ -57,7 +57,7 @@ data class LedgerTaskTier(
 /**
  * The Ledger Task board: its three slots, and the rules for refreshing them.
  *
- * Lifted out of [LedgerTasksActivity] so the reroll rules can be tested without
+ * Lifted out of [TasksActivity] so the reroll rules can be tested without
  * a device. The Activity had two things worth protecting and no way to assert
  * either: that the daily pass never rerolls a task with an unclaimed reward
  * sitting on it, and that claiming one does reroll that slot rather than leaving

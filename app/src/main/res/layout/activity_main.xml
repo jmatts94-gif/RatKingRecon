@@ -261,33 +261,17 @@
             android:visibility="gone"
             android:layout_marginBottom="8dp" />
 
+        <!--
+          One button for both boards. Contracts and Ledger Tasks are still two
+          systems with their own rewards and timers; they share a screen now
+          rather than a button each, which is what freed the slot.
+        -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/scavengeMissionsButton"
+            android:id="@+id/tasksButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/btn_contract_board"
+            android:text="@string/btn_tasks"
             app:icon="@drawable/ic_contract"
-            app:iconGravity="textStart"
-            app:iconPadding="10dp"
-            app:iconTint="@color/text_primary"
-            android:textAllCaps="false"
-            android:textColor="@color/text_primary"
-            app:backgroundTint="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cornerRadius="16dp"
-            app:elevation="6dp"
-            android:outlineAmbientShadowColor="@color/shadow_warm"
-            android:outlineSpotShadowColor="@color/shadow_warm"
-            tools:targetApi="28"
-            android:layout_marginBottom="8dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/expeditionBoardButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_ledger_tasks"
-            app:icon="@drawable/ic_expedition"
             app:iconGravity="textStart"
             app:iconPadding="10dp"
             app:iconTint="@color/text_primary"
