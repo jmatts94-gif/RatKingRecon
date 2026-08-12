@@ -5,14 +5,19 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/** A scrap-machine opponent. Beaten for salvage. */
+/**
+ * A scrap-machine opponent. Beaten for salvage.
+ *
+ * Carries its HP rather than a Toughness to derive it from. Toughness was an
+ * integer worth ten HP a point, which made difficulty a staircase: scaling a
+ * rat's stat across a whole number moved the Rustbot's health by a fifth in one
+ * step. HP is now scaled directly, so the same dial moves it by a point.
+ */
 data class Rustbot(
     val name: String,
     val power: Int,
-    val toughness: Int
-) {
-    val maxHp: Int get() = toughness * 10
-}
+    val maxHp: Int
+)
 
 /**
  * Builds the Rustbot for an encounter.
@@ -40,15 +45,15 @@ object RustbotFactory {
     /**
      * How far past the rat a Rustbot can be scaled, at the top of the ramp.
      *
-     * Reached at level 14 and flat from there, and deliberately small. Rat stats
-     * are single digits and the bot's are rounded to integers, so this ratio is
-     * not a dial that turns smoothly - it only bites when the multiplication
-     * crosses a whole number, and one point of bot Toughness is ten HP.
-     * Measured across the stat range, 1.30 left almost nothing winnable and
-     * 1.05 changed nothing below Fusion-Pot sizes; this is the value where an
-     * ordinary encounter becomes losable without becoming hopeless.
+     * Reached at level 14 and flat from there. This is a real dial now that HP
+     * is scaled a point at a time rather than in tens - swept across all 144
+     * stat pairings the player wins 100% of encounters at 1.00, 73% at 1.05,
+     * 53% here, and 27% at 1.20, falling smoothly rather than in cliffs.
      *
-     * See the note on [forEncounter] for what this cannot fix.
+     * Roughly even odds is the point. An encounter is a coin toss the player
+     * can load: a Power Surge wins every pairing at every ratio tested, so a
+     * fight that matters is always winnable for 75 Scrap, and only a fight the
+     * player did not care about is left to chance.
      */
     private const val MAX_RATIO = 1.10
 
@@ -69,23 +74,25 @@ object RustbotFactory {
     /**
      * The Rustbot for this encounter.
      *
-     * One property of scaling off the rat is worth stating plainly, because it
-     * is not obvious and it is not fixed here: a better rat does not make a
-     * fight easier, because the Rustbot grows with it. Above parity it makes
-     * the fight *harder*, since a larger stat crosses the next whole number
-     * sooner - a 4 stays level with its Rustbot at 1.10 while a 5 does not.
-     * Fusion-Pot rats therefore meet stiffer opposition than hatched ones.
+     * Power and HP are scaled differently, on purpose.
      *
-     * Fixing that means breaking the link between bot Toughness and its HP, so
-     * difficulty can be dialled in something finer than ten-HP steps. That is a
-     * save-format change and a separate decision.
+     * Power stops at parity however high the ramp goes. It is a single-digit
+     * integer, so it cannot be scaled smoothly - one point either side is a
+     * fifth of a rat's whole output - and letting the ramp push it across a
+     * whole number is what used to make a 5/5 rat meet a harder Rustbot than a
+     * 4/4 did. Capping it there means a Rustbot never out-hits the rat it was
+     * built for, whatever size that rat is.
+     *
+     * HP carries the ramp instead, and carries all of it. Scaled from the rat's
+     * own HP rather than from an integer Toughness, so the whole range is
+     * available a point at a time rather than in tens.
      */
     fun forEncounter(playerLevel: Int, rat: RatEntity): Rustbot {
         val ramp = rampFor(playerLevel)
         return Rustbot(
             name = VARIANTS.random(),
-            power = max(1, (rat.power * ramp).roundToInt()),
-            toughness = max(1, (rat.toughness * ramp).roundToInt())
+            power = max(1, (rat.power * min(1.0, ramp)).roundToInt()),
+            maxHp = max(1, (rat.maxHp * ramp).roundToInt())
         )
     }
 
@@ -116,7 +123,13 @@ data class Encounter(
     val ratId: Long,
     val botName: String,
     val botPower: Int,
-    val botToughness: Int,
+    /**
+     * The Rustbot's health, stored rather than derived.
+     *
+     * Saves written before this change hold a Toughness instead; see
+     * [Companion.load], which converts on the way in.
+     */
+    val botMaxHp: Int,
     val reward: Int,
     /**
      * Set when this encounter is a boss, naming which one.
@@ -132,20 +145,46 @@ data class Encounter(
         private const val KEY_RAT_ID = "ENCOUNTER_RAT_ID"
         private const val KEY_BOT_NAME = "ENCOUNTER_BOT_NAME"
         private const val KEY_BOT_POWER = "ENCOUNTER_BOT_POWER"
+        /**
+         * The Rustbot's Toughness, as saves written before HP was stored
+         * directly hold it. Read on the way in and never written again.
+         */
         private const val KEY_BOT_TOUGH = "ENCOUNTER_BOT_TOUGH"
+
+        private const val KEY_BOT_HP = "ENCOUNTER_BOT_HP"
         private const val KEY_REWARD = "ENCOUNTER_REWARD"
+
+        /** What a stored Toughness was worth in HP, before HP was stored. */
+        private const val LEGACY_HP_PER_TOUGHNESS = 10
         private const val KEY_BOSS_ID = "ENCOUNTER_BOSS_ID"
 
         fun isPending(prefs: SharedPreferences): Boolean =
             prefs.getBoolean(KEY_PENDING, false)
 
+        /**
+         * Reads the pending encounter, converting an older save on the way.
+         *
+         * A fight saved before HP was stored directly holds a Toughness, and
+         * ten HP a point is exactly what that build would have given it - so an
+         * encounter interrupted by an app update resolves against the same
+         * Rustbot it was raised as, rather than silently becoming a different
+         * fight. Keyed on which value is present rather than on a migration
+         * flag, so a save imported from an older export converts too.
+         */
         fun load(prefs: SharedPreferences): Encounter? {
             if (!isPending(prefs)) return null
+
+            val hp = if (prefs.contains(KEY_BOT_HP)) {
+                prefs.getInt(KEY_BOT_HP, 1)
+            } else {
+                prefs.getInt(KEY_BOT_TOUGH, 1) * LEGACY_HP_PER_TOUGHNESS
+            }
+
             return Encounter(
                 ratId = prefs.getLong(KEY_RAT_ID, -1L),
                 botName = prefs.getString(KEY_BOT_NAME, "Rustbot") ?: "Rustbot",
                 botPower = prefs.getInt(KEY_BOT_POWER, 1),
-                botToughness = prefs.getInt(KEY_BOT_TOUGH, 1),
+                botMaxHp = max(1, hp),
                 reward = prefs.getInt(KEY_REWARD, 0),
                 bossId = prefs.getString(KEY_BOSS_ID, null)
             ).takeIf { it.ratId >= 0 }
@@ -157,7 +196,10 @@ data class Encounter(
                 .putLong(KEY_RAT_ID, encounter.ratId)
                 .putString(KEY_BOT_NAME, encounter.botName)
                 .putInt(KEY_BOT_POWER, encounter.botPower)
-                .putInt(KEY_BOT_TOUGH, encounter.botToughness)
+                .putInt(KEY_BOT_HP, encounter.botMaxHp)
+                // Dropped rather than left behind, so the old key cannot sit in
+                // the save looking like a value worth reading.
+                .remove(KEY_BOT_TOUGH)
                 .putInt(KEY_REWARD, encounter.reward)
                 // Removed rather than written null, so a boss fight cannot leave
                 // its id behind for the next ordinary Rustbot to inherit.
@@ -202,8 +244,6 @@ data class Encounter(
     }
 
     val isBoss: Boolean get() = bossId != null
-
-    val botMaxHp: Int get() = botToughness * 10
 
     /**
      * Builds the simulator for this encounter against [rat].

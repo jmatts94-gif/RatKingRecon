@@ -70,8 +70,8 @@ class BossTest {
                 boss.power >= standard.power
             )
             assertTrue(
-                "${spec.id} toughness ${boss.toughness} < standard ${standard.toughness}",
-                boss.toughness >= standard.toughness
+                "${spec.id} hp ${boss.maxHp} < standard ${standard.maxHp}",
+                boss.maxHp >= standard.maxHp
             )
         }
     }
@@ -105,7 +105,7 @@ class BossTest {
         val rat = rat(power = 3, toughness = 3)
         val bot = Bosses.rustbotFor(spec, spec.minLevel, rat, "boss")
         val battle = AutoResolver.resolve(
-            Encounter(1, bot.name, bot.power, bot.toughness, 0, spec.id).toBattle(rat)
+            Encounter(1, bot.name, bot.power, bot.maxHp, 0, spec.id).toBattle(rat)
         )
 
         assertEquals(
@@ -126,7 +126,7 @@ class BossTest {
             Bosses.all.forEach { spec ->
                 val bot = Bosses.rustbotFor(spec, spec.minLevel, rat, "boss")
                 val battle = AutoResolver.resolve(
-                    Encounter(1, bot.name, bot.power, bot.toughness, 0, spec.id)
+                    Encounter(1, bot.name, bot.power, bot.maxHp, 0, spec.id)
                         .toBattle(rat, wrench)
                 )
                 assertEquals(
@@ -292,7 +292,7 @@ class BossTest {
 
         Encounter.save(
             prefs,
-            Encounter(ratId = 1, botName = "Rustbot Sentry", botPower = 3, botToughness = 3, reward = 10)
+            Encounter(ratId = 1, botName = "Rustbot Sentry", botPower = 3, botMaxHp = 30, reward = 10)
         )
         Bosses.bank(prefs, Bosses.all.first())
 

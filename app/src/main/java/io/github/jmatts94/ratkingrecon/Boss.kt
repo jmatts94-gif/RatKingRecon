@@ -154,18 +154,24 @@ object Bosses {
     /**
      * The Rustbot for [spec], scaled against [rat] the way a standard one is.
      *
-     * Rounded up to at least the standard bot's stats, so a boss can never come
-     * out weaker than the ordinary Rustbot the player would have met instead.
+     * Floored at the standard bot's numbers, so a boss can never come out
+     * weaker than the ordinary Rustbot the player would have met instead.
+     *
+     * A boss is the one opponent still allowed to out-hit the rat: an ordinary
+     * Rustbot's Power stops at parity, and [BossSpec.powerMult] is applied on
+     * top of the uncapped ramp precisely so a boss does not. Its HP is scaled
+     * from the rat's own HP rather than from an integer Toughness, for the same
+     * reason ordinary bots now are - ten-HP steps are far too coarse a dial
+     * against rats this small.
      */
     fun rustbotFor(spec: BossSpec, playerLevel: Int, rat: RatEntity, name: String): Rustbot {
         val ramp = RustbotFactory.rampFor(playerLevel)
-        val standardPower = max(1, (rat.power * ramp).roundToInt())
-        val standardTough = max(1, (rat.toughness * ramp).roundToInt())
+        val standard = RustbotFactory.forEncounter(playerLevel, rat)
 
         return Rustbot(
             name = name,
-            power = max(standardPower, (rat.power * ramp * spec.powerMult).roundToInt()),
-            toughness = max(standardTough, (rat.toughness * ramp * spec.hpMult).roundToInt())
+            power = max(standard.power, (rat.power * ramp * spec.powerMult).roundToInt()),
+            maxHp = max(standard.maxHp, (rat.maxHp * ramp * spec.hpMult).roundToInt())
         )
     }
 
@@ -203,7 +209,7 @@ object Bosses {
                 ratId = fighter.id,
                 botName = bot.name,
                 botPower = bot.power,
-                botToughness = bot.toughness,
+                botMaxHp = bot.maxHp,
                 reward = rewardFor(spec, level, isDefeated(prefs, spec.id)),
                 bossId = spec.id
             )

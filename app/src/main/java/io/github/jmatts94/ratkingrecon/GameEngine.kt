@@ -274,7 +274,7 @@ object GameEngine {
             ratId = fighter.id,
             botName = bot.name,
             botPower = bot.power,
-            botToughness = bot.toughness,
+            botMaxHp = bot.maxHp,
             reward = RustbotFactory.rewardFor(playerLevel)
         )
 

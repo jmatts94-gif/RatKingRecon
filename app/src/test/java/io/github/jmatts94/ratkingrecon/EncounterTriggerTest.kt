@@ -17,6 +17,67 @@ import org.junit.Test
  */
 class EncounterTriggerTest {
 
+    // --- the save format, and the migration off the old one ----------------
+
+    /**
+     * A fight raised by an older build must resolve as the fight it was.
+     *
+     * Those saves hold a Toughness where this one holds HP, and ten HP a point
+     * is exactly what that build derived - so converting on the way in leaves an
+     * encounter interrupted by an app update pointing at the same Rustbot,
+     * rather than quietly becoming a different one.
+     */
+    @Test
+    fun `an encounter saved before hp was stored converts on load`() {
+        val prefs = FakePrefs()
+        prefs.edit()
+            .putBoolean("ENCOUNTER_PENDING", true)
+            .putLong("ENCOUNTER_RAT_ID", 7L)
+            .putString("ENCOUNTER_BOT_NAME", "Rustbot Sentry")
+            .putInt("ENCOUNTER_BOT_POWER", 3)
+            .putInt("ENCOUNTER_BOT_TOUGH", 4)
+            .putInt("ENCOUNTER_REWARD", 20)
+            .apply()
+
+        val loaded = requireNotNull(Encounter.load(prefs))
+
+        assertEquals(7L, loaded.ratId)
+        assertEquals(3, loaded.botPower)
+        assertEquals("four Toughness was forty HP", 40, loaded.botMaxHp)
+        assertEquals(20, loaded.reward)
+    }
+
+    @Test
+    fun `a stored hp is preferred over a stale toughness`() {
+        val prefs = FakePrefs()
+        prefs.edit()
+            .putBoolean("ENCOUNTER_PENDING", true)
+            .putLong("ENCOUNTER_RAT_ID", 1L)
+            .putInt("ENCOUNTER_BOT_POWER", 2)
+            .putInt("ENCOUNTER_BOT_TOUGH", 9)
+            .putInt("ENCOUNTER_BOT_HP", 33)
+            .apply()
+
+        assertEquals(33, requireNotNull(Encounter.load(prefs)).botMaxHp)
+    }
+
+    @Test
+    fun `saving drops the old key and round-trips the new one`() {
+        val prefs = FakePrefs()
+        prefs.edit().putInt("ENCOUNTER_BOT_TOUGH", 9).apply()
+
+        Encounter.save(
+            prefs,
+            Encounter(ratId = 2, botName = "Rustbot Welder", botPower = 4, botMaxHp = 47, reward = 12)
+        )
+
+        assertFalse(
+            "a stale Toughness must not be left looking readable",
+            prefs.contains("ENCOUNTER_BOT_TOUGH")
+        )
+        assertEquals(47, requireNotNull(Encounter.load(prefs)).botMaxHp)
+    }
+
     /** Roughly a step every half-second, the cadence a walking phone reports at. */
     private fun walk(
         dao: RatDao,

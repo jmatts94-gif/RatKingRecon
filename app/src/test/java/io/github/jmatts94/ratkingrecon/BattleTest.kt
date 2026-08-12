@@ -158,10 +158,13 @@ class BattleTest {
         val rat = RatEntity(artKey = "flux_pic", name = "R", power = 5, toughness = 5, shiny = false)
         val bot = RustbotFactory.forEncounter(20, rat)
 
-        assertTrue("the bot should out-stat the rat at the top of the ramp", bot.power > rat.power)
+        // The ramp lives in HP now. Power stops at parity however high it goes,
+        // which is what stops a bigger rat meeting a harder Rustbot.
+        assertEquals("an ordinary Rustbot never out-hits its rat", rat.power, bot.power)
+        assertTrue("but it does outlast it", bot.maxHp > rat.maxHp)
 
         val result = AutoResolver.resolve(
-            Encounter(1, bot.name, bot.power, bot.toughness, 0).toBattle(rat)
+            Encounter(1, bot.name, bot.power, bot.maxHp, 0).toBattle(rat)
         )
         assertEquals(BattleOutcome.PLAYER_LOST, result.outcome)
     }
@@ -171,7 +174,7 @@ class BattleTest {
     fun `a combat item turns a losing encounter into a win`() {
         val rat = RatEntity(artKey = "flux_pic", name = "R", power = 5, toughness = 5, shiny = false)
         val bot = RustbotFactory.forEncounter(20, rat)
-        val encounter = Encounter(1, bot.name, bot.power, bot.toughness, 0)
+        val encounter = Encounter(1, bot.name, bot.power, bot.maxHp, 0)
 
         assertEquals(
             BattleOutcome.PLAYER_LOST,
@@ -190,7 +193,11 @@ class BattleTest {
         val rat = RatEntity(artKey = "flux_pic", name = "R", power = 3, toughness = 3, shiny = false)
         val bot = RustbotFactory.forEncounter(1, rat)
         assertEquals(1, bot.power)
-        assertEquals(10, bot.maxHp)
+
+        // 45% of the rat's 30 HP, not 45% of its Toughness rounded to 1 and
+        // multiplied by ten. The old formula threw away most of the ramp here:
+        // it produced 10 where the ratio actually asks for 14.
+        assertEquals(14, bot.maxHp)
 
         val result = AutoResolver.resolve(
             Battle("R", rat.power, rat.maxHp, bot.name, bot.power, bot.maxHp)
@@ -240,6 +247,67 @@ class BattleTest {
                 )
             }
         }
+    }
+
+    // --- bot HP is scaled, not derived from an integer ---------------------
+
+    /**
+     * The bug this model replaced.
+     *
+     * HP used to come from a rounded Toughness times ten, so scaling a rat's
+     * stat across a whole number moved the Rustbot's health by a fifth in one
+     * step - and a 5/5 rat crossed that line where a 4/4 did not, meeting a
+     * harder fight for being the better rat. HP now tracks the ratio directly.
+     */
+    @Test
+    fun `bot hp scales in points rather than in tens`() {
+        val rat = RatEntity(artKey = "flux_pic", name = "R", power = 4, toughness = 4, shiny = false)
+
+        val hps = (1..20).map { RustbotFactory.forEncounter(it, rat).maxHp }
+
+        assertTrue("HP should never fall as the ramp climbs", hps == hps.sorted())
+        assertTrue(
+            "ten-HP steps mean the old formula is still in play",
+            hps.distinct().size > hps.count { it % 10 == 0 }
+        )
+    }
+
+    @Test
+    fun `an ordinary rustbot never out-hits the rat it was built for`() {
+        for (level in intArrayOf(1, 12, 14, 40)) {
+            for (stat in 1..12) {
+                val rat = RatEntity(
+                    artKey = "flux_pic", name = "R",
+                    power = stat, toughness = stat, shiny = false
+                )
+                val bot = RustbotFactory.forEncounter(level, rat)
+                assertTrue(
+                    "L$level rat $stat met a bot with power ${bot.power}",
+                    bot.power <= rat.power
+                )
+            }
+        }
+    }
+
+    /** The inversion, asserted gone: a bigger rat must not draw a harder fight. */
+    @Test
+    fun `difficulty does not depend on how big the rat is`() {
+        val outcomes = intArrayOf(2, 3, 4, 6, 8, 10, 12).map { stat ->
+            val rat = RatEntity(
+                artKey = "flux_pic", name = "R",
+                power = stat, toughness = stat, shiny = false
+            )
+            val bot = RustbotFactory.forEncounter(40, rat)
+            AutoResolver.resolve(
+                Encounter(1, bot.name, bot.power, bot.maxHp, 0).toBattle(rat)
+            ).outcome
+        }
+
+        assertEquals(
+            "a mirror fight should read the same at every rat size",
+            1,
+            outcomes.distinct().size
+        )
     }
 
     @Test
