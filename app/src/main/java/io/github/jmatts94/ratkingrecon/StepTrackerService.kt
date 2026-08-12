@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.IBinder
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -75,6 +76,19 @@ class StepTrackerService : Service(), SensorEventListener {
         private const val NOTIF_STEPS = 5
         private const val NOTIF_BOSS = 6
 
+        /**
+         * Shortest gap between two step-count posts.
+         *
+         * The sensor can report several times a second while walking, and this
+         * notification was being re-posted on every one of them. Android's
+         * notification service rate limits how fast a package may enqueue and
+         * drops what comes in over the line - silently, like every other
+         * notification failure - so an update per sensor event is a good way to
+         * have most of them thrown away. Once a second is far below the limit
+         * and still reads as live.
+         */
+        private const val STEP_POST_MIN_GAP_MS = 1_000L
+
         const val ACTION_STATE_CHANGED = "io.github.jmatts94.ratkingrecon.STATE_CHANGED"
 
         // Carried so a visible Activity can react in-app rather than re-deriving
@@ -123,6 +137,9 @@ class StepTrackerService : Service(), SensorEventListener {
      * hatching now writes to Room and Room refuses main-thread I/O.
      */
     private var sensorThread: HandlerThread? = null
+
+    /** When the step count was last posted; see [STEP_POST_MIN_GAP_MS]. */
+    private var lastStepPostAt = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -385,6 +402,12 @@ class StepTrackerService : Service(), SensorEventListener {
         // throws and nothing returns a failure, so without this the feature just
         // appears not to exist. See [canPostNotifications].
         if (!canPostNotifications(CHANNEL_STEPS)) return
+
+        // elapsedRealtime rather than wall clock, so changing the phone's time
+        // cannot stall the counter or make every post look overdue.
+        val now = SystemClock.elapsedRealtime()
+        if (lastStepPostAt != 0L && now - lastStepPostAt < STEP_POST_MIN_GAP_MS) return
+        lastStepPostAt = now
 
         val notification = NotificationCompat.Builder(this, CHANNEL_STEPS)
             .setContentTitle(getString(R.string.notif_steps_title))
