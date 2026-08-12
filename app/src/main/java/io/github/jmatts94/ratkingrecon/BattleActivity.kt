@@ -98,6 +98,12 @@ class BattleActivity : AppCompatActivity() {
                 ShopEffects.loadoutFor(RatRepository.prefs(this@BattleActivity))
             )
 
+            // Opens the log, so the card has something in it before round one
+            // and the fight starts by saying what turned up rather than by
+            // counting. Fixed for this encounter, not rolled per draw - see
+            // RustbotFlavour.
+            lines += getString(RustbotFlavour.openingFor(encounter), battle.botName)
+
             bindStaticViews()
             wireActions()
             render()

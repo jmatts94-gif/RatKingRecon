@@ -128,16 +128,63 @@
       long-running collection cost memory and layout time in proportion to its
       size. Three columns, as before.
     -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/petGrid"
+    <!--
+      The grid and its empty state share the slot, so whichever is showing gets
+      the same space and the screen does not change shape when the first rat
+      hatches.
+    -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingHorizontal="4dp"
-        android:paddingBottom="8dp"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="3" />
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/petGrid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="4dp"
+            android:paddingBottom="8dp"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="3" />
+
+        <LinearLayout
+            android:id="@+id/petGridEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingHorizontal="40dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:src="@drawable/egg_stage_0"
+                android:alpha="0.55"
+                android:layout_marginBottom="14dp"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/petGridEmptyTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="center"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/petGridEmptyBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textAlignment="center"
+                android:textColor="@color/text_muted"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </FrameLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/returnToBaseButton"

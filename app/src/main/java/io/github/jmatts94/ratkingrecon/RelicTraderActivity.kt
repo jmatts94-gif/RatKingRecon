@@ -173,7 +173,14 @@ class RelicTraderActivity : AppCompatActivity() {
     // ---- drawing -------------------------------------------------------------
 
     private fun refresh() {
-        totalText.text = getString(R.string.trader_total, Relics.total(prefs))
+        val total = Relics.total(prefs)
+        totalText.text = getString(R.string.trader_total, total)
+
+        // Says where relics come from, for a player who has arrived before
+        // holding any. The exchanges stay on screen underneath, so the Trader
+        // still shows what it would trade for.
+        findViewById<View>(R.id.traderEmpty).visibility =
+            if (total == 0) View.VISIBLE else View.GONE
 
         for (relic in Relics.ALL) {
             val pill = countRow.findViewWithTag<TextView>(relic.id) ?: continue

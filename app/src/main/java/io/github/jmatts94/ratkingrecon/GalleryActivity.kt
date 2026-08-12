@@ -188,7 +188,31 @@ class GalleryActivity : AppCompatActivity() {
                 }
             }
             adapter.submitList(filteredList)
+            showEmptyState(filteredList.isEmpty(), filter)
         }
+    }
+
+    /**
+     * Says why the grid is bare, rather than leaving it bare.
+     *
+     * The two reasons read differently and should: a player who has walked
+     * nothing yet needs to be told what fills the Binder, while one who has
+     * simply filtered for shinies they do not own needs telling how rare those
+     * are. Only SHINY actually filters - POWER is a sort - so an empty grid
+     * under any other tab means the collection itself is empty.
+     */
+    private fun showEmptyState(empty: Boolean, filter: String) {
+        val panel = findViewById<View>(R.id.petGridEmpty)
+        panel.visibility = if (empty) View.VISIBLE else View.GONE
+        if (!empty) return
+
+        val shinyFilter = filter == "SHINY"
+        findViewById<TextView>(R.id.petGridEmptyTitle).setText(
+            if (shinyFilter) R.string.ledger_empty_shiny_title else R.string.ledger_empty_title
+        )
+        findViewById<TextView>(R.id.petGridEmptyBody).setText(
+            if (shinyFilter) R.string.ledger_empty_shiny_body else R.string.ledger_empty_body
+        )
     }
 
     /**

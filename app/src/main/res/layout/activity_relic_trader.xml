@@ -60,6 +60,41 @@
         android:paddingBottom="16dp"
         android:baselineAligned="false" />
 
+    <!--
+      Shown until the first relic turns up. The exchanges below stay visible
+      underneath it, greyed out - a Trader with nothing to trade should still
+      show what it would have traded for.
+    -->
+    <LinearLayout
+        android:id="@+id/traderEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/bg_card_white"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/trader_empty_title"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/trader_empty_body"
+            android:textAlignment="center"
+            android:textColor="@color/text_muted"
+            android:textSize="13sp" />
+    </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

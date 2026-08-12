@@ -419,6 +419,42 @@ RARE DROP: %2$s</string>
     <string name="trade_owns_every_frame">You already own every frame.</string>
     <string name="trade_buff_armed">You already have a combat item armed. Use it first.</string>
 
+    <!--
+      Combat flavour. One line opens each fight. Every string takes the
+      opponent's name, so the standard three cover all six Rustbot variants.
+    -->
+    <string name="flavour_rustbot_1">%1$s clatters out of the scrap heap, servos whining.</string>
+    <string name="flavour_rustbot_2">%1$s blocks the tunnel, sparks spitting from a cracked housing.</string>
+    <string name="flavour_rustbot_3">%1$s drags itself upright on mismatched legs.</string>
+
+    <string name="flavour_junk_golem_1">%1$s hauls itself together from the tip — bedsprings, bicycle frames, half a stove.</string>
+    <string name="flavour_junk_golem_2">%1$s stands, and the whole scrapyard seems to lean with it.</string>
+    <string name="flavour_junk_golem_3">Something shifts in the rubbish. %1$s has been waiting.</string>
+
+    <string name="flavour_old_ironclaw_1">%1$s flexes a claw that has not rusted shut in forty years.</string>
+    <string name="flavour_old_ironclaw_2">%1$s drags its bad leg forward. The good one is the problem.</string>
+    <string name="flavour_old_ironclaw_3">Old plating, older grudges. %1$s remembers the last rat.</string>
+
+    <string name="flavour_boiler_baron_1">%1$s vents scalding steam and the tunnel goes white.</string>
+    <string name="flavour_boiler_baron_2">%1$s taps its pressure gauge. The needle is well past the red.</string>
+    <string name="flavour_boiler_baron_3">Rivets glow along its flank. %1$s is running hot.</string>
+
+    <string name="flavour_circuit_reaper_1">%1$s flickers — there, then not, then closer.</string>
+    <string name="flavour_circuit_reaper_2">Every lamp in the tunnel dims as %1$s draws the current down.</string>
+    <string name="flavour_circuit_reaper_3">%1$s speaks in a burst of static that sounds almost like counting.</string>
+
+    <string name="flavour_rustbringer_1">%1$s arrives, and the rust spreads out ahead of it.</string>
+    <string name="flavour_rustbringer_2">The tunnel walls flake orange. %1$s has come for the rest.</string>
+    <string name="flavour_rustbringer_3">%1$s does not hurry. It has never once needed to.</string>
+
+    <!-- Empty states, for a Ledger and a Trader that have not started yet -->
+    <string name="ledger_empty_title">No rats yet — go for a walk!</string>
+    <string name="ledger_empty_body">Every step fills the egg on the workshop bench. The first one to hatch is yours.</string>
+    <string name="ledger_empty_shiny_title">Nothing gleaming in here yet.</string>
+    <string name="ledger_empty_shiny_body">About one rat in ten hatches shiny. Keep walking.</string>
+    <string name="trader_empty_title">The bench is bare.</string>
+    <string name="trader_empty_body">Relics turn up when a Ledger Task is claimed — the longer the job, the better the odds.</string>
+
     <!-- Header stats -->
     <string name="header_level_default">Lvl 1</string>
     <string name="header_steps_default">0</string>
