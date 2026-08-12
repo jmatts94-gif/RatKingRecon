@@ -6,10 +6,13 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/bg_app_gradient"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:fitsSystemWindows="true">
 
     <TextView
@@ -41,6 +44,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:background="@drawable/bg_pill_tan"
+        android:elevation="6dp"
+        android:outlineAmbientShadowColor="@color/shadow_warm"
+        android:outlineSpotShadowColor="@color/shadow_warm"
+        tools:targetApi="28"
         android:paddingHorizontal="16dp"
         android:paddingVertical="8dp"
         android:gravity="center"
@@ -57,12 +64,15 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingHorizontal="16dp"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:clipChildren="false">
 
         <LinearLayout
             android:id="@+id/shopCategoryContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:orientation="vertical" />
     </ScrollView>
 

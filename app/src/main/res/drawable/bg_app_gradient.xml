@@ -1,9 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <gradient
-        android:angle="270"
-        android:startColor="@color/cream"
-        android:endColor="@color/tan"
-        android:type="linear" />
-</shape>
+<!--
+  The page background: the cream-to-tan wash every screen sits on, with a
+  vignette over it.
+
+  Two layers rather than one gradient, because they do different jobs. The
+  linear wash underneath is the palette and is unchanged. The radial layer on
+  top is fully transparent through the middle and darkens only towards the
+  edges, which is what keeps a white card from floating on a field of the same
+  brightness as itself - most of the flatness was contrast, not shadow.
+
+  Warm brown rather than black, at roughly a sixth opacity at the very corners
+  and nothing at all across the centre two-thirds. Text sits in the middle of
+  the screen where the overlay is clear, so readability is untouched.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="@color/cream"
+                android:endColor="@color/tan"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.5"
+                android:centerY="0.42"
+                android:gradientRadius="80%p"
+                android:startColor="#004A2F0F"
+                android:centerColor="#0A4A2F0F"
+                android:endColor="#2B4A2F0F" />
+        </shape>
+    </item>
+
+</layer-list>

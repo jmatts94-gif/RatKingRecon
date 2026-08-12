@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app_gradient"
@@ -29,6 +30,10 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/bg_pill_tan"
+            android:elevation="6dp"
+            android:outlineAmbientShadowColor="@color/shadow_warm"
+            android:outlineSpotShadowColor="@color/shadow_warm"
+            tools:targetApi="28"
             android:paddingHorizontal="16dp"
             android:paddingVertical="8dp"
             android:drawableStart="@drawable/ic_star"

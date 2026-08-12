@@ -9,6 +9,7 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_card_white"
@@ -41,6 +42,10 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         android:background="@drawable/bg_pill_tan"
+        android:elevation="6dp"
+        android:outlineAmbientShadowColor="@color/shadow_warm"
+        android:outlineSpotShadowColor="@color/shadow_warm"
+        tools:targetApi="28"
         android:drawableStart="@drawable/ic_footprint"
         android:drawablePadding="6dp"
         android:paddingHorizontal="16dp"
