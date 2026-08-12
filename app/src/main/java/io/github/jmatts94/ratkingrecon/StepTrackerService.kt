@@ -166,15 +166,6 @@ class StepTrackerService : Service(), SensorEventListener {
         createChannels()
         startInForeground()
 
-        // One line at startup saying whether anything we post can be seen at
-        // all. Without it, a blocked app and a broken feature look identical
-        // from the outside - both are simply nothing appearing.
-        Log.i(
-            TAG,
-            "Step tracking started. Notifications enabled for this app: " +
-                NotificationManagerCompat.from(this).areNotificationsEnabled()
-        )
-
         sensorThread = HandlerThread("step-sensor").apply { start() }
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -411,17 +402,19 @@ class StepTrackerService : Service(), SensorEventListener {
      * setSilent are what keep the update quiet.
      */
     private fun notifyStepsToday(steps: Int) {
+        // elapsedRealtime rather than wall clock, so changing the phone's time
+        // cannot stall the counter or make every post look overdue. Ahead of the
+        // permission check so that, when the app is blocked, the warning it logs
+        // is at most one a second rather than one per sensor event.
+        val now = SystemClock.elapsedRealtime()
+        if (lastStepPostAt != 0L && now - lastStepPostAt < STEP_POST_MIN_GAP_MS) return
+        lastStepPostAt = now
+
         // notify() is a silent no-op when the app cannot post - POST_NOTIFICATIONS
         // denied on 13+, or the app or channel muted in system settings. Nothing
         // throws and nothing returns a failure, so without this the feature just
         // appears not to exist. See [canPostNotifications].
         if (!canPostNotifications(CHANNEL_STEPS)) return
-
-        // elapsedRealtime rather than wall clock, so changing the phone's time
-        // cannot stall the counter or make every post look overdue.
-        val now = SystemClock.elapsedRealtime()
-        if (lastStepPostAt != 0L && now - lastStepPostAt < STEP_POST_MIN_GAP_MS) return
-        lastStepPostAt = now
 
         val notification = NotificationCompat.Builder(this, CHANNEL_STEPS)
             .setContentTitle(getString(R.string.notif_steps_title))
@@ -453,63 +446,8 @@ class StepTrackerService : Service(), SensorEventListener {
             .setContentIntent(openAppIntent())
             .build()
 
-        val manager = getSystemService(NotificationManager::class.java)
-
-        Log.d(
-            TAG,
-            "About to post step count: $steps steps. " +
-                "NOTIF_STEPS=$NOTIF_STEPS channel=$CHANNEL_STEPS | " +
-                "NOTIF_ONGOING=$NOTIF_ONGOING channel=$CHANNEL_ONGOING | " +
-                "same id? ${NOTIF_STEPS == NOTIF_ONGOING}"
-        )
-
-        try {
-            manager.notify(NOTIF_STEPS, notification)
-            Log.d(TAG, "notify($NOTIF_STEPS) returned without throwing")
-        } catch (t: Throwable) {
-            Log.e(TAG, "notify($NOTIF_STEPS) threw ${t.javaClass.simpleName}: ${t.message}", t)
-            return
-        }
-
-        logActiveNotifications(manager)
-    }
-
-    /**
-     * What the system says this app actually has on screen, right after posting.
-     *
-     * The decisive check. [NotificationManager.notify] reports nothing back, so
-     * a post that is accepted and a post that is dropped look identical at the
-     * call site. This asks the other side of the fence: if the id just posted is
-     * missing from the active list, the system took it and discarded it, and
-     * whatever is in the list instead says what it kept.
-     */
-    private fun logActiveNotifications(manager: NotificationManager) {
-        val active = try {
-            manager.activeNotifications
-        } catch (t: Throwable) {
-            Log.w(TAG, "Could not read active notifications: ${t.javaClass.simpleName}")
-            return
-        }
-
-        val summary = active.joinToString(", ") { posted ->
-            // Channels only exist from API 26; below that the id alone is the
-            // whole story anyway, because there is nothing else to name.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                "id=${posted.id} channel=${posted.notification.channelId}"
-            } else {
-                "id=${posted.id}"
-            }
-        }
-
-        Log.d(TAG, "Active notifications for this app (${active.size}): [$summary]")
-
-        if (active.none { it.id == NOTIF_STEPS }) {
-            Log.w(
-                TAG,
-                "id=$NOTIF_STEPS is NOT in the active list immediately after posting it. " +
-                    "The system accepted the call and dropped the notification."
-            )
-        }
+        getSystemService(NotificationManager::class.java)
+            .notify(NOTIF_STEPS, notification)
     }
 
     /**
