@@ -8,7 +8,15 @@ import androidx.annotation.StringRes
 data class OnboardingPage(
     @param:DrawableRes val iconRes: Int,
     @param:StringRes val titleRes: Int,
-    @param:StringRes val bodyRes: Int
+    @param:StringRes val bodyRes: Int,
+    /**
+     * Filled into [bodyRes] where it carries a placeholder, and null for the
+     * pages whose body is plain text. It exists so a card can quote a number
+     * the game actually holds instead of one typed into the string: the
+     * Ledger page counts the roster, and adding a species updates the
+     * walkthrough by itself.
+     */
+    val bodyArg: Any? = null
 )
 
 /**
@@ -47,7 +55,8 @@ object Onboarding {
         OnboardingPage(
             iconRes = R.drawable.ic_book,
             titleRes = R.string.onboarding_ledger_title,
-            bodyRes = R.string.onboarding_ledger_body
+            bodyRes = R.string.onboarding_ledger_body,
+            bodyArg = Roster.all.size
         ),
         OnboardingPage(
             iconRes = R.drawable.ic_power,

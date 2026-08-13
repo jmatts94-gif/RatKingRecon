@@ -116,7 +116,9 @@ class OnboardingActivity : AppCompatActivity() {
             val page = Onboarding.pages[position]
             holder.card.findViewById<ImageView>(R.id.pageIcon).setImageResource(page.iconRes)
             holder.card.findViewById<TextView>(R.id.pageTitle).setText(page.titleRes)
-            holder.card.findViewById<TextView>(R.id.pageBody).setText(page.bodyRes)
+            holder.card.findViewById<TextView>(R.id.pageBody).text =
+                if (page.bodyArg != null) getString(page.bodyRes, page.bodyArg)
+                else getString(page.bodyRes)
         }
     }
 }

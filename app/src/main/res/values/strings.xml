@@ -122,7 +122,8 @@
     <string name="onboarding_hatch_body">Your phone counts your steps in the background, even with the app shut. Fill the EXP bar and the egg splits open — a new rat is yours.</string>
 
     <string name="onboarding_ledger_title">The Rat Ledger</string>
-    <string name="onboarding_ledger_body">Every rat you hatch is written into the Ledger. Sort by Power, filter for shinies, and fill the collection out — there are 32 species to find.</string>
+    <!-- species in the roster, counted from Roster rather than written down -->
+    <string name="onboarding_ledger_body">Every rat you hatch is written into the Ledger. Sort by Power, filter for shinies, and fill the collection out — there are %1$d species to find.</string>
 
     <string name="onboarding_fight_title">Fuse and Fight</string>
     <string name="onboarding_fight_body">Feed two weak rats to the Fusion Pot to mint a stronger mutant. Out walking, Rustbots will block your path — fight one yourself, or settle it straight from the notification.</string>
