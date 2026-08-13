@@ -89,7 +89,7 @@ object DailyAlerts {
             NOTIF_QUEST_PAID,
             context.getString(R.string.notif_quest_paid_title),
             body,
-            R.drawable.ic_lantern
+            R.drawable.ic_lantern_notif
         )
     }
 
@@ -191,7 +191,7 @@ object DailyAlerts {
             NOTIF_STREAK,
             context.getString(R.string.notif_streak_title),
             body,
-            R.drawable.ic_lantern
+            R.drawable.ic_lantern_notif
         )
     }
 

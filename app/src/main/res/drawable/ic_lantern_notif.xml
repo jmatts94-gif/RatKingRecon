@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The streak lantern, drawn for the status bar rather than for a screen.
+
+  Android takes only the alpha channel of a notification's small icon and paints
+  the result one flat colour of its own. Everything ic_lantern uses to read as a
+  lantern - amber glass against dark metal, a frame stroked over the top of it, a
+  bar dividing the panes - is colour against colour, and all of it collapses into
+  one shape the moment that happens. The fine strokes then thin out further as
+  the icon is scaled into the bar.
+
+  So this is the same lantern with the drawing removed rather than recoloured:
+  solid shapes only, a hoop thick enough to survive the shrink, and the panes
+  kept as an actual gap between two halves rather than as a stroke over one. It
+  reads as a lantern when it is one colour, which is the only state it is ever
+  shown in.
+
+  ic_lantern stays exactly as it is, and stays what the tile and the quest dialog
+  draw - those are shown in colour and should keep it.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Hanging hoop. Thicker than the full drawing's 1.3, which disappears. -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.9"
+        android:fillColor="#00000000"
+        android:pathData="M10.2,3.4 A1.8,1.8 0 1,1 13.8,3.4" />
+
+    <!-- Cap -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7.6,5.1 L16.4,5.1 L15.2,7.4 L8.8,7.4 Z" />
+
+    <!-- The glass, as two panes with a gap between them. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M8.9,7.9 L11.5,7.9 L11.5,16.3 L7.9,16.3 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12.5,7.9 L15.1,7.9 L16.1,16.3 L12.5,16.3 Z" />
+
+    <!-- Base -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M7,16.8 L17,16.8 L17,19 L7,19 Z" />
+</vector>
