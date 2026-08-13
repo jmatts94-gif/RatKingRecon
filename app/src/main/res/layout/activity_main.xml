@@ -135,7 +135,7 @@
           not a rectangle.
         -->
         <!--
-          The egg and its companion tile, three parts to one, both square.
+          The egg and its companion tile, an even split, both square.
 
           Sized off the width available rather than pinned to a fixed 260dp,
           which is what lets the tile be a tile. A fixed egg leaves 60dp beside
@@ -143,6 +143,11 @@
           the tile could only be the narrow strip it was. Sharing the row as a
           weighted chain gives both of them the same shape and lets them grow
           together on a larger screen instead of leaving it empty.
+
+          The weights were three to one, which made the tile a third of the
+          egg and left the lantern inside it too small to read at a glance.
+          Equal weights make the tile as wide as the egg is tall, which is the
+          shape asked for: the egg gives up a third of its width to buy it.
         -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -156,7 +161,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintDimensionRatio="H,1:1"
-            app:layout_constraintHorizontal_weight="3"
+            app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/streakTile"
             app:layout_constraintTop_toTopOf="parent"
@@ -186,13 +191,19 @@
             <!--
               Streak tile: lantern, then the count. Opens today's quest.
 
-              Square, and a third of the egg's width, so it reads as a smaller
-              copy of the panel next to it rather than a strip stuck to its
-              side. It carries the egg's 14dp elevation rather than the 6dp the
+              Square, and now the egg's equal rather than a third of it, so it
+              reads as the panel's twin rather than a strip stuck to its side.
+              It carries the egg's 14dp elevation rather than the 6dp the
               currency pills use - the two of them are one object on the screen
               and a matched pair should cast a matched shadow.
+
+              A ConstraintLayout rather than the LinearLayout it was, only so
+              the lantern can be sized as a percentage of the tile. A vertical
+              LinearLayout has no way to say "this fraction of the width", and
+              the leftover-weight trick it used instead made the lantern's size
+              a side effect of how tall the count happened to be.
             -->
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/streakTile"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -202,29 +213,38 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="@id/eggPanel"
                 android:layout_marginStart="8dp"
-                android:orientation="vertical"
-                android:gravity="center"
                 android:background="@drawable/bg_pill_tan"
                 android:elevation="14dp"
                 android:outlineAmbientShadowColor="@color/shadow_warm"
                 android:outlineSpotShadowColor="@color/shadow_warm"
                 tools:targetApi="28"
-                android:padding="6dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <!--
-                  The lantern takes the whole tile bar the count beneath it,
-                  the way the egg takes its whole panel bar its padding. Given
-                  in weight rather than dp because the tile itself is measured,
-                  not fixed: whatever width the row leaves over, the lantern
-                  grows into.
+                  85% of the tile's width, and square, so the lantern is the
+                  tile rather than a mark sitting in it. Stated as a percentage
+                  because the tile is measured, not fixed: the proportion then
+                  holds at every screen size instead of drifting the way a dp
+                  size or a leftover weight would.
+
+                  Packed into a vertical chain with the count so the two centre
+                  as one block, with no dead band above the lantern or below
+                  the number. The 15% the lantern leaves is the tile's only
+                  inset, which is why the 6dp padding is gone: padding would
+                  come off the width first and quietly shrink the 85%.
                 -->
                 <ImageView
                     android:id="@+id/streakLantern"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:layout_weight="1"
+                    app:layout_constraintWidth_percent="0.85"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/streakCount"
+                    app:layout_constraintVertical_chainStyle="packed"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_lantern"
                     android:importantForAccessibility="no" />
@@ -233,12 +253,16 @@
                     android:id="@+id/streakCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/streakLantern"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     android:includeFontPadding="false"
                     android:textColor="@color/text_primary"
                     android:textSize="17sp"
                     android:textStyle="bold"
                     android:text="@string/header_scrap_default" />
-            </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!--
