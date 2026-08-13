@@ -11,6 +11,11 @@
   The stops carry their own alpha and never reach full opacity, so the centre
   stays light rather than becoming a solid disc behind the lantern. Progress is
   applied on top as the view's own alpha, which multiplies with these.
+
+  The first version of these stops was far too weak. Multiplied by a mid-stage
+  alpha they came to about a quarter of the amber over cream, which measured as
+  a shift of roughly 17 in the blue channel - present, but not something a
+  person reads as a lantern being lit. They are close to twice as strong now.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
@@ -18,7 +23,7 @@
     <gradient
         android:type="radial"
         android:gradientRadius="50%"
-        android:startColor="#B3F2B831"
-        android:centerColor="#4DF2B831"
+        android:startColor="#E6F2B831"
+        android:centerColor="#80F2B831"
         android:endColor="#00F2B831" />
 </shape>

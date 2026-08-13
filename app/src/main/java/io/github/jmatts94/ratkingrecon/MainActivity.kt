@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -364,12 +365,12 @@ class MainActivity : AppCompatActivity() {
 
         val percent = DailyQuest.percent(sharedPreferences)
         val (glowAlpha, glowScale) = when {
-            percent >= 100 -> 1.00f to 1.30f
-            percent >= 66 -> 0.65f to 1.15f
-            percent >= 33 -> 0.35f to 0.95f
+            percent >= 100 -> 1.00f to 1.45f
+            percent >= 66 -> 0.75f to 1.25f
+            percent >= 33 -> 0.50f to 1.05f
             // Lit, faintly, rather than dark. A lantern showing nothing at all
             // reads as broken; showing almost nothing reads as turned down.
-            else -> 0.10f to 0.75f
+            else -> 0.20f to 0.85f
         }
 
         findViewById<View>(R.id.streakGlow).animate()
@@ -388,6 +389,17 @@ class MainActivity : AppCompatActivity() {
         dialog.setContentView(R.layout.dialog_daily_quest)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
+
+        // Without this the window is WRAP_CONTENT, and the card collapses to the
+        // width of the one child that asks for a width of its own - the small
+        // "Today's Round" label. Every other row is match_parent and gets
+        // squeezed to that, which silently cut "Win a Rustbot fight" down to
+        // "Win a" and the reward line to "Reward: 20-40". The layout's own 24dp
+        // margin is what insets the card, so the window itself takes the width.
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
 
         val type = DailyQuest.type(sharedPreferences)
         val target = DailyQuest.target(sharedPreferences)

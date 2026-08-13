@@ -365,17 +365,31 @@
                 -->
                 <FrameLayout
                     android:layout_width="40dp"
-                    android:layout_height="40dp">
+                    android:layout_height="40dp"
+                    android:clipChildren="false">
 
                     <!--
                       Behind the lantern, and starting invisible: the first bind
                       fades it up to whatever the quest has earned rather than
                       snapping it on.
+
+                      36dp matches the lantern rather than the 30dp it was. At
+                      30dp the glow was smaller than the icon it was supposed to
+                      be coming from, so it never cleared the edges and only
+                      showed through the gaps in the artwork - light with no
+                      halo, which is not how a light reads. Matched to the icon
+                      and scaled past it by stage, it clears the lantern from
+                      the second stage on.
+
+                      clipChildren is off above so the upper stages can grow
+                      past this box. The pill still clips them, which is wanted:
+                      light should stop at the edge of the tile, not spill onto
+                      the background.
                     -->
                     <View
                         android:id="@+id/streakGlow"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:layout_gravity="center"
                         android:background="@drawable/bg_lantern_glow"
                         android:alpha="0" />
