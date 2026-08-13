@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What changed in this release. Shown once, the first open after an update. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_card_white"
+    android:layout_margin="24dp"
+    android:padding="22dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/whats_new_title"
+        android:textAlignment="center"
+        android:textColor="@color/text_primary"
+        android:textSize="19sp"
+        android:textStyle="bold" />
+
+    <!--
+      Start-aligned rather than centred, unlike the title above it: a bulleted
+      list centred on the card gives every line a different left edge and stops
+      reading as a list.
+    -->
+    <TextView
+        android:id="@+id/whatsNewBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="@string/whats_new_body"
+        android:textColor="@color/text_muted"
+        android:textSize="14sp"
+        android:lineSpacingExtra="6dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/whatsNewCloseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/btn_got_it"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        app:backgroundTint="@color/amber"
+        app:cornerRadius="16dp"
+        app:elevation="4dp" />
+
+</LinearLayout>

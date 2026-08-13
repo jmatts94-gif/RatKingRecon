@@ -94,6 +94,18 @@
     <!-- today's distance, estimated from an average stride -->
     <string name="tile_distance">%1$.1f km</string>
 
+    <!--
+      What's New, shown once after an update.
+
+      This list is the whole of what that dialog says, so a release is written up
+      by editing it and nothing else - the rule that decides when to show it does
+      not read the text and does not care how many lines are in it. Rewrite it
+      per release; the bullets are literal characters and the breaks are \n.
+    -->
+    <string name="whats_new_title">What\'s New</string>
+    <string name="whats_new_body">• Daily quests and streaks\n• New home screen tiles\n• Bug fixes and polish</string>
+    <string name="btn_got_it">Got it</string>
+
     <!-- Settings and save transfer -->
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Back up your progress, or restore it from a file.</string>

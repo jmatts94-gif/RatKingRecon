@@ -564,6 +564,43 @@ class MainActivity : AppCompatActivity() {
         // is started and not waited for, so onCreate has no idea whether it is
         // done. See CoachMarks.shouldShow.
         CoachMarkOverlay.showIfDue(this)
+
+        maybeShowWhatsNew()
+    }
+
+    /**
+     * The release notes, once per update.
+     *
+     * Behind the walkthrough rather than beside it. Both want the first resume
+     * of a home screen the player can see, and a player still being shown where
+     * things are is not the audience for a list of what moved. Returning without
+     * consuming is deliberate: the version stays unstamped, so the notes are
+     * still owed on the next resume once the walkthrough is done with.
+     */
+    private fun maybeShowWhatsNew() {
+        if (isFinishing || isDestroyed) return
+        if (!Onboarding.isComplete(sharedPreferences)) return
+        if (CoachMarks.shouldShow(sharedPreferences)) return
+
+        if (!WhatsNew.consume(sharedPreferences)) return
+
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_whats_new)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
+
+        // The card is match_parent inside a window that would otherwise be
+        // WRAP_CONTENT, which collapses it to its narrowest child and cuts the
+        // text. The layout's own 24dp margin is what insets it.
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        dialog.findViewById<Button>(R.id.whatsNewCloseButton).setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     /**
