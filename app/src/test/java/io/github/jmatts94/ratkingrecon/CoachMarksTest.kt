@@ -77,6 +77,78 @@ class CoachMarksTest {
         assertTrue(CoachMarks.shouldShow(prefs))
     }
 
+    // ---- the revision --------------------------------------------------------
+
+    /**
+     * The case the revision exists for: somebody who finished the walkthrough
+     * when it was a boolean and four stops long.
+     */
+    @Test
+    fun `a save carrying the old flag is owed only what changed`() {
+        val prefs = FakePrefs()
+        Onboarding.markComplete(prefs)
+        // What the old build wrote, and all it wrote.
+        prefs.edit().putBoolean(CoachMarks.KEY_COMPLETE, true).apply()
+
+        assertTrue("there is something new to show", CoachMarks.shouldShow(prefs))
+
+        val owed = CoachMarks.stepsFor(prefs)
+        assertEquals(
+            "only the stops written or rewritten since should be owed",
+            CoachMarks.steps.filter { it.revisedIn > 1 },
+            owed
+        )
+        assertTrue(
+            "the stops that have not changed should not be shown again",
+            owed.none { it.captionRes == R.string.coach_level }
+        )
+    }
+
+    @Test
+    fun `a new save is owed the whole walkthrough`() {
+        val prefs = FakePrefs()
+        Onboarding.markComplete(prefs)
+
+        assertEquals(CoachMarks.steps, CoachMarks.stepsFor(prefs))
+    }
+
+    @Test
+    fun `finishing leaves nothing owed until the revision moves`() {
+        val prefs = FakePrefs()
+        Onboarding.markComplete(prefs)
+        CoachMarks.markComplete(prefs)
+
+        assertTrue(CoachMarks.stepsFor(prefs).isEmpty())
+        assertEquals(CoachMarks.REVISION, CoachMarks.seenRevision(prefs))
+    }
+
+    /**
+     * The stamp has to be an integer of its own rather than the old key reused:
+     * SharedPreferences throws on reading a boolean back as an int, so a save
+     * written by the previous build would crash on open.
+     */
+    @Test
+    fun `the revision is stored apart from the old boolean`() {
+        assertTrue(CoachMarks.KEY_REVISION != CoachMarks.KEY_COMPLETE)
+
+        val prefs = FakePrefs()
+        prefs.edit().putBoolean(CoachMarks.KEY_COMPLETE, true).apply()
+        CoachMarks.markComplete(prefs)
+
+        assertEquals(CoachMarks.REVISION, CoachMarks.seenRevision(prefs))
+    }
+
+    /** Every stop must be reachable by somebody: a revision past the current one is not. */
+    @Test
+    fun `no stop is written for a revision that will never arrive`() {
+        CoachMarks.steps.forEach {
+            assertTrue(
+                "a stop revised in ${it.revisedIn} can never show at REVISION ${CoachMarks.REVISION}",
+                it.revisedIn <= CoachMarks.REVISION
+            )
+        }
+    }
+
     // ---- the stops -----------------------------------------------------------
 
     @Test

@@ -36,6 +36,16 @@ class CoachMarkOverlay private constructor(
     private val activity: AppCompatActivity
 ) : FrameLayout(activity) {
 
+    /**
+     * The stops this player is owed, read once when the overlay is built.
+     *
+     * Not [CoachMarks.steps] - that is the whole walkthrough, and somebody
+     * returning after an update is owed only the part of it that changed. Read
+     * once rather than per step so the list cannot shift underneath the counter
+     * while it is being walked.
+     */
+    private val steps = CoachMarks.stepsFor(RatRepository.prefs(activity))
+
     private val density = resources.displayMetrics.density
     private val holePad = 6 * density
     private val holeRadius = 14 * density
@@ -100,27 +110,27 @@ class CoachMarkOverlay private constructor(
     }
 
     private fun advance() {
-        if (index == CoachMarks.steps.lastIndex) finish() else showStep(index + 1)
+        if (index == steps.lastIndex) finish() else showStep(index + 1)
     }
 
     private fun showStep(position: Int) {
         index = position
-        val step = CoachMarks.steps[position]
+        val step = steps[position]
 
         // A stop whose target has gone is a stop that cannot be drawn. Skipping
         // it is better than dimming the screen around nothing.
         val target = activity.findViewById<View>(step.targetId)
         if (target == null || target.visibility != View.VISIBLE) {
-            if (position == CoachMarks.steps.lastIndex) finish() else showStep(position + 1)
+            if (position == steps.lastIndex) finish() else showStep(position + 1)
             return
         }
 
         caption.setText(step.captionRes)
         counter.text = context.getString(
-            R.string.coach_step_counter, position + 1, CoachMarks.steps.size
+            R.string.coach_step_counter, position + 1, steps.size
         )
         nextButton.setText(
-            if (position == CoachMarks.steps.lastIndex) R.string.coach_done
+            if (position == steps.lastIndex) R.string.coach_done
             else R.string.onboarding_next
         )
 

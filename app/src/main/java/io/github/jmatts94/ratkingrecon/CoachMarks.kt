@@ -7,7 +7,17 @@ import androidx.annotation.StringRes
 /** One stop on the home-screen walkthrough: what to point at, and what to say. */
 data class CoachMark(
     @param:IdRes val targetId: Int,
-    @param:StringRes val captionRes: Int
+    @param:StringRes val captionRes: Int,
+    /**
+     * The revision this stop was written or rewritten in.
+     *
+     * Rewritten counts as well as added: a caption that now says something
+     * different is owed to somebody who read the old one, and the header pill
+     * changing from today's steps to lifetime is exactly that. Leaving it at the
+     * revision it was first written in would be saying the wording was tidied
+     * rather than that the thing it describes changed.
+     */
+    val revisedIn: Int = 1
 )
 
 /**
@@ -25,13 +35,54 @@ data class CoachMark(
  */
 object CoachMarks {
 
+    /**
+     * The current revision of the walkthrough. Bump it when a stop is added or
+     * a caption rewritten, and set the [CoachMark.revisedIn] of whatever changed
+     * to match - that pair is the whole mechanism.
+     */
+    const val REVISION = 2
+
+    /**
+     * What a save carrying only the old boolean has already been shown.
+     *
+     * The walkthrough was a flag before it was a number, and everybody who
+     * finished it under that flag saw the four stops it had at the time. Reading
+     * their true as revision 1 is what turns them into players owed the
+     * difference rather than players owed nothing or players owed all of it.
+     */
+    private const val LEGACY_REVISION = 1
+
+    /** The original boolean. Still read, never written. */
     const val KEY_COMPLETE = "home_coach_complete"
 
+    /** The revision last seen through. Written in its place. */
+    const val KEY_REVISION = "home_coach_revision"
+
+    fun seenRevision(prefs: SharedPreferences): Int = when {
+        prefs.contains(KEY_REVISION) -> prefs.getInt(KEY_REVISION, 0)
+        prefs.getBoolean(KEY_COMPLETE, false) -> LEGACY_REVISION
+        else -> 0
+    }
+
+    /**
+     * The stops this player has not been shown, in order.
+     *
+     * Everything for somebody new, nothing for somebody up to date, and the
+     * difference for everybody in between - which is the point of the revision.
+     * A returning player gets a short walkthrough of what changed rather than
+     * the whole tour again, and the counter says "1 / 3" because it counts this
+     * list rather than the full one.
+     */
+    fun stepsFor(prefs: SharedPreferences): List<CoachMark> {
+        val seen = seenRevision(prefs)
+        return steps.filter { it.revisedIn > seen }
+    }
+
     fun isComplete(prefs: SharedPreferences): Boolean =
-        prefs.getBoolean(KEY_COMPLETE, false)
+        seenRevision(prefs) >= REVISION
 
     fun markComplete(prefs: SharedPreferences) {
-        prefs.edit().putBoolean(KEY_COMPLETE, true).apply()
+        prefs.edit().putInt(KEY_REVISION, REVISION).apply()
     }
 
     /**
@@ -46,7 +97,7 @@ object CoachMarks {
      * the player can actually see.
      */
     fun shouldShow(prefs: SharedPreferences): Boolean =
-        Onboarding.isComplete(prefs) && !isComplete(prefs)
+        Onboarding.isComplete(prefs) && stepsFor(prefs).isNotEmpty()
 
     /**
      * The stops, in order.
@@ -63,10 +114,11 @@ object CoachMarks {
      */
     val steps = listOf(
         CoachMark(R.id.playerLevelText, R.string.coach_level),
-        CoachMark(R.id.stepCountText, R.string.coach_steps),
+        // Rewritten in 2: this pill counted today and now counts every step ever.
+        CoachMark(R.id.stepCountText, R.string.coach_steps, revisedIn = 2),
         CoachMark(R.id.scrapText, R.string.coach_scrap),
-        CoachMark(R.id.expeditionTile, R.string.coach_expedition),
-        CoachMark(R.id.stepsTile, R.string.coach_steps_today),
+        CoachMark(R.id.expeditionTile, R.string.coach_expedition, revisedIn = 2),
+        CoachMark(R.id.stepsTile, R.string.coach_steps_today, revisedIn = 2),
         CoachMark(R.id.streakTile, R.string.coach_streak)
     )
 }
