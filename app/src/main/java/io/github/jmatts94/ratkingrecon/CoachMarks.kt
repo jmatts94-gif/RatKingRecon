@@ -52,13 +52,21 @@ object CoachMarks {
      * The stops, in order.
      *
      * Data rather than code, like [Onboarding.pages] - adding or reordering one
-     * needs no change to the overlay, and the "2 of 4" counter follows the list
+     * needs no change to the overlay, and the "2 of 6" counter follows the list
      * rather than a number written down twice.
+     *
+     * The order is the order the eye takes them in: the header pills left to
+     * right, then the tiles beside the egg top to bottom. The three tiles are
+     * one object on the screen and are walked through as one, which is also why
+     * the lantern comes last rather than staying where it was - it was the only
+     * tile when this list was written.
      */
     val steps = listOf(
         CoachMark(R.id.playerLevelText, R.string.coach_level),
         CoachMark(R.id.stepCountText, R.string.coach_steps),
         CoachMark(R.id.scrapText, R.string.coach_scrap),
+        CoachMark(R.id.expeditionTile, R.string.coach_expedition),
+        CoachMark(R.id.stepsTile, R.string.coach_steps_today),
         CoachMark(R.id.streakTile, R.string.coach_streak)
     )
 }

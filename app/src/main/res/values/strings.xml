@@ -135,8 +135,10 @@
     <string name="coach_step_counter">%1$d / %2$d</string>
     <string name="coach_done">Got It</string>
     <string name="coach_level">Your level. It climbs as you walk, and higher levels turn up rarer rats.</string>
-    <string name="coach_steps">Today\'s steps, counted live — this is what feeds everything else.</string>
+    <string name="coach_steps">Every step you have ever walked. It only ever climbs, and it is what the Achievements are measured against.</string>
     <string name="coach_scrap">Scrap, your currency. Earn it by walking and spend it in the Shop.</string>
+    <string name="coach_expedition">Whether a rat is out on a Scrap Run, and how long is left of it.</string>
+    <string name="coach_steps_today">Today\'s walking, and roughly how far it comes to. This one resets every morning.</string>
     <string name="coach_streak">Your daily streak. Tap the lantern for today\'s quest — it burns brighter the longer you keep it going.</string>
 
     <!-- First-launch walkthrough -->
@@ -341,6 +343,8 @@ RARE DROP: %2$s</string>
     <string name="milestone_progress">%1$d of %2$d</string>
 
     <!-- Long-press explainers -->
+    <string name="tooltip_lifetime_title">Steps Walked</string>
+    <string name="tooltip_lifetime_body">Every step counted since you started playing. It never resets — today\'s walking is the tile beside the egg.</string>
     <string name="tooltip_expedition_title">Scrap Run</string>
     <string name="tooltip_expedition_body">Shows whether a rat is out scavenging and how long is left of it. Open the Scrap Run screen for who you sent and what they are bringing back.</string>
     <string name="tooltip_steps_title">Today\'s Walking</string>

@@ -80,8 +80,8 @@ class CoachMarksTest {
     // ---- the stops -----------------------------------------------------------
 
     @Test
-    fun `points at four things, each of them once`() {
-        assertEquals(4, CoachMarks.steps.size)
+    fun `points at six things, each of them once`() {
+        assertEquals(6, CoachMarks.steps.size)
 
         assertEquals(
             "two stops pointing at the same view would dim the screen twice over",
@@ -95,13 +95,20 @@ class CoachMarksTest {
         )
     }
 
+    /**
+     * The order is the order the eye takes them in, and the tiles are walked as
+     * the one group they read as - which is why the lantern is last rather than
+     * where it originally sat, back when it was the only tile there was.
+     */
     @Test
-    fun `runs the header left to right, then the lantern`() {
+    fun `runs the header left to right, then the tiles top to bottom`() {
         assertEquals(
             listOf(
                 R.id.playerLevelText,
                 R.id.stepCountText,
                 R.id.scrapText,
+                R.id.expeditionTile,
+                R.id.stepsTile,
                 R.id.streakTile
             ),
             CoachMarks.steps.map { it.targetId }

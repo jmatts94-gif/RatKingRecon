@@ -79,7 +79,7 @@
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="8dp"
                 android:gravity="center"
-                android:drawableStart="@drawable/ic_footprint"
+                android:drawableStart="@drawable/ic_footprint_lifetime"
                 android:drawablePadding="6dp"
                 android:textSize="14sp"
                 android:textStyle="bold"

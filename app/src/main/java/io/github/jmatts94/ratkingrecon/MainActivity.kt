@@ -226,6 +226,14 @@ class MainActivity : AppCompatActivity() {
             R.string.tooltip_expedition_title,
             R.string.tooltip_expedition_body
         )
+        // The header pill and the tile below it both count steps and count
+        // different ones, which is exactly the sort of thing an explainer is
+        // for. It says which is which from either side.
+        Tooltip.attachTo(
+            stepCountText,
+            R.string.tooltip_lifetime_title,
+            R.string.tooltip_lifetime_body
+        )
         Tooltip.attachTo(
             findViewById(R.id.stepsTile),
             R.string.tooltip_steps_title,
@@ -457,10 +465,17 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    /** Pushes today's step total to the header and, if open, the Contract Board. */
+    /**
+     * Pushes the two step totals to the two places that show them.
+     *
+     * The header counts every step ever taken and the tile beside the egg counts
+     * today's. They were both today's, which made the header a second copy of a
+     * number already on the screen; the lifetime figure was meanwhile only
+     * visible on the Achievements screen, despite being the one that never goes
+     * backwards and the one the milestones are measured against.
+     */
     private fun updateStepDisplays() {
-        val display = stepsToday.toString()
-        stepCountText.text = display
+        stepCountText.text = GameEngine.lifetimeStepsOf(sharedPreferences).toString()
 
         // The tile beside the egg shows the same total the header does, with
         // the distance it comes to underneath. The conversion is Milestones'
