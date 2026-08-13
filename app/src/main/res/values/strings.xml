@@ -501,10 +501,6 @@ RARE DROP: %2$s</string>
     <string name="quest_streak_none">No streak yet.</string>
     <string name="quest_grace">One day missed — finish today to keep the streak.</string>
     <string name="quest_close">Close</string>
-    <!-- scrap paid -->
-    <string name="quest_paid_scrap">Round complete! +%1$d Scrap.</string>
-    <!-- relic name -->
-    <string name="quest_paid_relic">Round complete! Recovered %1$s.</string>
 
     <!-- Tasks screen -->
     <string name="btn_tasks">Tasks</string>
