@@ -422,7 +422,6 @@ private class StubDao(
         replace(id) { it.copy(losses = it.losses + 1, recoveringUntil = until) }
 
     override fun revive(id: Long) = replace(id) { it.copy(recoveringUntil = 0) }
-    override fun update(rat: RatEntity) = replace(rat.id) { rat }
 
     override fun delete(rats: List<RatEntity>) {
         val ids = rats.map { it.id }.toSet()

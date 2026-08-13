@@ -388,7 +388,6 @@ private class AchStubDao : RatDao {
     override fun recordWin(id: Long) = Unit
     override fun recordLoss(id: Long, until: Long) = Unit
     override fun revive(id: Long) = Unit
-    override fun update(rat: RatEntity) = Unit
     override fun delete(rats: List<RatEntity>) = Unit
     override fun deleteAll() = rats.clear()
 }

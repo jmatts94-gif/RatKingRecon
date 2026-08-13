@@ -249,7 +249,6 @@ private class BattleStubDao(private val rats: MutableList<RatEntity>) : RatDao {
     override fun recordWin(id: Long) = Unit
     override fun recordLoss(id: Long, until: Long) = Unit
     override fun revive(id: Long) = Unit
-    override fun update(rat: RatEntity) = Unit
     override fun delete(rats: List<RatEntity>) {
         val ids = rats.map { it.id }.toSet(); this.rats.removeAll { it.id in ids }
     }

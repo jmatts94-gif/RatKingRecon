@@ -5,7 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import androidx.room.Update
 
 /**
  * Queries over the rat collection.
@@ -90,9 +89,6 @@ interface RatDao {
 
     @Insert
     fun insertAll(rats: List<RatEntity>)
-
-    @Update
-    fun update(rat: RatEntity)
 
     @Delete
     fun delete(rats: List<RatEntity>)
