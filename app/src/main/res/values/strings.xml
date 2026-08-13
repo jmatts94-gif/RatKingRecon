@@ -103,7 +103,7 @@
       per release; the bullets are literal characters and the breaks are \n.
     -->
     <string name="whats_new_title">What\'s New</string>
-    <string name="whats_new_body">• Daily quests and streaks\n• New home screen tiles\n• Bug fixes and polish</string>
+    <string name="whats_new_body">• Daily quests and streaks, tracked by the lantern\n• Three new tiles beside the egg\n• The top counter now shows lifetime steps\n• Finished rounds tell you what they paid\n• Contracts and Tasks now share one screen\n• Long-press anything for a quick explainer\n• Fixes and polish</string>
     <string name="btn_got_it">Got it</string>
 
     <!-- Settings and save transfer -->
