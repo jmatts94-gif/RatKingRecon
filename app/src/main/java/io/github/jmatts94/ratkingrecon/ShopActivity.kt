@@ -326,7 +326,7 @@ class ShopActivity : AppCompatActivity() {
 
     /** The item's description, plus how many are held when that is the point of it. */
     private fun bodyFor(item: ShopItem): String {
-        val text = getString(item.bodyRes)
+        val text = getString(item.bodyRes, *item.bodyArgs.toTypedArray())
         val effect = item.effect
 
         // Says why the Hatchery is cheaper than its advertised price, rather

@@ -2,6 +2,7 @@
 <!-- Today's quest, opened from the streak tile beside the egg. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -87,15 +88,16 @@
         android:textSize="14sp"
         android:textStyle="bold" />
 
+    <!-- Text is set in code: the range comes from DailyQuest, not from here. -->
     <TextView
         android:id="@+id/questRewardText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:textAlignment="center"
-        android:text="@string/quest_reward_line"
         android:textColor="@color/text_muted"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        tools:text="Reward: 20–40 Scrap, or a relic." />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/questCloseButton"

@@ -47,7 +47,15 @@ data class RelicExchange(
     val cost: Int,
     val reward: RelicReward,
     @param:StringRes val titleRes: Int,
-    @param:StringRes val bodyRes: Int
+    @param:StringRes val bodyRes: Int,
+    /**
+     * Filled into [bodyRes] where it carries placeholders, and empty otherwise.
+     *
+     * Only the Scrap trade needs it, and only so the price it advertises is the
+     * one [RelicTrader.SCRAP_PAYOUT] actually pays rather than a second copy of
+     * the same numbers written into the string.
+     */
+    val bodyArgs: List<Any> = emptyList()
 )
 
 /**
@@ -74,7 +82,8 @@ object RelicTrader {
             cost = COST,
             reward = RelicReward.Scrap(SCRAP_PAYOUT),
             titleRes = R.string.trade_gear_title,
-            bodyRes = R.string.trade_gear_body
+            bodyRes = R.string.trade_gear_body,
+            bodyArgs = listOf(SCRAP_PAYOUT.first, SCRAP_PAYOUT.last)
         ),
         RelicExchange(
             id = "vial_frame",

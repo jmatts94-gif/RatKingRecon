@@ -443,6 +443,14 @@ class MainActivity : AppCompatActivity() {
             else -> getString(R.string.quest_streak, streak)
         }
 
+        // The range is the one rollReward actually pays, not a second copy of it
+        // typed into the string.
+        dialog.findViewById<TextView>(R.id.questRewardText).text = getString(
+            R.string.quest_reward_line,
+            DailyQuest.SCRAP_REWARD.first,
+            DailyQuest.SCRAP_REWARD.last
+        )
+
         applyGlow(dialog.findViewById(R.id.questGlow), percent)
 
         dialog.findViewById<Button>(R.id.questCloseButton).setOnClickListener { dialog.dismiss() }

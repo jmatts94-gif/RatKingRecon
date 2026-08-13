@@ -39,7 +39,8 @@
     <string name="shop_name_revive">Revive Token</string>
     <string name="shop_desc_revive">Held in reserve. Brings a rat straight back the next time one is beaten.</string>
     <string name="shop_name_surge">Power Surge</string>
-    <string name="shop_desc_surge">+50% Power for one fight, then burns out.</string>
+    <!-- bonus percent, derived from SURGE_MULTIPLIER -->
+    <string name="shop_desc_surge">+%1$d%% Power for one fight, then burns out.</string>
     <string name="shop_name_quick_return">Quick Return</string>
     <string name="shop_desc_quick_return">Takes a quarter off the time left on the current expedition.</string>
     <string name="shop_name_frame_brass">Brass Frame</string>
@@ -67,7 +68,8 @@
     <string name="shop_locked_toast">The Masterwork Hatchery opens at Level %1$d.</string>
     <!-- rat name -->
     <string name="shop_masterwork_done">%1$s stepped out of the Masterwork Hatchery!</string>
-    <string name="shop_desc_mutagen">Guarantees 6-10 Power and Toughness.</string>
+    <!-- lowest and highest stat a Mutagen hatch rolls, from GameEngine.MUTAGEN_STAT -->
+    <string name="shop_desc_mutagen">Guarantees %1$d-%2$d Power and Toughness.</string>
     <string name="shop_desc_polish">Guarantees a shiny variant.</string>
 
     <!-- Home screen navigation -->
@@ -265,7 +267,8 @@ RARE DROP: %2$s</string>
 
     <!-- Golden Wrench -->
     <string name="shop_name_wrench">Golden Wrench</string>
-    <string name="shop_desc_wrench">+50% Power and +50% max HP, for one fight.</string>
+    <!-- bonus percent, derived from WRENCH_MULTIPLIER and used for both halves -->
+    <string name="shop_desc_wrench">+%1$d%% Power and +%1$d%% max HP, for one fight.</string>
     <string name="tooltip_wrench_title">Golden Wrench</string>
     <string name="tooltip_wrench_body">Raises your rat\'s Power and maximum HP by half for a single fight, then it is spent — win or lose. Only one combat buff rides a fight, so it cannot be combined with a Power Surge. The extra HP is what carries a rat through the last boss.</string>
     <string name="shop_buff_conflict">One combat buff per fight — spend the one you are holding first.</string>
@@ -423,7 +426,8 @@ RARE DROP: %2$s</string>
     <string name="trader_count_pill">%1$s\n%2$d</string>
 
     <string name="trade_gear_title">Scrap Buyout</string>
-    <string name="trade_gear_body">A fair price for a bag of gears. Pays 150–250 Scrap.</string>
+    <!-- lowest and highest payout, from RelicTrader.SCRAP_PAYOUT -->
+    <string name="trade_gear_body">A fair price for a bag of gears. Pays %1$d–%2$d Scrap.</string>
     <string name="trade_vial_title">Binder Frame</string>
     <string name="trade_vial_body">Your pick of a card frame for the Binder.</string>
     <string name="trade_blueprint_title">Combat Requisition</string>
@@ -489,7 +493,8 @@ RARE DROP: %2$s</string>
     <!-- progress, target -->
     <string name="quest_progress">%1$d / %2$d</string>
     <string name="quest_done">Done for today.</string>
-    <string name="quest_reward_line">Reward: 20–40 Scrap, or a relic.</string>
+    <!-- lowest and highest Scrap a round pays, from DailyQuest.SCRAP_REWARD -->
+    <string name="quest_reward_line">Reward: %1$d–%2$d Scrap, or a relic.</string>
     <!-- streak length -->
     <string name="quest_streak">Streak: %1$d days</string>
     <string name="quest_streak_one">Streak: 1 day</string>

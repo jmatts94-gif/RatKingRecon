@@ -51,7 +51,18 @@ data class ShopItem(
     @param:DrawableRes val iconRes: Int,
     val unlockLevel: Int = 0,
     @param:StringRes val tooltipTitleRes: Int = 0,
-    @param:StringRes val tooltipBodyRes: Int = 0
+    @param:StringRes val tooltipBodyRes: Int = 0,
+    /**
+     * Filled into [bodyRes] where it carries placeholders, and empty for the
+     * rows whose description is plain text.
+     *
+     * It exists so a row can quote the number the item actually uses instead of
+     * one typed into the string beside it. The three that do - the two combat
+     * multipliers and the Mutagen's stat range - are read from the constants
+     * the game rolls against, so retuning one cannot leave the shelf
+     * advertising the old terms.
+     */
+    val bodyArgs: List<Any> = emptyList()
 )
 
 /**
@@ -99,7 +110,8 @@ object Shop {
                 effect = ShopEffect.Flag(GameEngine.KEY_MUTAGEN),
                 nameRes = R.string.btn_mutagen,
                 bodyRes = R.string.shop_desc_mutagen,
-                iconRes = R.drawable.ic_flask
+                iconRes = R.drawable.ic_flask,
+                bodyArgs = listOf(GameEngine.MUTAGEN_STAT.first, GameEngine.MUTAGEN_STAT.last)
             ),
             ShopItem(
                 price = 150,
@@ -137,7 +149,8 @@ object Shop {
                 effect = ShopEffect.Flag(ShopEffects.KEY_POWER_SURGE),
                 nameRes = R.string.shop_name_surge,
                 bodyRes = R.string.shop_desc_surge,
-                iconRes = R.drawable.ic_power
+                iconRes = R.drawable.ic_power,
+                bodyArgs = listOf(ShopEffects.percentBonus(ShopEffects.SURGE_MULTIPLIER))
             ),
             ShopItem(
                 price = 200,
@@ -146,7 +159,8 @@ object Shop {
                 bodyRes = R.string.shop_desc_wrench,
                 iconRes = R.drawable.ic_sparkle,
                 tooltipTitleRes = R.string.tooltip_wrench_title,
-                tooltipBodyRes = R.string.tooltip_wrench_body
+                tooltipBodyRes = R.string.tooltip_wrench_body,
+                bodyArgs = listOf(ShopEffects.percentBonus(ShopEffects.WRENCH_MULTIPLIER))
             )
         )
     )

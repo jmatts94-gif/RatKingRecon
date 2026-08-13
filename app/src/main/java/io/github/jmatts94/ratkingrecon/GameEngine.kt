@@ -41,6 +41,17 @@ object GameEngine {
     const val KEY_MUTAGEN = "MUTAGEN_ACTIVE"
     const val KEY_POLISH = "POLISH_ACTIVE"
 
+    /**
+     * What a hatch rolls each stat between, ordinarily and under a Mutagen.
+     *
+     * Named rather than written into [rollRat] because the Shop quotes the
+     * Mutagen range in the description a player buys it on. A range that lived
+     * only at the roll would leave that description free to drift away from
+     * what the item actually does.
+     */
+    val ORDINARY_STAT = 1..5
+    val MUTAGEN_STAT = 6..10
+
     // Public so [ActiveContract] can read the same keys this resolves against,
     // rather than a second copy of the spellings drifting out of step.
     const val KEY_BOUNTY_ACTIVE = "BOUNTY_ACTIVE"
@@ -413,8 +424,8 @@ object GameEngine {
         val species = Roster.all.random()
         val card = RatEntity(
             artKey = species.artKey,
-            power = if (mutagen) (6..10).random() else (1..5).random(),
-            toughness = if (mutagen) (6..10).random() else (1..5).random(),
+            power = if (mutagen) MUTAGEN_STAT.random() else ORDINARY_STAT.random(),
+            toughness = if (mutagen) MUTAGEN_STAT.random() else ORDINARY_STAT.random(),
             name = species.name,
             shiny = polish || (1..10).random() == 1
         )

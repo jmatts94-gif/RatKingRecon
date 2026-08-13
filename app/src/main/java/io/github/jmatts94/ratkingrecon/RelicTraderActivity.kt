@@ -85,7 +85,8 @@ class RelicTraderActivity : AppCompatActivity() {
             val view = inflater.inflate(R.layout.view_relic_exchange, container, false)
 
             view.findViewById<TextView>(R.id.exchangeTitle).setText(exchange.titleRes)
-            view.findViewById<TextView>(R.id.exchangeBody).setText(exchange.bodyRes)
+            view.findViewById<TextView>(R.id.exchangeBody).text =
+                getString(exchange.bodyRes, *exchange.bodyArgs.toTypedArray())
 
             val button = view.findViewById<MaterialButton>(R.id.exchangeButton)
             button.setOnClickListener { attempt(exchange) }

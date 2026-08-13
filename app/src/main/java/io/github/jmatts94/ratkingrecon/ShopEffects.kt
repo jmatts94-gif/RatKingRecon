@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.content.SharedPreferences
+import kotlin.math.roundToInt
 
 /**
  * The state behind the Shop's items, and the only place that reads or writes it.
@@ -53,6 +54,15 @@ object ShopEffects {
 
     fun wrenchArmed(prefs: SharedPreferences): Boolean =
         prefs.getBoolean(KEY_GOLDEN_WRENCH, false)
+
+    /**
+     * A multiplier as the percentage its description quotes: 1.5 reads as 50.
+     *
+     * The Shop sells both of these on a "+50%" that used to be typed into the
+     * string beside them. Deriving it means retuning a multiplier cannot leave
+     * the shelf advertising the old one.
+     */
+    fun percentBonus(multiplier: Double): Int = ((multiplier - 1.0) * 100).roundToInt()
 
     /**
      * What the Shop has armed, gathered once for a fight about to start.
