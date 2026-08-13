@@ -35,6 +35,13 @@ class MainActivity : AppCompatActivity() {
 
         /** Matches the Tasks screen, and the tile only ever shows whole minutes. */
         const val TICK_MS = 30_000L
+
+        /**
+         * How long the lantern takes to change stage. Long enough to read as a
+         * light coming up rather than a value being assigned, short enough that
+         * returning to the screen does not feel like waiting for an animation.
+         */
+        const val GLOW_FADE_MS = 280L
     }
 
     private val ticker = Handler(Looper.getMainLooper())
@@ -332,12 +339,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Paints the streak tile: the count, and how lit the lantern is.
+     * Paints the streak tile: the count, and how brightly the lantern burns.
      *
      * Four discrete stages rather than a continuous fade, which is what the
      * lantern is for - it is read at a glance beside the egg, and a value that
      * creeps up by a percent is not readable at a glance. A quest that can only
      * be unfinished or finished simply uses the two ends.
+     *
+     * The stages used to be the icon's own alpha, which dimmed the metalwork
+     * along with the light and made an unstarted quest look like a drawing
+     * failing to load rather than a lantern turned low. The lantern now holds
+     * full opacity always and the light behind it carries the progress, which
+     * is the thing actually being reported.
+     *
+     * Brightness moves further than size does across the four. The tile is
+     * 40dp tall at its smallest and the lantern already takes 36dp of that, so
+     * there is no room for a halo that grows dramatically - and a glow reaching
+     * past the pill would read as a drawing error, not as more light.
      */
     private fun updateStreakTile() {
         DailyQuest.ensureToday(sharedPreferences)
@@ -345,13 +363,21 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.streakCount).text = Streak.count(sharedPreferences).toString()
 
         val percent = DailyQuest.percent(sharedPreferences)
-        val stage = when {
-            percent >= 100 -> 1.0f
-            percent >= 66 -> 0.72f
-            percent >= 33 -> 0.5f
-            else -> 0.28f
+        val (glowAlpha, glowScale) = when {
+            percent >= 100 -> 1.00f to 1.30f
+            percent >= 66 -> 0.65f to 1.15f
+            percent >= 33 -> 0.35f to 0.95f
+            // Lit, faintly, rather than dark. A lantern showing nothing at all
+            // reads as broken; showing almost nothing reads as turned down.
+            else -> 0.10f to 0.75f
         }
-        findViewById<ImageView>(R.id.streakLantern).alpha = stage
+
+        findViewById<View>(R.id.streakGlow).animate()
+            .alpha(glowAlpha)
+            .scaleX(glowScale)
+            .scaleY(glowScale)
+            .setDuration(GLOW_FADE_MS)
+            .start()
     }
 
     /** Today's quest, its progress and what it pays. */

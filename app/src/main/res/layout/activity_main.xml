@@ -344,29 +344,67 @@
                     android:clickable="true"
                     android:focusable="true">
 
+                <!--
+                  The lantern and the light it gives off, one on top of the
+                  other.
+
+                  40dp because that is what the tile can hold: on a 320dp phone
+                  the tiles come out 40dp tall, and the assembly has to fit the
+                  smallest of them rather than the roomiest. That ceiling is why
+                  the glow carries progress mostly in brightness - there is no
+                  room for a halo that grows dramatically, and light spilling
+                  outside the pill would read as a drawing error rather than as
+                  brightness.
+
+                  The lantern is 36dp and deliberately larger than the 22dp
+                  icons above it. ic_lantern draws inside a 24x24 viewport but
+                  fills only about 42% of its width and 73% of its height, where
+                  the Material icons in the other tiles fill roughly 83% of
+                  both, so a matched 22dp left it rendering about 9dp of actual
+                  artwork across.
+                -->
+                <FrameLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp">
+
                     <!--
-                      Larger than the 22dp icons above it, and deliberately so.
-                      ic_lantern draws inside a 24x24 viewport but only fills
-                      about 42% of its width and 73% of its height, where the
-                      Material icons in the other two tiles fill roughly 83% of
-                      both. At a matched 22dp the lantern therefore rendered
-                      about 9dp of actual artwork across, and the tile read as
-                      mostly empty. The extra size buys the ink back.
+                      Behind the lantern, and starting invisible: the first bind
+                      fades it up to whatever the quest has earned rather than
+                      snapping it on.
                     -->
+                    <View
+                        android:id="@+id/streakGlow"
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_lantern_glow"
+                        android:alpha="0" />
+
                     <ImageView
                         android:id="@+id/streakLantern"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
+                        android:layout_gravity="center"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_lantern"
                         android:importantForAccessibility="no" />
+                </FrameLayout>
 
+                    <!--
+                      Pushed to the far edge rather than sitting against the
+                      lantern. The tiles above run icon then text together
+                      because their text is a sentence that has to start
+                      somewhere readable; this is a single number, and hanging
+                      it off the opposite edge gives the pill two anchors
+                      instead of a cluster on the left and empty space after it.
+                    -->
                     <TextView
                         android:id="@+id/streakCount"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
+                        android:gravity="end"
                         android:includeFontPadding="false"
                         android:maxLines="1"
                         android:textColor="@color/text_primary"
