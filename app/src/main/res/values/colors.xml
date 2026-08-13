@@ -52,4 +52,11 @@
       taken darker, so a shadow looks like less light rather than like soot.
     -->
     <color name="shadow_warm">#4A2F0F</color>
+
+    <!--
+      The dimming behind the home-screen walkthrough. The same warm brown a
+      shadow is made of, at 72%, so the screen reads as turned down rather than
+      as covered by a grey sheet.
+    -->
+    <color name="coach_scrim">#B84A2F0F</color>
 </resources>

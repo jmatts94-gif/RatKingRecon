@@ -99,6 +99,18 @@
     <string name="import_confirm_body">Importing replaces everything you have now — every rat, your Scrap, level and EXP. This cannot be undone.\n\nExport your current save first if you want to keep it.</string>
     <string name="import_confirm_cta">Choose a File</string>
 
+    <!--
+      Home-screen walkthrough. One line each, and each one says what the thing
+      is for rather than what it is - the splash has already covered the concept
+      and this is only pointing at where it lives.
+    -->
+    <string name="coach_step_counter">%1$d / %2$d</string>
+    <string name="coach_done">Got It</string>
+    <string name="coach_level">Your level. It climbs as you walk, and higher levels turn up rarer rats.</string>
+    <string name="coach_steps">Today\'s steps, counted live — this is what feeds everything else.</string>
+    <string name="coach_scrap">Scrap, your currency. Earn it by walking and spend it in the Shop.</string>
+    <string name="coach_streak">Your daily streak. Tap the lantern for today\'s quest — it burns brighter the longer you keep it going.</string>
+
     <!-- First-launch walkthrough -->
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>

@@ -414,6 +414,12 @@ class MainActivity : AppCompatActivity() {
         reloadProgress()
         updateScreen()
         maybeStartBankedBoss()
+
+        // The walkthrough of this screen, once, after the splash has finished
+        // with the player. It has to be here rather than in onCreate: the splash
+        // is started and not waited for, so onCreate has no idea whether it is
+        // done. See CoachMarks.shouldShow.
+        CoachMarkOverlay.showIfDue(this)
     }
 
     /**

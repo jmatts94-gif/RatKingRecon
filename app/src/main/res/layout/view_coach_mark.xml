@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The caption that travels with the spotlight.
+
+  Laid out at the top of the overlay and moved into place with translationY,
+  because where it belongs depends on where the hole is - below the target
+  normally, above it when the target sits too low for the card to fit beneath.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card_white"
+    android:elevation="8dp"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/coachStepCounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_muted"
+        tools:text="1 / 4" />
+
+    <TextView
+        android:id="@+id/coachCaption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/text_primary" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="12dp">
+
+        <!-- Present on every step, including the last: skipping stays available
+             right up to the end, which is what "visible throughout" asks for. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/coachSkipButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/onboarding_skip"
+            android:textAllCaps="false"
+            android:textColor="@color/text_muted"
+            app:backgroundTint="@android:color/transparent"
+            app:elevation="0dp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/coachNextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="120dp"
+            android:text="@string/onboarding_next"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            app:backgroundTint="@color/amber"
+            app:cornerRadius="16dp"
+            app:elevation="4dp" />
+    </LinearLayout>
+</LinearLayout>
