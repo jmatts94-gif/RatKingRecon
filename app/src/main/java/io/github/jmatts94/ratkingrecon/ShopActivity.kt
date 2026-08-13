@@ -219,8 +219,11 @@ class ShopActivity : AppCompatActivity() {
                 Milestones.recordMasterworkPull(prefs)
                 Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
 
-                // "Any hatch method" includes the bought one.
-                DailyQuest.record(prefs, QuestType.HATCH)
+                // "Any hatch method" includes the bought one, and so does the
+                // payout it can finish.
+                DailyQuest.record(prefs, QuestType.HATCH)?.let {
+                    DailyAlerts.postQuestPaid(applicationContext, it)
+                }
                 stored
             }
 

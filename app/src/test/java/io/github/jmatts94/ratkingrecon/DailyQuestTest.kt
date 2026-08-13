@@ -243,4 +243,40 @@ class DailyQuestTest {
         if (gainedScrap > 0) assertTrue(gainedScrap in DailyQuest.SCRAP_REWARD)
         if (gainedRelics > 0) assertEquals(1, gainedRelics)
     }
+
+    /**
+     * The payout has to leave [GameEngine.onSteps], not only be banked inside it.
+     *
+     * This is the link that was missing rather than wrong: rollReward paid out
+     * correctly from the day the quest shipped, and the reward it handed back
+     * was carried as far as Outcome.questReward and read by nobody, so rounds
+     * finished in silence. Nothing about the payment would catch that - only
+     * asking whether the outcome still carries something to announce.
+     */
+    @Test
+    fun `a round finished by walking surfaces its reward on the outcome`() {
+        val prefs = FakePrefs()
+        val dao = FakeRatDao()
+
+        // Written rather than rolled: ensureToday picks a type at random, and
+        // this is about what happens once that type is STEPS. The target is
+        // small enough to clear in a single batch, and small enough that the
+        // walk clearing it does not also hatch a rat.
+        prefs.edit()
+            .putLong(DailyQuest.KEY_DAY, DailySteps.localMidnight())
+            .putString(DailyQuest.KEY_TYPE, QuestType.STEPS.name)
+            .putInt(DailyQuest.KEY_TARGET, 30)
+            .putInt(DailyQuest.KEY_EVENTS, 0)
+            .putBoolean(DailyQuest.KEY_DONE, false)
+            .apply()
+
+        GameEngine.onSteps(dao, prefs, 0f)
+        val outcome = GameEngine.onSteps(dao, prefs, 40f)
+
+        assertTrue("the round should have finished", DailyQuest.isComplete(prefs))
+        assertTrue(
+            "the round paid, but the outcome carried nothing to announce it with",
+            outcome.questReward != null
+        )
+    }
 }

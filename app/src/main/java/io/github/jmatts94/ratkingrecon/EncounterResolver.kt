@@ -89,8 +89,12 @@ object EncounterResolver {
 
             // The single point every win passes through, hand-played or
             // auto-resolved, which is why the quest is told about it here
-            // rather than in either screen.
-            DailyQuest.record(prefs, QuestType.WIN_FIGHT)
+            // rather than in either screen. It is also why the payout is
+            // announced here: a win reached from the notification never opens a
+            // screen that could have said so.
+            DailyQuest.record(prefs, QuestType.WIN_FIGHT)?.let {
+                DailyAlerts.postQuestPaid(app, it)
+            }
         } else {
             // A Shop Revive Token is spent here rather than offered: it was
             // bought ahead of time precisely so the loss does not cost 30

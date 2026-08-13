@@ -33,6 +33,7 @@ object DailyAlerts {
     private const val NOTIF_BOSS_TEASER = 30
     private const val NOTIF_CONTRACT_PAID = 31
     private const val NOTIF_STREAK = 32
+    private const val NOTIF_QUEST_PAID = 33
 
     /** Hour of the local evening the streak reminder is aimed at. */
     private const val STREAK_REMINDER_HOUR = 19
@@ -60,6 +61,35 @@ object DailyAlerts {
             context.getString(R.string.notif_contract_paid_title),
             context.getString(R.string.notif_contract_paid_text, name, reward),
             R.drawable.ic_contract
+        )
+    }
+
+    /**
+     * The daily round paying out.
+     *
+     * Takes the [QuestReward] rather than a line already written, so the two
+     * shapes a payout comes in are turned into words in one place. Every route
+     * that can finish a round - a walk, a won fight, a bought hatch - posts
+     * through here, and a player who finished one while the app was shut is the
+     * whole reason it is a notification rather than something on a screen.
+     */
+    fun postQuestPaid(context: Context, reward: QuestReward) {
+        val body = when (reward) {
+            is QuestReward.Scrap ->
+                context.getString(R.string.notif_quest_paid_scrap, reward.amount)
+            is QuestReward.Relic ->
+                context.getString(
+                    R.string.notif_quest_paid_relic,
+                    context.getString(reward.relic.nameRes)
+                )
+        }
+
+        post(
+            context,
+            NOTIF_QUEST_PAID,
+            context.getString(R.string.notif_quest_paid_title),
+            body,
+            R.drawable.ic_lantern
         )
     }
 

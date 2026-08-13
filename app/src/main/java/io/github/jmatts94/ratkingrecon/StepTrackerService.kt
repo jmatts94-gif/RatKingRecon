@@ -241,6 +241,7 @@ class StepTrackerService : Service(), SensorEventListener {
         outcome.contractPaidName?.let {
             DailyAlerts.postContractPaid(this, it, outcome.bountyReward)
         }
+        outcome.questReward?.let { DailyAlerts.postQuestPaid(this, it) }
 
         notifyStepsToday(outcome.stepsToday)
 

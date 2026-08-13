@@ -519,6 +519,13 @@ RARE DROP: %2$s</string>
     <!-- contract name, scrap paid -->
     <string name="notif_contract_paid_title">Contract complete</string>
     <string name="notif_contract_paid_text">%1$s paid out. +%2$d Scrap.</string>
+
+    <!-- The daily round paying out. One title, and a line for each thing it pays. -->
+    <string name="notif_quest_paid_title">Round complete</string>
+    <!-- scrap paid -->
+    <string name="notif_quest_paid_scrap">Today\'s round paid +%1$d Scrap.</string>
+    <!-- relic name -->
+    <string name="notif_quest_paid_relic">Today\'s round turned up %1$s.</string>
     <string name="notif_streak_title">Your lantern is going out</string>
     <!-- streak length -->
     <string name="notif_streak_text">Today\'s round is unfinished. %1$d days on the line.</string>
