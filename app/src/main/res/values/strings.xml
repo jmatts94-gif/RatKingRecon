@@ -76,6 +76,22 @@
     <string name="btn_settings">Settings</string>
     <string name="btn_dev_reset">Dev Reset</string>
 
+    <!--
+      The three tiles stacked beside the egg. All read existing state; none of
+      them decides anything.
+    -->
+    <string name="tile_expedition_idle">Idle</string>
+    <!-- An expedition past its end time, waiting to be collected on the Ledger -->
+    <string name="tile_expedition_ready">Ready</string>
+    <!-- hours, minutes -->
+    <string name="tile_expedition_hm">%1$dh %2$dm left</string>
+    <!-- minutes, for the last hour -->
+    <string name="tile_expedition_m">%1$dm left</string>
+    <!-- steps walked today -->
+    <string name="tile_steps">%1$d steps</string>
+    <!-- today's distance, estimated from an average stride -->
+    <string name="tile_distance">%1$.1f km</string>
+
     <!-- Settings and save transfer -->
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Back up your progress, or restore it from a file.</string>

@@ -25,6 +25,11 @@ class MainActivity : AppCompatActivity() {
         /** How long a newly hatched rat stays on screen before the next egg appears. */
         const val REVEAL_MS = 5_000L
 
+        const val MINUTE_MS = 60_000L
+        const val HOUR_MS = 60 * MINUTE_MS
+
+        /** The Scrap Run icon with nothing out, dimmed rather than swapped. */
+        const val IDLE_ICON_ALPHA = 0.35f
     }
 
     private var bountyReward = 0
@@ -239,6 +244,7 @@ class MainActivity : AppCompatActivity() {
         scrapText.text = sharedPreferences.getInt(GameEngine.KEY_SCRAP, 0).toString()
         playerLevelText.text = "Lvl $playerLevel"
         updateStepDisplays()
+        updateExpeditionTile()
         updateStreakTile()
 
         // 1. Update the Visual Bar
@@ -358,6 +364,46 @@ class MainActivity : AppCompatActivity() {
     private fun updateStepDisplays() {
         val display = stepsToday.toString()
         stepCountText.text = display
+
+        // The tile beside the egg shows the same total the header does, with
+        // the distance it comes to underneath. The conversion is Milestones'
+        // rather than one of its own, so the home screen and the Achievements
+        // screen cannot disagree about how far a walk was.
+        findViewById<TextView>(R.id.stepsTileCount).text =
+            getString(R.string.tile_steps, stepsToday)
+        findViewById<TextView>(R.id.stepsTileDistance).text =
+            getString(R.string.tile_distance, Milestones.kilometresFor(stepsToday.toLong()))
+    }
+
+    /**
+     * The Scrap Run tile: what is out, and how long is left of it.
+     *
+     * Reads the run ShopEffects records and writes nothing back - starting and
+     * collecting both still happen on the Ledger. A run whose end time has
+     * passed stays active until it is collected, so that window gets a label of
+     * its own rather than counting down past zero.
+     */
+    private fun updateExpeditionTile() {
+        val status = findViewById<TextView>(R.id.expeditionStatus)
+        val icon = findViewById<ImageView>(R.id.expeditionIcon)
+
+        if (!isExpeditionActive) {
+            status.setText(R.string.tile_expedition_idle)
+            icon.alpha = IDLE_ICON_ALPHA
+            return
+        }
+
+        icon.alpha = 1f
+        val remaining = expeditionEndTime - System.currentTimeMillis()
+        status.text = when {
+            remaining <= 0L -> getString(R.string.tile_expedition_ready)
+            remaining >= HOUR_MS -> getString(
+                R.string.tile_expedition_hm,
+                remaining / HOUR_MS,
+                (remaining % HOUR_MS) / MINUTE_MS
+            )
+            else -> getString(R.string.tile_expedition_m, remaining / MINUTE_MS)
+        }
     }
 
     /**

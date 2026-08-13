@@ -135,19 +135,19 @@
           not a rectangle.
         -->
         <!--
-          The egg and its companion tile, an even split, both square.
+          The egg and the tiles that stand beside it, an even split.
 
-          Sized off the width available rather than pinned to a fixed 260dp,
-          which is what lets the tile be a tile. A fixed egg leaves 60dp beside
-          it on a 360dp screen, and nothing square and readable fits in 60dp -
-          the tile could only be the narrow strip it was. Sharing the row as a
-          weighted chain gives both of them the same shape and lets them grow
-          together on a larger screen instead of leaving it empty.
+          Sized off the width available rather than pinned to a fixed 260dp.
+          Sharing the row as a weighted chain lets both halves grow together on
+          a larger screen instead of leaving it empty.
 
-          The weights were three to one, which made the tile a third of the
-          egg and left the lantern inside it too small to read at a glance.
-          Equal weights make the tile as wide as the egg is tall, which is the
-          shape asked for: the egg gives up a third of its width to buy it.
+          One tile beside the egg was tried at two sizes and never sat right.
+          Three now share that half, stacked, and the stack is measured against
+          the egg rather than given a height of its own: the column is pinned to
+          the egg's top and bottom, so the group is exactly as tall as the egg
+          at any screen size, and the tiles inside divide whatever that comes to.
+          Nothing here is a fixed dp, which is why the arrangement holds from a
+          320dp phone to a tablet.
         -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -163,7 +163,7 @@
             app:layout_constraintDimensionRatio="H,1:1"
             app:layout_constraintHorizontal_weight="1"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/streakTile"
+            app:layout_constraintEnd_toStartOf="@id/tileColumn"
             app:layout_constraintTop_toTopOf="parent"
             android:background="@drawable/bg_egg_panel"
             android:elevation="14dp"
@@ -189,80 +189,180 @@
         </FrameLayout>
 
             <!--
-              Streak tile: lantern, then the count. Opens today's quest.
+              The three tiles beside the egg.
 
-              Square, and now the egg's equal rather than a third of it, so it
-              reads as the panel's twin rather than a strip stuck to its side.
-              It carries the egg's 14dp elevation rather than the 6dp the
-              currency pills use - the two of them are one object on the screen
-              and a matched pair should cast a matched shadow.
+              Height is taken from the egg rather than declared: top and bottom
+              are pinned to the panel, so the column is the egg's height and the
+              three tiles inside divide it by weight. The two 8dp gaps come out
+              of that same total, so the group always finishes flush with the
+              egg's bottom edge however tall the row ends up.
 
-              A ConstraintLayout rather than the LinearLayout it was, only so
-              the lantern can be sized as a percentage of the tile. A vertical
-              LinearLayout has no way to say "this fraction of the width", and
-              the leftover-weight trick it used instead made the lantern's size
-              a side effect of how tall the count happened to be.
+              Each tile carries the egg's 14dp elevation rather than the 6dp the
+              currency pills use. The stack and the egg are one object on the
+              screen, and a matched group should cast a matched shadow.
             -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/streakTile"
+            <LinearLayout
+                android:id="@+id/tileColumn"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintDimensionRatio="H,1:1"
                 app:layout_constraintHorizontal_weight="1"
                 app:layout_constraintStart_toEndOf="@id/eggPanel"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/eggPanel"
                 app:layout_constraintBottom_toBottomOf="@id/eggPanel"
                 android:layout_marginStart="8dp"
-                android:background="@drawable/bg_pill_tan"
-                android:elevation="14dp"
-                android:outlineAmbientShadowColor="@color/shadow_warm"
-                android:outlineSpotShadowColor="@color/shadow_warm"
-                tools:targetApi="28"
-                android:clickable="true"
-                android:focusable="true">
+                android:orientation="vertical"
+                android:clipChildren="false"
+                android:clipToPadding="false">
 
                 <!--
-                  85% of the tile's width, and square, so the lantern is the
-                  tile rather than a mark sitting in it. Stated as a percentage
-                  because the tile is measured, not fixed: the proportion then
-                  holds at every screen size instead of drifting the way a dp
-                  size or a leftover weight would.
-
-                  Packed into a vertical chain with the count so the two centre
-                  as one block, with no dead band above the lantern or below
-                  the number. The 15% the lantern leaves is the tile's only
-                  inset, which is why the 6dp padding is gone: padding would
-                  come off the width first and quietly shrink the 85%.
+                  Scrap Run status. Display only - a run is still started and
+                  collected on the Ledger, and this never claims one.
                 -->
-                <ImageView
-                    android:id="@+id/streakLantern"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:id="@+id/expeditionTile"
+                    android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    app:layout_constraintWidth_percent="0.85"
-                    app:layout_constraintDimensionRatio="1:1"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toTopOf="@id/streakCount"
-                    app:layout_constraintVertical_chainStyle="packed"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_lantern"
-                    android:importantForAccessibility="no" />
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:background="@drawable/bg_pill_tan"
+                    android:elevation="14dp"
+                    android:outlineAmbientShadowColor="@color/shadow_warm"
+                    android:outlineSpotShadowColor="@color/shadow_warm"
+                    tools:targetApi="28">
 
-                <TextView
-                    android:id="@+id/streakCount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/streakLantern"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:includeFontPadding="false"
-                    android:textColor="@color/text_primary"
-                    android:textSize="17sp"
-                    android:textStyle="bold"
-                    android:text="@string/header_scrap_default" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <ImageView
+                        android:id="@+id/expeditionIcon"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_expedition"
+                        android:importantForAccessibility="no" />
+
+                    <TextView
+                        android:id="@+id/expeditionStatus"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:text="@string/tile_expedition_idle" />
+                </LinearLayout>
+
+                <!--
+                  Today's steps, with the distance they come to underneath. The
+                  count is the same daily total the notification keeps; the
+                  distance is an estimate off an average stride.
+                -->
+                <LinearLayout
+                    android:id="@+id/stepsTile"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:background="@drawable/bg_pill_tan"
+                    android:elevation="14dp"
+                    android:outlineAmbientShadowColor="@color/shadow_warm"
+                    android:outlineSpotShadowColor="@color/shadow_warm"
+                    tools:targetApi="28">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_footprint"
+                        android:importantForAccessibility="no" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/stepsTileCount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            tools:text="1240 steps" />
+
+                        <TextView
+                            android:id="@+id/stepsTileDistance"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp"
+                            tools:text="0.9 km" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!--
+                  The streak tile, unchanged in what it does: it still opens
+                  today's quest, the lantern still carries the four stages, and
+                  the count is still the streak. Only the shape is new - laid
+                  out across rather than down, to match the two tiles above it.
+                -->
+                <LinearLayout
+                    android:id="@+id/streakTile"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:background="@drawable/bg_pill_tan"
+                    android:elevation="14dp"
+                    android:outlineAmbientShadowColor="@color/shadow_warm"
+                    android:outlineSpotShadowColor="@color/shadow_warm"
+                    tools:targetApi="28"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:id="@+id/streakLantern"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_lantern"
+                        android:importantForAccessibility="no" />
+
+                    <TextView
+                        android:id="@+id/streakCount"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:textColor="@color/text_primary"
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:text="@string/header_scrap_default" />
+                </LinearLayout>
+            </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!--
