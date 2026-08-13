@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +32,27 @@ class MainActivity : AppCompatActivity() {
 
         /** The Scrap Run icon with nothing out, dimmed rather than swapped. */
         const val IDLE_ICON_ALPHA = 0.35f
+
+        /** Matches the Tasks screen, and the tile only ever shows whole minutes. */
+        const val TICK_MS = 30_000L
+    }
+
+    private val ticker = Handler(Looper.getMainLooper())
+
+    /**
+     * Keeps the Scrap Run countdown honest while the screen is open.
+     *
+     * Without it the tile only redrew on resume and whenever the step service
+     * reported, so standing still left the remaining time frozen at whatever it
+     * read when the screen opened. Only this one tile moves on its own - the
+     * rest of the screen changes when the save changes, and that already has a
+     * receiver - so the tick redraws it alone rather than the whole screen.
+     */
+    private val tick = object : Runnable {
+        override fun run() {
+            updateExpeditionTile()
+            ticker.postDelayed(this, TICK_MS)
+        }
     }
 
     private var bountyReward = 0
@@ -459,6 +482,7 @@ class MainActivity : AppCompatActivity() {
 
         reloadProgress()
         updateScreen()
+        ticker.postDelayed(tick, TICK_MS)
         maybeStartBankedBoss()
 
         // The walkthrough of this screen, once, after the splash has finished
@@ -501,6 +525,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        ticker.removeCallbacks(tick)
         unregisterReceiver(stateReceiver)
     }
 

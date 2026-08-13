@@ -197,9 +197,12 @@
               of that same total, so the group always finishes flush with the
               egg's bottom edge however tall the row ends up.
 
-              Each tile carries the egg's 14dp elevation rather than the 6dp the
-              currency pills use. The stack and the egg are one object on the
-              screen, and a matched group should cast a matched shadow.
+              The tiles sit at the 6dp the currency pills use, not the egg's
+              14dp. They were matched to the egg at first, on the reasoning that
+              a matched pair should cast a matched shadow - but three tiles
+              lifted as high as the egg made four things competing to be the
+              front of the screen. The egg keeps the height; the tiles read as
+              what they are, which is support around it.
             -->
             <LinearLayout
                 android:id="@+id/tileColumn"
@@ -229,7 +232,7 @@
                     android:paddingStart="10dp"
                     android:paddingEnd="10dp"
                     android:background="@drawable/bg_pill_tan"
-                    android:elevation="14dp"
+                    android:elevation="6dp"
                     android:outlineAmbientShadowColor="@color/shadow_warm"
                     android:outlineSpotShadowColor="@color/shadow_warm"
                     tools:targetApi="28">
@@ -273,7 +276,7 @@
                     android:paddingStart="10dp"
                     android:paddingEnd="10dp"
                     android:background="@drawable/bg_pill_tan"
-                    android:elevation="14dp"
+                    android:elevation="6dp"
                     android:outlineAmbientShadowColor="@color/shadow_warm"
                     android:outlineSpotShadowColor="@color/shadow_warm"
                     tools:targetApi="28">
@@ -334,7 +337,7 @@
                     android:paddingStart="10dp"
                     android:paddingEnd="10dp"
                     android:background="@drawable/bg_pill_tan"
-                    android:elevation="14dp"
+                    android:elevation="6dp"
                     android:outlineAmbientShadowColor="@color/shadow_warm"
                     android:outlineSpotShadowColor="@color/shadow_warm"
                     tools:targetApi="28"
