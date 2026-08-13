@@ -10,13 +10,37 @@
     android:layout_margin="24dp"
     android:padding="22dp">
 
-    <ImageView
-        android:id="@+id/questLantern"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:src="@drawable/ic_lantern"
-        android:layout_marginBottom="10dp"
-        android:importantForAccessibility="no" />
+    <!--
+      The lantern and its light, the same pair the home screen tile carries so
+      the two describe progress the same way.
+
+      72dp of box around a 52dp lantern, which the tile could not afford: there
+      the tiles are 40dp tall on a small phone and the glow had to be clipped by
+      the pill to stay inside one. A dialog has room, so the box is sized to hold
+      the widest stage outright and nothing needs clipping.
+    -->
+    <FrameLayout
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="4dp">
+
+        <View
+            android:id="@+id/questGlow"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_lantern_glow"
+            android:alpha="0" />
+
+        <ImageView
+            android:id="@+id/questLantern"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_lantern"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
 
     <TextView
         android:layout_width="wrap_content"

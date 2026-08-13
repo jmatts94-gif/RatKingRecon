@@ -363,8 +363,22 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.streakCount).text = Streak.count(sharedPreferences).toString()
 
-        val percent = DailyQuest.percent(sharedPreferences)
-        val (glowAlpha, glowScale) = when {
+        applyGlow(findViewById(R.id.streakGlow), DailyQuest.percent(sharedPreferences))
+    }
+
+    /**
+     * Lights a lantern's glow to match [percent].
+     *
+     * Shared by the tile and the quest dialog rather than written out twice.
+     * They are two views of one number, and a lantern that burns brighter on
+     * the home screen than in the dialog it opens would be reporting the same
+     * progress two different ways.
+     *
+     * The glow always animates in. A dialog's glow starts from the invisible it
+     * was inflated at, which is the fade the tile only gets on a cold start.
+     */
+    private fun applyGlow(glow: View, percent: Int) {
+        val (alpha, scale) = when {
             percent >= 100 -> 1.00f to 1.45f
             percent >= 66 -> 0.75f to 1.25f
             percent >= 33 -> 0.50f to 1.05f
@@ -373,10 +387,10 @@ class MainActivity : AppCompatActivity() {
             else -> 0.20f to 0.85f
         }
 
-        findViewById<View>(R.id.streakGlow).animate()
-            .alpha(glowAlpha)
-            .scaleX(glowScale)
-            .scaleY(glowScale)
+        glow.animate()
+            .alpha(alpha)
+            .scaleX(scale)
+            .scaleY(scale)
             .setDuration(GLOW_FADE_MS)
             .start()
     }
@@ -429,8 +443,7 @@ class MainActivity : AppCompatActivity() {
             else -> getString(R.string.quest_streak, streak)
         }
 
-        dialog.findViewById<ImageView>(R.id.questLantern).alpha =
-            if (percent >= 100) 1.0f else 0.28f + (percent / 100f) * 0.72f
+        applyGlow(dialog.findViewById(R.id.questGlow), percent)
 
         dialog.findViewById<Button>(R.id.questCloseButton).setOnClickListener { dialog.dismiss() }
         dialog.show()
