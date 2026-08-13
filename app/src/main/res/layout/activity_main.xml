@@ -344,10 +344,19 @@
                     android:clickable="true"
                     android:focusable="true">
 
+                    <!--
+                      Larger than the 22dp icons above it, and deliberately so.
+                      ic_lantern draws inside a 24x24 viewport but only fills
+                      about 42% of its width and 73% of its height, where the
+                      Material icons in the other two tiles fill roughly 83% of
+                      both. At a matched 22dp the lantern therefore rendered
+                      about 9dp of actual artwork across, and the tile read as
+                      mostly empty. The extra size buys the ink back.
+                    -->
                     <ImageView
                         android:id="@+id/streakLantern"
-                        android:layout_width="26dp"
-                        android:layout_height="26dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_lantern"
                         android:importantForAccessibility="no" />

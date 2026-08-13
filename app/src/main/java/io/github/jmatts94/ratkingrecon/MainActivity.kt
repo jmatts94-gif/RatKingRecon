@@ -209,6 +209,21 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.streakTile).setOnClickListener { showDailyQuest() }
 
+        // The other two tiles carry no tap of their own, so the explainer is the
+        // only thing a press on them does. setOnLongClickListener makes a view
+        // long-clickable by itself, which is why neither needs to be marked so
+        // in the layout the way the streak tile is for its click.
+        Tooltip.attachTo(
+            findViewById(R.id.expeditionTile),
+            R.string.tooltip_expedition_title,
+            R.string.tooltip_expedition_body
+        )
+        Tooltip.attachTo(
+            findViewById(R.id.stepsTile),
+            R.string.tooltip_steps_title,
+            R.string.tooltip_steps_body
+        )
+
         findViewById<Button>(R.id.achievementsButton).setOnClickListener {
             startActivity(android.content.Intent(this, AchievementsActivity::class.java))
         }
