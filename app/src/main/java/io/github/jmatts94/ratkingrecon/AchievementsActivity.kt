@@ -159,6 +159,11 @@ class AchievementsActivity : AppCompatActivity() {
      * A locked row is greyed by draining the icon's colour rather than by
      * swapping in a second "locked" drawable, which would have meant shipping a
      * silhouette for every badge and keeping the two in step forever.
+     *
+     * Earned adds a checkmark and swaps the card background for an amber-washed
+     * one - both driven by the same [unlocked] boolean the icon dimming already
+     * was, so every category that calls this (badges, all three milestone
+     * lists) gets the same treatment for free rather than needing its own.
      */
     private fun row(
         parent: ViewGroup,
@@ -170,6 +175,10 @@ class AchievementsActivity : AppCompatActivity() {
     ): View {
         val view = LayoutInflater.from(this)
             .inflate(R.layout.item_achievement, parent, false)
+
+        view.setBackgroundResource(if (unlocked) R.drawable.bg_card_earned else R.drawable.bg_card_white)
+        view.findViewById<View>(R.id.achievementCheck).visibility =
+            if (unlocked) View.VISIBLE else View.GONE
 
         val icon = view.findViewById<ImageView>(R.id.achievementIcon)
         icon.setImageResource(iconRes)

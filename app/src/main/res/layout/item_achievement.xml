@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  One row on the Achievements screen, shared by the boss badges and the walking
-  milestones. A locked row keeps the same layout and dims its icon rather than
-  hiding it, so the shape of what is still to come stays readable.
+  One row on the Achievements screen, shared by the boss badges and the three
+  milestone categories. A locked row keeps the same layout and dims its icon
+  rather than hiding it, so the shape of what is still to come stays readable.
+  An earned row swaps bg_card_white for the amber-washed bg_card_earned and
+  shows the checkmark - see AchievementsActivity.row(), which sets both from
+  the same "unlocked" boolean this layout otherwise knows nothing about.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -58,5 +61,15 @@
             android:visibility="gone" />
 
     </LinearLayout>
+
+    <!-- Shown only once earned - see AchievementsActivity.row(). -->
+    <ImageView
+        android:id="@+id/achievementCheck"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_check"
+        android:contentDescription="@null"
+        android:visibility="gone" />
 
 </LinearLayout>

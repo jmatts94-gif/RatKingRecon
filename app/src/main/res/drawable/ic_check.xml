@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Material Symbols "check" (outlined), from google/material-design-icons.
+  Converted from viewBox "none (24x24)" - the same transform Studio's Vector
+  Asset tool applies.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/amber_dark">
+    <path
+        android:fillColor="@color/amber_dark"
+        android:pathData="M9,16.2 L4.8,12 3.4,13.4 9,19 21,7 19.6,5.6 Z" />
+</vector>
