@@ -123,6 +123,46 @@
                         android:layout_width="match_parent"
                         android:layout_height="12dp"
                         android:progressDrawable="@drawable/progress_amber" />
+
+                    <!--
+                      Power Surge / Golden Wrench, whichever the Shop armed for
+                      this fight. Read once when the fight is built and never
+                      touched again here - the flag it reflects only changes
+                      when the fight resolves, by which point this screen is on
+                      its way to the result dialog.
+                    -->
+                    <LinearLayout
+                        android:id="@+id/activeBuffBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="3dp"
+                        android:background="@drawable/bg_card_teal"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <ImageView
+                            android:id="@+id/activeBuffIcon"
+                            android:layout_width="14dp"
+                            android:layout_height="14dp"
+                            android:scaleType="fitCenter"
+                            android:importantForAccessibility="no"
+                            tools:src="@drawable/ic_power" />
+
+                        <TextView
+                            android:id="@+id/activeBuffLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/teal_fill"
+                            tools:text="Power Surge" />
+
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

@@ -21,11 +21,11 @@ object Masterwork {
     /**
      * The tier the Masterwork never produces.
      *
-     * [Roster] tags rarity as free text and is inconsistent about case - five
-     * species are tagged "common" rather than "Common" - so this is matched
-     * without case. A case-sensitive check would quietly leak those five into
-     * the premium pool, which is exactly what excluding the bottom tier is
-     * meant to prevent.
+     * [Roster] tags rarity as free text, so this is matched without case
+     * rather than trusting every entry to be typed as "Common" - which is
+     * exactly the slip that let five species sit as "common" until the roster
+     * was normalised. A case-sensitive check would have quietly leaked them
+     * into the premium pool.
      */
     private const val EXCLUDED_TIER = "common"
 

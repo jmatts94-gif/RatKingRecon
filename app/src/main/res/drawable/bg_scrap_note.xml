@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The tip tile's own background - not bg_card_muted, which is shared with the
+  Shop's empty-state panel and shouldn't change shape just because this tile
+  wants to. A flatter, more saturated parchment than the cream page (disabled_fill
+  rather than cream or tan, which the gradient itself passes through further
+  down the screen), a visibly darker border than the pill drawables carry, and
+  a tighter corner radius than every pill/tile/button on this screen uses - so
+  this reads as a small note tucked into the corner rather than another pill.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/disabled_fill" />
+    <stroke
+        android:width="1.5dp"
+        android:color="@color/amber_dark" />
+    <corners android:radius="8dp" />
+</shape>

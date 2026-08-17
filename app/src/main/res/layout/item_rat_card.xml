@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="168dp"
+    android:layout_height="192dp"
     android:layout_margin="4dp"
     android:outlineAmbientShadowColor="@color/shadow_warm"
     android:outlineSpotShadowColor="@color/shadow_warm"
@@ -47,8 +47,62 @@
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:src="@drawable/newwegg_pic" />
+
+            <!--
+              Rarity, readable at a glance without reading the line under the
+              stats: one gear per tier, in the corner the eye lands on first.
+            -->
+            <LinearLayout
+                android:id="@+id/cardGears"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="4dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_badge_scrim"
+                android:paddingHorizontal="3dp"
+                android:paddingVertical="2dp">
+
+                <ImageView
+                    android:id="@+id/cardGear1"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:src="@drawable/ic_settings"
+                    android:tint="@color/cream"
+                    android:importantForAccessibility="no" />
+
+                <ImageView
+                    android:id="@+id/cardGear2"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:layout_marginStart="1dp"
+                    android:src="@drawable/ic_settings"
+                    android:tint="@color/cream"
+                    android:importantForAccessibility="no" />
+
+                <ImageView
+                    android:id="@+id/cardGear3"
+                    android:layout_width="11dp"
+                    android:layout_height="11dp"
+                    android:layout_marginStart="1dp"
+                    android:src="@drawable/ic_settings"
+                    android:tint="@color/cream"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!--
+          wrap_content on both, with a flexible spacer between them - not
+          weight=1 with gravity="end" on the Toughness side, which was the
+          original bug. A compound drawable anchors to its own view's start
+          edge no matter what gravity says; gravity only moves the text, so
+          "end" gravity on a wide weighted TextView drags the number away
+          from an icon that never moved, opening a gap between them. A
+          wrap_content TextView has no slack for gravity to shift anything
+          in, so the icon and its number always sit exactly as tight as
+          drawablePadding says - the spacer is what pushes the pair as a
+          whole to the right, rather than gravity trying to.
+        -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -57,29 +111,32 @@
 
             <TextView
                 android:id="@+id/cardPower"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="1"
                 android:drawableStart="@drawable/ic_power"
                 android:drawablePadding="3dp"
                 android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:gravity="center" />
+                android:gravity="center_vertical" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/cardToughness"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="1"
                 android:drawableStart="@drawable/ic_toughness"
                 android:drawablePadding="3dp"
                 android:textColor="@color/text_primary"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:gravity="center" />
+                android:gravity="center_vertical" />
         </LinearLayout>
     </LinearLayout>
 

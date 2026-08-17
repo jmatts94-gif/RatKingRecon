@@ -5,6 +5,7 @@
     <string name="btn_all">All</string>
     <string name="btn_power">Sort Power</string>
     <string name="btn_shiny">Shiny Only</string>
+    <string name="btn_rarity">Sort Rarity</string>
 
     <!-- The Rat Ledger (the collection screen) -->
     <string name="workshop_title">The Rat Ledger</string>
@@ -14,6 +15,14 @@
     <string name="collection_progress">Collection: %1$d / %2$d Rats Found</string>
     <string name="btn_back_to_workshop">Back to the Workshop</string>
     <string name="fusion_pot_text">The Fusion Pot: Fuse 2 Weakest (Cost: 5 Scrap)</string>
+    <!-- species name, read from artKey rather than the rat's own name field -->
+    <string name="enlarged_rat_species">Species: %1$s</string>
+    <!-- faction, read from artKey the same way species is - flavor only -->
+    <string name="enlarged_rat_faction">Faction: %1$s</string>
+    <!-- shown for an artKey the roster no longer recognises, in place of a faction -->
+    <string name="enlarged_rat_faction_unknown">Unaffiliated</string>
+    <!-- rat name -->
+    <string name="card_name_shiny">%1$s ☆</string>
 
     <!-- Consumables -->
     <string name="btn_mutagen">Tinkerer\'s Serum</string>
@@ -93,6 +102,22 @@
     <string name="tile_steps">%1$d steps</string>
     <!-- today's distance, estimated from an average stride -->
     <string name="tile_distance">%1$.1f km</string>
+
+    <!--
+      Ambient flavor and tips cycled in the small tile at the foot of the home
+      screen, below Dev Reset. Nothing reads which one is showing, so this list
+      is edited or extended by changing entries here and nothing else.
+    -->
+    <string-array name="gameplay_tips">
+        <item>Battle Rats can\'t go on Expeditions while designated.</item>
+        <item>The Boiler Baron waits somewhere past Level 30…</item>
+        <item>Long-press most tiles for a quick explainer.</item>
+        <item>Splicing two rats at the Fusion Pot mints one new one.</item>
+        <item>Rustbringer, the last boss, never stops appearing once you reach it.</item>
+        <item>Keep the streak alive — the lantern only gets brighter.</item>
+        <item>Shiny rats are rare. Check the Ledger\'s Shiny filter.</item>
+        <item>Contracts and Tasks pay differently — read the fine print.</item>
+    </string-array>
 
     <!--
       What's New, shown once after an update.
@@ -277,7 +302,6 @@ RARE DROP: %2$s</string>
     <string name="contract_active_reward">Pays %1$d Scrap on completion</string>
 
     <string name="mission_checking_roster">Checking Roster…</string>
-    <string name="expedition_status">Rat Scavenging… (Tap Status)</string>
 
     <!-- Golden Wrench -->
     <string name="shop_name_wrench">Golden Wrench</string>

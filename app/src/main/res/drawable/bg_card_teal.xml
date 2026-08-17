@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  bg_card_white's combat counterpart: same shape, the cool teal_bg/teal_border
+  pair instead of card_white/card_border. Used for the Shop's Combat section
+  item cards, so Revive Token, Power Surge and the Golden Wrench read as one
+  visual language distinct from the warm sections around them.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/teal_bg" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/teal_border" />
+    <corners android:radius="16dp" />
+</shape>

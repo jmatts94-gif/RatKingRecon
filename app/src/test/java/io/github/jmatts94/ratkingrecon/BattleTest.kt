@@ -161,7 +161,7 @@ class BattleTest {
     /** The bot having a Special is what makes an even fight actually even. */
     @Test
     fun `an ordinary encounter is now losable`() {
-        val rat = RatEntity(artKey = "flux_pic", name = "R", power = 5, toughness = 5, shiny = false)
+        val rat = RatEntity(artKey = "bolt_pic", name = "R", power = 5, toughness = 5, shiny = false)
         val bot = RustbotFactory.forEncounter(20, rat)
 
         // The ramp lives in HP now. Power stops at parity however high it goes,
@@ -178,7 +178,7 @@ class BattleTest {
     /** And the Shop is what turns it back around. */
     @Test
     fun `a combat item turns a losing encounter into a win`() {
-        val rat = RatEntity(artKey = "flux_pic", name = "R", power = 5, toughness = 5, shiny = false)
+        val rat = RatEntity(artKey = "bolt_pic", name = "R", power = 5, toughness = 5, shiny = false)
         val bot = RustbotFactory.forEncounter(20, rat)
         val encounter = Encounter(1, bot.name, bot.power, bot.maxHp, 0)
 
@@ -203,7 +203,7 @@ class BattleTest {
      */
     @Test
     fun `a level one encounter is winnable but not free`() {
-        val rat = RatEntity(artKey = "flux_pic", name = "R", power = 3, toughness = 3, shiny = false)
+        val rat = RatEntity(artKey = "bolt_pic", name = "R", power = 3, toughness = 3, shiny = false)
         val bot = RustbotFactory.forEncounter(1, rat)
 
         assertEquals(2, bot.power)
@@ -219,7 +219,7 @@ class BattleTest {
 
     @Test
     fun `a fight at the top of the ramp is winnable but close`() {
-        val rat = RatEntity(artKey = "flux_pic", name = "R", power = 3, toughness = 3, shiny = false)
+        val rat = RatEntity(artKey = "bolt_pic", name = "R", power = 3, toughness = 3, shiny = false)
         val bot = RustbotFactory.forEncounter(12, rat)
 
         assertEquals("Power stops at parity", 3, bot.power)
@@ -247,7 +247,7 @@ class BattleTest {
     @Test
     fun `auto resolve always terminates`() {
         for (p in 1..10) for (t in 1..10) {
-            val rat = RatEntity(artKey = "flux_pic", name = "R", power = p, toughness = t, shiny = false)
+            val rat = RatEntity(artKey = "bolt_pic", name = "R", power = p, toughness = t, shiny = false)
             for (level in intArrayOf(1, 6, 12, 30)) {
                 val bot = RustbotFactory.forEncounter(level, rat)
                 val done = AutoResolver.resolve(
@@ -273,7 +273,7 @@ class BattleTest {
      */
     @Test
     fun `bot hp scales in points rather than in tens`() {
-        val rat = RatEntity(artKey = "flux_pic", name = "R", power = 4, toughness = 4, shiny = false)
+        val rat = RatEntity(artKey = "bolt_pic", name = "R", power = 4, toughness = 4, shiny = false)
 
         val hps = (1..20).map { RustbotFactory.forEncounter(it, rat).maxHp }
 
@@ -289,7 +289,7 @@ class BattleTest {
         for (level in intArrayOf(1, 12, 14, 40)) {
             for (stat in 1..12) {
                 val rat = RatEntity(
-                    artKey = "flux_pic", name = "R",
+                    artKey = "bolt_pic", name = "R",
                     power = stat, toughness = stat, shiny = false
                 )
                 val bot = RustbotFactory.forEncounter(level, rat)
@@ -306,7 +306,7 @@ class BattleTest {
     fun `difficulty does not depend on how big the rat is`() {
         val outcomes = intArrayOf(2, 3, 4, 6, 8, 10, 12).map { stat ->
             val rat = RatEntity(
-                artKey = "flux_pic", name = "R",
+                artKey = "bolt_pic", name = "R",
                 power = stat, toughness = stat, shiny = false
             )
             val bot = RustbotFactory.forEncounter(40, rat)

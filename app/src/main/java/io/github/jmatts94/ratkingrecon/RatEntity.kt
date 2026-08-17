@@ -68,4 +68,27 @@ data class RatEntity(
 
     /** Combined stat line, used to pick splice fodder and to rank the binder. */
     val score: Int get() = power + toughness
+
+    /**
+     * The species [artKey] belongs to, looked up fresh rather than stored.
+     *
+     * Same reasoning as [imageRes]: rarity lives on [Roster], not on this row,
+     * so a rat's tier is always read from the roster of today rather than
+     * frozen at mint time. Null for an artKey the current roster no longer
+     * recognises - an old save's fallback art, say - in which case no rarity
+     * bonus applies rather than guessing one.
+     */
+    val rarity: String? get() = Roster.all.firstOrNull { it.artKey == artKey }?.rarity
+
+    /** Power with the rarity bonus folded in. What combat and every display use. */
+    val effectivePower: Int get() = power + Roster.statBonusFor(rarity)
+
+    /** Toughness with the rarity bonus folded in. */
+    val effectiveToughness: Int get() = toughness + Roster.statBonusFor(rarity)
+
+    /** Battle HP off the boosted Toughness rather than the stored one. */
+    val effectiveMaxHp: Int get() = effectiveToughness * 10 + bonusHp
+
+    /** Gears the rarity badge draws: one for Common, two for Rare, three for Legendary. */
+    val gearCount: Int get() = Roster.gearCountFor(rarity)
 }

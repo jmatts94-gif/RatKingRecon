@@ -31,7 +31,12 @@ class ShopActivity : AppCompatActivity() {
     private lateinit var scrapText: TextView
 
     /** A drawn row, kept so [refresh] can restate its price, state and count. */
-    private class Row(val item: ShopItem, val button: MaterialButton, val body: TextView)
+    private class Row(
+        val item: ShopItem,
+        val category: ShopCategory,
+        val button: MaterialButton,
+        val body: TextView
+    )
 
     private val rows = mutableListOf<Row>()
 
@@ -71,7 +76,7 @@ class ShopActivity : AppCompatActivity() {
             val list = section.findViewById<LinearLayout>(R.id.categoryItems)
             when {
                 category.items.isNotEmpty() ->
-                    category.items.forEach { list.addView(buildRow(inflater, list, it)) }
+                    category.items.forEach { list.addView(buildRow(inflater, list, it, category)) }
 
                 // A section with nothing in it and nothing to say draws its
                 // heading alone, which is what "built but empty" looks like.
@@ -86,10 +91,27 @@ class ShopActivity : AppCompatActivity() {
         }
     }
 
-    private fun buildRow(inflater: LayoutInflater, parent: ViewGroup, item: ShopItem): View {
+    private fun buildRow(
+        inflater: LayoutInflater,
+        parent: ViewGroup,
+        item: ShopItem,
+        category: ShopCategory
+    ): View {
         val row = inflater.inflate(R.layout.view_shop_item, parent, false)
+        row.background = ContextCompat.getDrawable(this, category.cardBackgroundRes)
 
-        row.findViewById<ImageView>(R.id.itemIcon).setImageResource(item.iconRes)
+        val icon = row.findViewById<ImageView>(R.id.itemIcon)
+        icon.setImageResource(item.iconRes)
+        // Power Surge and the Golden Wrench share their icons (ic_power, ic_sparkle)
+        // with unrelated uses elsewhere - the rat card's Power stat, Shiny Polish,
+        // the PULSE frame - so the teal has to be a tint on this one ImageView
+        // rather than baked into the drawable, or it would bleed into all of them.
+        icon.imageTintList = if (isCombatBuffIcon(item)) {
+            ContextCompat.getColorStateList(this, R.color.teal_fill)
+        } else {
+            null
+        }
+
         row.findViewById<TextView>(R.id.itemName).setText(item.nameRes)
 
         val body = row.findViewById<TextView>(R.id.itemBody)
@@ -102,8 +124,15 @@ class ShopActivity : AppCompatActivity() {
         val buy = row.findViewById<MaterialButton>(R.id.itemBuyButton)
         buy.setOnClickListener { purchase(item) }
 
-        rows += Row(item, buy, body)
+        rows += Row(item, category, buy, body)
         return row
+    }
+
+    /** True for the two Combat items whose icon means something else everywhere else it's drawn. */
+    private fun isCombatBuffIcon(item: ShopItem): Boolean {
+        val effect = item.effect
+        return effect is ShopEffect.Flag &&
+            (effect.key == ShopEffects.KEY_POWER_SURGE || effect.key == ShopEffects.KEY_GOLDEN_WRENCH)
     }
 
     // ---- buying --------------------------------------------------------------
@@ -269,7 +298,7 @@ class ShopActivity : AppCompatActivity() {
         scrapText.text = prefs.getInt(GameEngine.KEY_SCRAP, 0).toString()
 
         for (row in rows) {
-            val label = labelFor(row.item)
+            val label = labelFor(row.item, row.category)
             row.button.text = label.text
             row.button.isEnabled = label.enabled
 
@@ -284,22 +313,27 @@ class ShopActivity : AppCompatActivity() {
             row.button.setTextColor(
                 ContextCompat.getColor(
                     this,
-                    if (label.enabled) R.color.text_primary else R.color.text_muted
+                    if (label.enabled) label.textColor else R.color.text_muted
                 )
             )
         }
     }
 
-    private class Label(val text: String, val enabled: Boolean, val fill: Int = R.color.amber)
+    private class Label(
+        val text: String,
+        val enabled: Boolean,
+        val fill: Int = R.color.amber,
+        val textColor: Int = R.color.text_primary
+    )
 
-    private fun labelFor(item: ShopItem): Label {
+    private fun labelFor(item: ShopItem, category: ShopCategory): Label {
         if (item.unlockLevel > 0 && GameEngine.levelOf(prefs) < item.unlockLevel) {
             return Label(getString(R.string.shop_locked, item.unlockLevel), enabled = false)
         }
-        return labelForUnlocked(item)
+        return labelForUnlocked(item, category)
     }
 
-    private fun labelForUnlocked(item: ShopItem): Label = when (val effect = item.effect) {
+    private fun labelForUnlocked(item: ShopItem, category: ShopCategory): Label = when (val effect = item.effect) {
         is ShopEffect.ComingSoon ->
             Label(getString(R.string.shop_coming_soon_btn), enabled = false)
 
@@ -310,7 +344,7 @@ class ShopActivity : AppCompatActivity() {
             if (prefs.getBoolean(effect.key, false)) {
                 Label(getString(R.string.shop_active), enabled = false)
             } else {
-                Label(price(item), enabled = true)
+                Label(price(item), enabled = true, fill = category.accentFillRes, textColor = category.accentTextRes)
             }
 
         is ShopEffect.Cosmetic -> when {
@@ -321,7 +355,7 @@ class ShopActivity : AppCompatActivity() {
         }
 
         // Charges and actions are repeatable, so they always show their price.
-        else -> Label(price(item), enabled = true)
+        else -> Label(price(item), enabled = true, fill = category.accentFillRes, textColor = category.accentTextRes)
     }
 
     private fun price(item: ShopItem): String =

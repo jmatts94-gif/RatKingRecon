@@ -56,4 +56,16 @@
       as covered by a grey sheet.
     -->
     <color name="coach_scrim">#B84A2F0F</color>
+
+    <!--
+      Combat accent: Power Surge, the Golden Wrench, and everywhere either is
+      shown as armed. Deliberately cool rather than a lighter or darker amber -
+      the app's owner is partially colour blind, and a warm palette leaning on
+      hue alone to separate "combat" from everything else risked landing on a
+      red/green pair they cannot reliably tell apart. Slate teal sits far enough
+      from both amber and rust to read as a different signal by anyone.
+    -->
+    <color name="teal_bg">#EAF3F0</color>
+    <color name="teal_border">#BFDDD5</color>
+    <color name="teal_fill">#3E8A73</color>
 </resources>

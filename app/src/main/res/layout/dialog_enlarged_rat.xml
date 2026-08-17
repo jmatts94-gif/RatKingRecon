@@ -17,13 +17,6 @@
         android:gravity="center"
         android:elevation="10dp">
 
-        <ImageView
-            android:id="@+id/enlargedRatImage"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:scaleType="centerCrop"
-            android:layout_marginBottom="16dp" />
-
         <TextView
             android:id="@+id/enlargedRatName"
             android:layout_width="wrap_content"
@@ -32,30 +25,113 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:text="Rat Name"
+            android:layout_marginBottom="2dp" />
+
+        <!--
+          Read from artKey, independently of enlargedRatName above - the name
+          field is a display name and nothing guarantees it always matches the
+          species (a Spliced Mutant's used to be "Spliced Mutant" outright).
+          This line is the one honest answer to "what species is this."
+        -->
+        <TextView
+            android:id="@+id/enlargedRatSpecies"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_muted"
+            android:textSize="13sp"
+            android:text="Species" />
+
+        <!-- Flavor only, same artKey lookup as the species line above it. -->
+        <TextView
+            android:id="@+id/enlargedRatFaction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_muted"
+            android:textSize="13sp"
+            android:text="Faction"
             android:layout_marginBottom="12dp" />
 
+        <FrameLayout
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginBottom="10dp">
+
+            <ImageView
+                android:id="@+id/enlargedRatImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <!-- Rarity, readable before the line below the stats is. -->
+            <LinearLayout
+                android:id="@+id/enlargedRatGears"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="6dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_badge_scrim"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="3dp">
+
+                <ImageView
+                    android:id="@+id/enlargedGear1"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_settings"
+                    android:tint="@color/cream"
+                    android:importantForAccessibility="no" />
+
+                <ImageView
+                    android:id="@+id/enlargedGear2"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="2dp"
+                    android:src="@drawable/ic_settings"
+                    android:tint="@color/cream"
+                    android:importantForAccessibility="no" />
+
+                <ImageView
+                    android:id="@+id/enlargedGear3"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:layout_marginStart="2dp"
+                    android:src="@drawable/ic_settings"
+                    android:tint="@color/cream"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- Same wrap_content-plus-spacer structure as item_rat_card.xml's stat
+             row - see the comment there for why gravity="end" on a weighted
+             TextView opened a gap between the Toughness icon and its number. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="20dp">
 
             <TextView
                 android:id="@+id/enlargedRatPower"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:textColor="@color/text_primary"
                 android:textSize="17sp"
                 android:drawableStart="@drawable/ic_power"
                 android:drawablePadding="6dp"
-                android:text="0"
-                android:layout_marginEnd="28dp" />
+                android:text="0" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
 
             <TextView
                 android:id="@+id/enlargedRatToughness"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center_vertical"
                 android:textColor="@color/text_primary"
                 android:textSize="17sp"
                 android:drawableStart="@drawable/ic_toughness"

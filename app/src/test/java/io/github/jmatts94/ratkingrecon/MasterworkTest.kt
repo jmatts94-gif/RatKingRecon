@@ -46,24 +46,6 @@ class MasterworkTest {
         }
     }
 
-    /**
-     * The roster tags five species lowercase "common" rather than "Common".
-     *
-     * This is the case that a case-sensitive filter would leak, so it is pinned
-     * separately from the tier check above.
-     */
-    @Test
-    fun `species tagged lowercase common are excluded too`() {
-        val lowercaseCommon = Roster.all.filter { it.rarity == "common" }
-        assertTrue("expected the roster to still contain lowercase tags", lowercaseCommon.isNotEmpty())
-
-        val pooled = Masterwork.pool.map { it.artKey }.toSet()
-        for (species in lowercaseCommon) {
-            assertFalse("${species.name} is tagged \"common\" and must not be pooled",
-                species.artKey in pooled)
-        }
-    }
-
     @Test
     fun `the pool is every species above the bottom tier`() {
         val expected = Roster.all.count { !it.rarity.equals("common", ignoreCase = true) }

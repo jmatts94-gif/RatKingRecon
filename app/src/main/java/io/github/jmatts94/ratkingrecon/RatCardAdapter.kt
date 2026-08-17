@@ -23,8 +23,6 @@ import com.google.android.material.card.MaterialCardView
  */
 object CardIcons {
 
-    fun star(context: Context, sizeDp: Int): Drawable? = sized(context, R.drawable.ic_star, sizeDp)
-
     fun battle(context: Context, sizeDp: Int): Drawable? =
         sized(context, R.drawable.ic_power, sizeDp)
 
@@ -75,6 +73,9 @@ class RatCardAdapter(
         val name: TextView = view.findViewById(R.id.cardName)
         val power: TextView = view.findViewById(R.id.cardPower)
         val toughness: TextView = view.findViewById(R.id.cardToughness)
+        val gear1: ImageView = view.findViewById(R.id.cardGear1)
+        val gear2: ImageView = view.findViewById(R.id.cardGear2)
+        val gear3: ImageView = view.findViewById(R.id.cardGear3)
         val overlay: View = view.findViewById(R.id.cardFrameOverlay)
     }
 
@@ -111,30 +112,35 @@ class RatCardAdapter(
         val context = holder.itemView.context
 
         // The stat icons live in item_rat_card.xml, so these are bare numbers.
+        // Effective, not stored - a Rare or Legendary card reads the number it
+        // actually fights with.
         holder.image.setImageResource(pet.imageRes)
-        holder.power.text = pet.power.toString()
-        holder.toughness.text = pet.toughness.toString()
-        holder.name.text = pet.name
+        holder.power.text = pet.effectivePower.toString()
+        holder.toughness.text = pet.effectiveToughness.toString()
 
-        // Shiny marks the start of the label, Battle Rat the end, so a rat that
-        // is both keeps both markers instead of one hiding the other.
-        val onDuty = BattleRat.isBattleRat(prefs, pet.id)
-        val padding = (3 * context.resources.displayMetrics.density).toInt()
-
-        if (pet.shiny) {
-            holder.name.setTextColor(ContextCompat.getColor(context, R.color.shiny_gold))
-            holder.name.setCompoundDrawablesRelative(
-                CardIcons.star(context, 14), null,
-                if (onDuty) CardIcons.battle(context, 14) else null, null
-            )
+        // The star is now part of the name text itself rather than a
+        // compound drawable, so it reads left-to-right as "Name ☆" - Battle
+        // Rat stays a drawable at the far end, the one marker that was never
+        // about the name.
+        holder.name.text = if (pet.shiny) {
+            context.getString(R.string.card_name_shiny, pet.name)
         } else {
-            holder.name.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
-            holder.name.setCompoundDrawablesRelative(
-                null, null,
-                if (onDuty) CardIcons.battle(context, 14) else null, null
-            )
+            pet.name
         }
-        holder.name.compoundDrawablePadding = padding
+        holder.name.setTextColor(
+            ContextCompat.getColor(context, if (pet.shiny) R.color.shiny_gold else R.color.text_primary)
+        )
+
+        val onDuty = BattleRat.isBattleRat(prefs, pet.id)
+        holder.name.setCompoundDrawablesRelative(
+            null, null, if (onDuty) CardIcons.battle(context, 14) else null, null
+        )
+        holder.name.compoundDrawablePadding = (3 * context.resources.displayMetrics.density).toInt()
+
+        // One gear per rarity tier, stacked in the corner of the art.
+        holder.gear1.visibility = if (pet.gearCount >= 1) View.VISIBLE else View.GONE
+        holder.gear2.visibility = if (pet.gearCount >= 2) View.VISIBLE else View.GONE
+        holder.gear3.visibility = if (pet.gearCount >= 3) View.VISIBLE else View.GONE
 
         holder.itemView.setOnClickListener { onCardClick(pet) }
     }

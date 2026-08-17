@@ -120,6 +120,7 @@ class GalleryActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnAll).setOnClickListener { renderGrid("ALL") }
         findViewById<Button>(R.id.btnPower).setOnClickListener { renderGrid("POWER") }
         findViewById<Button>(R.id.btnShiny).setOnClickListener { renderGrid("SHINY") }
+        findViewById<Button>(R.id.btnRarity).setOnClickListener { renderGrid("RARITY") }
 
         // Initial draw
         renderGrid("ALL")
@@ -143,11 +144,15 @@ class GalleryActivity : AppCompatActivity() {
                 return@launch
             }
 
+            // Rolled once and kept: the species this mutant actually is, not
+            // the generic "Spliced Mutant" label that used to hide it. isSpliced
+            // is still what marks its origin - the name no longer has to.
+            val species = Fusion.roll()
             val mutant = RatEntity(
-                artKey = Fusion.roll().artKey,
+                artKey = species.artKey,
                 power = maxOf(parents[0].power, parents[1].power) + 1,
                 toughness = maxOf(parents[0].toughness, parents[1].toughness) + 1,
-                name = "Spliced Mutant",
+                name = species.name,
                 shiny = (1..5).random() == 1,
                 isSpliced = true
             )
@@ -184,6 +189,15 @@ class GalleryActivity : AppCompatActivity() {
                 when (filter) {
                     "POWER" -> dao.byPowerDesc()
                     "SHINY" -> dao.shinyOnly()
+                    // Rarity is derived from artKey, not a column, so this
+                    // can't be a @Query like the others - sorted in Kotlin
+                    // instead, rarest first, ties broken by the same combined
+                    // stat line the cards themselves rank by.
+                    "RARITY" -> dao.all().sortedWith(
+                        compareByDescending<RatEntity> { it.gearCount }
+                            .thenByDescending { it.effectivePower + it.effectiveToughness }
+                            .thenBy { it.id }
+                    )
                     else -> dao.all()
                 }
             }
@@ -232,31 +246,46 @@ class GalleryActivity : AppCompatActivity() {
         // 1. Hook up the UI Elements
         val enlargedImage = dialog.findViewById<ImageView>(R.id.enlargedRatImage)
         val nameText = dialog.findViewById<TextView>(R.id.enlargedRatName)
+        val speciesText = dialog.findViewById<TextView>(R.id.enlargedRatSpecies)
+        val factionText = dialog.findViewById<TextView>(R.id.enlargedRatFaction)
         val powerText = dialog.findViewById<TextView>(R.id.enlargedRatPower)
         val toughnessText = dialog.findViewById<TextView>(R.id.enlargedRatToughness)
+        val gear1 = dialog.findViewById<ImageView>(R.id.enlargedGear1)
+        val gear2 = dialog.findViewById<ImageView>(R.id.enlargedGear2)
+        val gear3 = dialog.findViewById<ImageView>(R.id.enlargedGear3)
         val deployButton = dialog.findViewById<Button>(R.id.deployScrapyardButton)
         val battleRatButton = dialog.findViewById<Button>(R.id.battleRatButton)
         val closeButton = dialog.findViewById<Button>(R.id.closeEnlargedButton)
 
         // 2. Set the Visuals and Stats
         enlargedImage.setImageResource(pet.imageRes)
-        powerText.text = pet.power.toString()
-        toughnessText.text = pet.toughness.toString()
+        powerText.text = pet.effectivePower.toString()
+        toughnessText.text = pet.effectiveToughness.toString()
+        gear1.visibility = if (pet.gearCount >= 1) View.VISIBLE else View.GONE
+        gear2.visibility = if (pet.gearCount >= 2) View.VISIBLE else View.GONE
+        gear3.visibility = if (pet.gearCount >= 3) View.VISIBLE else View.GONE
 
-        nameText.text = pet.name
+        // Read from artKey rather than trusted from pet.name - the one place
+        // on this screen that answers "what species is this" regardless of
+        // what the name field happens to say. Faction rides the same lookup,
+        // since it is flavor drawn from the same roster entry.
+        val species = Roster.all.firstOrNull { it.artKey == pet.artKey }
+        speciesText.text = getString(R.string.enlarged_rat_species, species?.name ?: pet.name)
+        factionText.text = getString(
+            R.string.enlarged_rat_faction,
+            species?.faction ?: getString(R.string.enlarged_rat_faction_unknown)
+        )
+
+        // The star is part of the name text now, not a compound drawable -
+        // Battle Rat stays a drawable at the far end, unaffected.
         val onDuty = BattleRat.isBattleRat(prefs, pet.id)
-        if (pet.shiny) {
-            nameText.setTextColor(ContextCompat.getColor(this, R.color.shiny_gold))
-            nameText.setCompoundDrawablesRelative(
-                CardIcons.star(this, 22), null,
-                if (onDuty) CardIcons.battle(this, 22) else null, null
-            )
-        } else {
-            nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
-            nameText.setCompoundDrawablesRelative(
-                null, null, if (onDuty) CardIcons.battle(this, 22) else null, null
-            )
-        }
+        nameText.text = if (pet.shiny) getString(R.string.card_name_shiny, pet.name) else pet.name
+        nameText.setTextColor(
+            ContextCompat.getColor(this, if (pet.shiny) R.color.shiny_gold else R.color.text_primary)
+        )
+        nameText.setCompoundDrawablesRelative(
+            null, null, if (onDuty) CardIcons.battle(this, 22) else null, null
+        )
         nameText.compoundDrawablePadding = dp(6)
 
         // The same button stands a rat down again, the way buying an equipped

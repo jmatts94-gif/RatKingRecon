@@ -267,11 +267,19 @@ data class Encounter(
      * rather than read here so the simulator stays a pure function of the
      * numbers handed to it - which is what keeps the manual and Auto-Resolve
      * paths impossible to drift apart.
+     *
+     * Fights on [RatEntity.effectivePower]/[RatEntity.effectiveMaxHp], not the
+     * stored stats - deliberately the one place the rarity bonus is spent.
+     * [RustbotFactory.forEncounter] sizes [botPower]/[botMaxHp] off the same
+     * rat's *stored* stats back when the encounter was raised, exactly the way
+     * it has always ignored whatever Loadout would later apply too - so a
+     * Rare or Legendary rat is fighting an opponent sized for a plainer rat of
+     * its same base stats, not one that grew to match it.
      */
     fun toBattle(rat: RatEntity, loadout: Loadout = Loadout.NONE): Battle = Battle(
         ratName = rat.name,
-        ratPower = loadout.powerFor(rat.power),
-        ratMaxHp = loadout.maxHpFor(rat.maxHp),
+        ratPower = loadout.powerFor(rat.effectivePower),
+        ratMaxHp = loadout.maxHpFor(rat.effectiveMaxHp),
         botName = botName,
         botPower = botPower,
         botMaxHp = botMaxHp

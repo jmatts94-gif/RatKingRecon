@@ -88,18 +88,6 @@ class FusionTest {
     // --- case handling --------------------------------------------------------
 
     @Test
-    fun `lowercase rarity tags still land in their tier`() {
-        val lowercase = Roster.all.filter { it.rarity == "common" }
-        assertTrue("the roster no longer has lowercase tags to check", lowercase.isNotEmpty())
-
-        val commonKeys = Roster.common.map { it.artKey }.toSet()
-        lowercase.forEach {
-            assertTrue("${it.name} is tagged \"common\" but is not in the Common tier",
-                it.artKey in commonKeys)
-        }
-    }
-
-    @Test
     fun `withRarity ignores case in the query too`() {
         assertEquals(Roster.common.size, Roster.withRarity("COMMON").size)
         assertEquals(Roster.common.size, Roster.withRarity("common").size)

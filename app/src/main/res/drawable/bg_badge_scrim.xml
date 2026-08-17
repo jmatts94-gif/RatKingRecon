@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Behind the gear badge in a card's top-left corner. The photos it sits on run
+  from near-black workshops to pale steam, so a plain icon would vanish on
+  some and stay opaque on others - this gives every gear the same soft chip to
+  read against regardless of what is under it. shadow_warm's hue, not
+  coach_scrim's - that one was tuned to dim a whole screen, not to read as a
+  small badge.
+
+  Opacity dropped from an early 80% (0xCC), which read as a dark box sitting
+  on the art rather than a badge that belonged to it. 30% (0x4D) is enough to
+  keep a cream gear legible on the palest cartoon background without the chip
+  itself competing with the art underneath it.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#4D4A2F0F" />
+    <corners android:radius="6dp" />
+</shape>

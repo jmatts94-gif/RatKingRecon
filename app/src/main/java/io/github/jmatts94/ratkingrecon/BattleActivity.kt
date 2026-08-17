@@ -7,6 +7,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,9 @@ class BattleActivity : AppCompatActivity() {
     private lateinit var ratStats: TextView
     private lateinit var ratHpBar: ProgressBar
     private lateinit var ratImage: ImageView
+    private lateinit var activeBuffBadge: View
+    private lateinit var activeBuffIcon: ImageView
+    private lateinit var activeBuffLabel: TextView
     private lateinit var logView: TextView
     private lateinit var btnAttack: MaterialButton
     private lateinit var btnDefend: MaterialButton
@@ -40,6 +44,9 @@ class BattleActivity : AppCompatActivity() {
     private lateinit var btnLeave: MaterialButton
 
     private val lines = mutableListOf<String>()
+
+    /** Icon and name of whichever combat buff rode into this fight, if either did. */
+    private var armedBuff: Pair<Int, Int>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +59,9 @@ class BattleActivity : AppCompatActivity() {
         ratStats = findViewById(R.id.ratStats)
         ratHpBar = findViewById(R.id.ratHpBar)
         ratImage = findViewById(R.id.ratImage)
+        activeBuffBadge = findViewById(R.id.activeBuffBadge)
+        activeBuffIcon = findViewById(R.id.activeBuffIcon)
+        activeBuffLabel = findViewById(R.id.activeBuffLabel)
         logView = findViewById(R.id.battleLog)
         btnAttack = findViewById(R.id.btnAttack)
         btnDefend = findViewById(R.id.btnDefend)
@@ -81,22 +91,31 @@ class BattleActivity : AppCompatActivity() {
             encounter = loaded.first
             rat = loaded.second
 
+            val prefs = RatRepository.prefs(this@BattleActivity)
+
             // Combat still works without a designation - it just picks the
             // strongest rat, as it always did. Said once, here, because this is
             // where a player is looking at the consequence of not having chosen.
-            if (!BattleRat.isSet(RatRepository.prefs(this@BattleActivity))) {
+            if (!BattleRat.isSet(prefs)) {
                 Toast.makeText(
                     this@BattleActivity,
                     R.string.toast_no_battle_rat,
                     Toast.LENGTH_SHORT
                 ).show()
             }
+
+            // Read before the fight can settle and clear it: the flag this
+            // fight was carried into is what the badge shows for its whole
+            // length, not whatever is armed by the time the player looks.
+            armedBuff = when {
+                ShopEffects.wrenchArmed(prefs) -> R.drawable.ic_sparkle to R.string.shop_name_wrench
+                ShopEffects.powerSurgeArmed(prefs) -> R.drawable.ic_power to R.string.shop_name_surge
+                else -> null
+            }
+
             // Whatever the Shop has armed rides on this fight; EncounterResolver
             // burns it when the fight settles.
-            battle = encounter.toBattle(
-                rat,
-                ShopEffects.loadoutFor(RatRepository.prefs(this@BattleActivity))
-            )
+            battle = encounter.toBattle(rat, ShopEffects.loadoutFor(prefs))
 
             // Opens the log, so the card has something in it before round one
             // and the fight starts by saying what turned up rather than by
@@ -116,6 +135,20 @@ class BattleActivity : AppCompatActivity() {
         ratImage.setImageResource(rat.imageRes)
         botHpBar.max = battle.botMaxHp
         ratHpBar.max = battle.ratMaxHp
+
+        val buff = armedBuff
+        if (buff == null) {
+            activeBuffBadge.visibility = View.GONE
+        } else {
+            val (iconRes, labelRes) = buff
+            activeBuffIcon.setImageResource(iconRes)
+            // ic_power and ic_sparkle both mean other things elsewhere on this
+            // very screen (the Attack and Special buttons), so the teal has to
+            // be a tint on this one ImageView rather than baked into the icon.
+            activeBuffIcon.imageTintList = ContextCompat.getColorStateList(this, R.color.teal_fill)
+            activeBuffLabel.setText(labelRes)
+            activeBuffBadge.visibility = View.VISIBLE
+        }
     }
 
     private fun wireActions() {

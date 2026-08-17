@@ -1,5 +1,6 @@
 package io.github.jmatts94.ratkingrecon
 
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 
@@ -70,12 +71,20 @@ data class ShopItem(
  *
  * An empty [items] draws [emptyBodyRes] in a placeholder panel, or - when that
  * is left at zero - just the heading, for a section that is deliberately bare.
+ *
+ * [cardBackgroundRes], [accentFillRes] and [accentTextRes] default to the warm
+ * treatment every section but Combat uses. Combat overrides all three to the
+ * cool teal palette, so its cards and price-pills read as one visual language
+ * distinct from the rest of the shelf - see [ShopActivity]'s "combat" colours.
  */
 data class ShopCategory(
     @param:StringRes val titleRes: Int,
     @param:StringRes val subtitleRes: Int,
     val items: List<ShopItem> = emptyList(),
-    @param:StringRes val emptyBodyRes: Int = 0
+    @param:StringRes val emptyBodyRes: Int = 0,
+    @param:DrawableRes val cardBackgroundRes: Int = R.drawable.bg_card_white,
+    @param:ColorRes val accentFillRes: Int = R.color.amber,
+    @param:ColorRes val accentTextRes: Int = R.color.text_primary
 )
 
 /**
@@ -136,6 +145,9 @@ object Shop {
     private val combat = ShopCategory(
         titleRes = R.string.shop_cat_combat,
         subtitleRes = R.string.shop_cat_combat_sub,
+        cardBackgroundRes = R.drawable.bg_card_teal,
+        accentFillRes = R.color.teal_fill,
+        accentTextRes = R.color.teal_bg,
         items = listOf(
             ShopItem(
                 price = 100,

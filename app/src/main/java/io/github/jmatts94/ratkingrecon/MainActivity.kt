@@ -43,6 +43,12 @@ class MainActivity : AppCompatActivity() {
          * returning to the screen does not feel like waiting for an animation.
          */
         const val GLOW_FADE_MS = 280L
+
+        /** How long each tip sits before the next one, inside the 6-8s the note asked for. */
+        const val TIP_INTERVAL_MS = 7_000L
+
+        /** Half of the crossfade - out then back in, so the swap is never a cut. */
+        const val TIP_FADE_MS = 400L
     }
 
     private val ticker = Handler(Looper.getMainLooper())
@@ -63,6 +69,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** The flavor lines at the foot of the screen, read once from strings.xml. */
+    private val gameplayTips: Array<String> by lazy { resources.getStringArray(R.array.gameplay_tips) }
+    private var tipIndex = 0
+
+    /** Crossfades the tip tile to its next line, rather than cutting between them. */
+    private val tipTick = object : Runnable {
+        override fun run() {
+            showNextTip()
+            ticker.postDelayed(this, TIP_INTERVAL_MS)
+        }
+    }
+
     private var bountyReward = 0
     private var isBountyActive = false
     private var bountyTargetSteps = 0f // We use a float because the sensor uses floats
@@ -80,6 +98,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var scrapText: TextView
     private lateinit var playerLevelText: TextView
     private lateinit var stepCountText: TextView
+    private lateinit var tipText: TextView
 
     /**
      * While this timestamp is in the future the freshly hatched rat stays on
@@ -161,6 +180,8 @@ class MainActivity : AppCompatActivity() {
         scrapText = findViewById(R.id.scrapText)
         playerLevelText = findViewById(R.id.playerLevelText)
         stepCountText = findViewById(R.id.stepCountText)
+        tipText = findViewById(R.id.tipText)
+        tipText.text = gameplayTips.getOrNull(tipIndex)
 
         // 3. WAKE UP ROUTINE (Fixed: Now using "SaveData" to match the rest of your app)
         sharedPreferences = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
@@ -217,10 +238,11 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.streakTile).setOnClickListener { showDailyQuest() }
 
-        // The other two tiles carry no tap of their own, so the explainer is the
-        // only thing a press on them does. setOnLongClickListener makes a view
-        // long-clickable by itself, which is why neither needs to be marked so
-        // in the layout the way the streak tile is for its click.
+        // The tile is the only surviving way to collect a finished Scrap Run
+        // now that the old status bar under Shop is gone - checkExpedition()
+        // already handles "nothing out" and "still running" gracefully, so
+        // wiring the tap straight to it needs no extra state here.
+        findViewById<View>(R.id.expeditionTile).setOnClickListener { checkExpedition() }
         Tooltip.attachTo(
             findViewById(R.id.expeditionTile),
             R.string.tooltip_expedition_title,
@@ -234,6 +256,10 @@ class MainActivity : AppCompatActivity() {
             R.string.tooltip_lifetime_title,
             R.string.tooltip_lifetime_body
         )
+        // Steps are the one tile with no tap of its own - the explainer is all
+        // a press on it does, and setOnLongClickListener makes it long-clickable
+        // by itself, which is why it carries no android:clickable in the layout
+        // the way the other two tiles now do.
         Tooltip.attachTo(
             findViewById(R.id.stepsTile),
             R.string.tooltip_steps_title,
@@ -242,10 +268,6 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.achievementsButton).setOnClickListener {
             startActivity(android.content.Intent(this, AchievementsActivity::class.java))
-        }
-
-        findViewById<Button>(R.id.activeExpeditionButton).setOnClickListener {
-            checkExpedition()
         }
 
         findViewById<Button>(R.id.devResetButton).setOnClickListener {
@@ -311,18 +333,7 @@ class MainActivity : AppCompatActivity() {
         expText.text = "${currentExp.toInt()} / $maxExp EXP"
 
         updateEggStage()
-
-        // --- THE NEW DYNAMIC STATUS BAR LOGIC ---
-        val activeExpeditionButton = findViewById<Button>(R.id.activeExpeditionButton)
-
-        if (isExpeditionActive) {
-            // Rat is out! Show the green status bar.
-            activeExpeditionButton.visibility = View.VISIBLE
-        } else {
-            // No rat out! Hide the green status bar.
-            activeExpeditionButton.visibility = View.GONE
-        }
-    } // <--- THIS BRACKET WAS MISSING!
+    }
 
     /**
      * Explains the consumables the first time they unlock, then never again.
@@ -488,12 +499,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
+     * Fades the tip tile to its next line rather than swapping it under the
+     * player's eye. Out, swap the text while invisible, back in - a cut would
+     * read as a glitch on something that is meant to sit quietly.
+     */
+    private fun showNextTip() {
+        if (gameplayTips.isEmpty()) return
+        tipIndex = (tipIndex + 1) % gameplayTips.size
+
+        tipText.animate()
+            .alpha(0f)
+            .setDuration(TIP_FADE_MS)
+            .withEndAction {
+                tipText.text = gameplayTips[tipIndex]
+                tipText.animate().alpha(1f).setDuration(TIP_FADE_MS).start()
+            }
+            .start()
+    }
+
+    /**
      * The Scrap Run tile: what is out, and how long is left of it.
      *
-     * Reads the run ShopEffects records and writes nothing back - starting and
-     * collecting both still happen on the Ledger. A run whose end time has
-     * passed stays active until it is collected, so that window gets a label of
-     * its own rather than counting down past zero.
+     * Reads the run ShopEffects records; a tap on the tile is what writes back
+     * and collects (see checkExpedition()) - starting still happens on the
+     * Ledger. A run whose end time has passed stays active until it is
+     * collected, so that window gets a label of its own rather than counting
+     * down past zero.
      */
     private fun updateExpeditionTile() {
         val status = findViewById<TextView>(R.id.expeditionStatus)
@@ -572,6 +603,7 @@ class MainActivity : AppCompatActivity() {
         reloadProgress()
         updateScreen()
         ticker.postDelayed(tick, TICK_MS)
+        ticker.postDelayed(tipTick, TIP_INTERVAL_MS)
         maybeStartBankedBoss()
 
         // The walkthrough of this screen, once, after the splash has finished
@@ -652,6 +684,7 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         ticker.removeCallbacks(tick)
+        ticker.removeCallbacks(tipTick)
         unregisterReceiver(stateReceiver)
     }
 

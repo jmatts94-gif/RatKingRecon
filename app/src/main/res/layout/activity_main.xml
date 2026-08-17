@@ -219,8 +219,9 @@
                 android:clipToPadding="false">
 
                 <!--
-                  Scrap Run status. Display only - a run is still started and
-                  collected on the Ledger, and this never claims one.
+                  Scrap Run status. A run is still started on the Ledger, but
+                  this tile is now also where it is collected - tapping it once
+                  a run has finished is what pays out the reward.
                 -->
                 <LinearLayout
                     android:id="@+id/expeditionTile"
@@ -235,7 +236,9 @@
                     android:elevation="6dp"
                     android:outlineAmbientShadowColor="@color/shadow_warm"
                     android:outlineSpotShadowColor="@color/shadow_warm"
-                    tools:targetApi="28">
+                    tools:targetApi="28"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <ImageView
                         android:id="@+id/expeditionIcon"
@@ -445,35 +448,14 @@
             app:iconTint="@color/text_primary"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            app:backgroundTint="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cornerRadius="16dp"
-            app:elevation="6dp"
+            android:background="@drawable/bg_pill_tan"
+            app:backgroundTint="@null"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipToOutline="true"
+            android:elevation="6dp"
             android:outlineAmbientShadowColor="@color/shadow_warm"
             android:outlineSpotShadowColor="@color/shadow_warm"
             tools:targetApi="28"
-            android:layout_marginBottom="8dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/activeExpeditionButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/expedition_status"
-            app:icon="@drawable/ic_pets"
-            app:iconGravity="textStart"
-            app:iconPadding="10dp"
-            app:iconTint="@color/text_primary"
-            android:textAllCaps="false"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            app:backgroundTint="@color/amber"
-            app:cornerRadius="16dp"
-            app:elevation="6dp"
-            android:outlineAmbientShadowColor="@color/shadow_warm"
-            android:outlineSpotShadowColor="@color/shadow_warm"
-            tools:targetApi="28"
-            android:visibility="gone"
             android:layout_marginBottom="8dp" />
 
         <!--
@@ -492,11 +474,11 @@
             app:iconTint="@color/text_primary"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            app:backgroundTint="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cornerRadius="16dp"
-            app:elevation="6dp"
+            android:background="@drawable/bg_pill_tan"
+            app:backgroundTint="@null"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipToOutline="true"
+            android:elevation="6dp"
             android:outlineAmbientShadowColor="@color/shadow_warm"
             android:outlineSpotShadowColor="@color/shadow_warm"
             tools:targetApi="28"
@@ -513,11 +495,11 @@
             app:iconTint="@color/text_primary"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            app:backgroundTint="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cornerRadius="16dp"
-            app:elevation="6dp"
+            android:background="@drawable/bg_pill_tan"
+            app:backgroundTint="@null"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipToOutline="true"
+            android:elevation="6dp"
             android:outlineAmbientShadowColor="@color/shadow_warm"
             android:outlineSpotShadowColor="@color/shadow_warm"
             tools:targetApi="28"
@@ -534,11 +516,11 @@
             app:iconTint="@color/text_primary"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            app:backgroundTint="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cornerRadius="16dp"
-            app:elevation="6dp"
+            android:background="@drawable/bg_pill_tan"
+            app:backgroundTint="@null"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipToOutline="true"
+            android:elevation="6dp"
             android:outlineAmbientShadowColor="@color/shadow_warm"
             android:outlineSpotShadowColor="@color/shadow_warm"
             tools:targetApi="28"
@@ -555,11 +537,11 @@
             app:iconTint="@color/text_primary"
             android:textAllCaps="false"
             android:textColor="@color/text_primary"
-            app:backgroundTint="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cornerRadius="16dp"
-            app:elevation="6dp"
+            android:background="@drawable/bg_pill_tan"
+            app:backgroundTint="@null"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipToOutline="true"
+            android:elevation="6dp"
             android:outlineAmbientShadowColor="@color/shadow_warm"
             android:outlineSpotShadowColor="@color/shadow_warm"
             tools:targetApi="28" />
@@ -575,6 +557,50 @@
             android:textColor="@color/text_muted"
             app:backgroundTint="@android:color/transparent"
             app:elevation="0dp" />
+
+        <!--
+          A worn scrap-note in the dead space below Dev Reset: ambient flavor
+          and tips, cycled and crossfaded by MainActivity's tip ticker.
+
+          bg_scrap_note rather than bg_pill_tan or bg_card_muted - no elevation,
+          a flatter parchment tone than the cream page underneath, a visibly
+          darker border than the pill drawables carry, and a tighter corner
+          radius than every pill/tile/button on this screen uses, so this reads
+          as a note tucked into the corner rather than another pill and not
+          supposed to draw the eye the way everything above it does.
+        -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:background="@drawable/bg_scrap_note">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="6dp"
+                android:alpha="0.6"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_quill"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/tipText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxWidth="240dp"
+                android:gravity="center"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:textSize="11sp"
+                android:textColor="@color/text_muted"
+                tools:text="Battle Rats can't go on Expeditions while designated." />
+
+        </LinearLayout>
 
     </LinearLayout>
 
