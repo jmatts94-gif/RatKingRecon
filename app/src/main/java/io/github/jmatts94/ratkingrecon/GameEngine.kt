@@ -198,22 +198,11 @@ object GameEngine {
         val contractName = ActiveContract.load(prefs)?.name
         val bounty = resolveBounty(prefs, editor, totalSteps)
 
-        var level = levelOf(prefs)
-        var exp = expOf(prefs) + gained
-        var hatched: RatEntity? = null
-        var newLevel = 0
+        val banked = bankExp(dao, prefs, editor, gained)
+        val hatched = banked.hatched
+        val level = banked.level
+        val newLevel = banked.newLevel
 
-        if (exp >= maxExpFor(level)) {
-            hatched = rollRat(prefs, editor)
-            // Room assigns the instance id; keep the stored copy so callers see it.
-            hatched = hatched.copy(id = dao.insert(hatched))
-            level += 1
-            newLevel = level
-            exp = 0
-        }
-
-        editor.putInt(KEY_LEVEL, level)
-        editor.putInt(KEY_EXP, exp)
         editor.apply()
 
         // Step milestones latch on every batch: they read a number already in
@@ -259,6 +248,72 @@ object GameEngine {
             contractPaidName = contractName?.takeIf { bounty.first > 0 },
             changed = true
         )
+    }
+
+    /** What banking EXP decided: the level and leftover EXP it lands on, and any hatch. */
+    private data class BankedExp(val level: Int, val exp: Int, val hatched: RatEntity?, val newLevel: Int)
+
+    /**
+     * The one place EXP is actually banked - [onSteps] and [bankBonusExp] both
+     * go through this rather than each keeping their own copy of "did that
+     * cross a level, and does a rat need rolling for it."
+     *
+     * Only ever resolves one level-up per call, same as it always has: a batch
+     * big enough to cross two thresholds at once still only hatches once, and
+     * the overflow past the first is discarded rather than carried into the
+     * next. That is an existing rule this preserves, not a new one - a bonus
+     * grant is small enough that it could not exercise the difference anyway.
+     */
+    private fun bankExp(
+        dao: RatDao,
+        prefs: SharedPreferences,
+        editor: SharedPreferences.Editor,
+        gained: Int
+    ): BankedExp {
+        var level = levelOf(prefs)
+        var exp = expOf(prefs) + gained
+        var hatched: RatEntity? = null
+        var newLevel = 0
+
+        if (exp >= maxExpFor(level)) {
+            hatched = rollRat(prefs, editor)
+            // Room assigns the instance id; keep the stored copy so callers see it.
+            hatched = hatched.copy(id = dao.insert(hatched))
+            level += 1
+            newLevel = level
+            exp = 0
+        }
+
+        editor.putInt(KEY_LEVEL, level)
+        editor.putInt(KEY_EXP, exp)
+        return BankedExp(level, exp, hatched, newLevel)
+    }
+
+    /**
+     * Banks EXP from something other than a walked step - currently the
+     * Foundry-born bonus on a Ledger Task or the Scrap Run. Runs through the
+     * same [bankExp] a step does, so EXP means the same thing and can hatch a
+     * rat the same way, wherever it comes from.
+     *
+     * Deliberately thin next to [onSteps]: no milestone refresh beyond the
+     * collection ones a hatch itself needs, no quest, no encounter, no boss -
+     * those are step-shaped concerns a Ledger Task claim is not.
+     *
+     * [amount] at or below zero is a no-op; every faction bonus this backs is
+     * a positive constant, but a caller passing a computed value should not
+     * have to guard that itself.
+     */
+    fun bankBonusExp(dao: RatDao, prefs: SharedPreferences, amount: Int): RatEntity? {
+        if (amount <= 0) return null
+
+        val editor = prefs.edit()
+        val banked = bankExp(dao, prefs, editor, amount)
+        editor.apply()
+
+        if (banked.hatched != null) {
+            Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+        }
+        return banked.hatched
     }
 
     /**

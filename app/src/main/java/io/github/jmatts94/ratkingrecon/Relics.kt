@@ -130,15 +130,19 @@ object Relics {
     // ---- drops ---------------------------------------------------------------
 
     /**
-     * Rolls this task's relic drop, or null.
+     * Rolls a relic drop at [chance], or null.
      *
-     * The chance belongs to the tier rather than being one number for the whole
-     * board: it used to be a flat 25% everywhere, which made the two-hour task
-     * roughly twelve times the best relic-per-hour rate in the game and left no
-     * reason to run the long ones.
+     * Takes the chance directly rather than a [LedgerTaskTier] - a Ledger Task
+     * still calls this with that tier's own [LedgerTaskTier.relicChance] (which
+     * used to be a flat 25% everywhere, and made the two-hour task roughly
+     * twelve times the best relic-per-hour rate in the game with no reason to
+     * run the long ones), but the Scrap Run has no tier to read a chance off
+     * and a Tinkerer bonus needs to adjust either one before the roll happens,
+     * not after.
      *
-     * Which relic drops is still uniform - the tier changes how often, not what.
+     * Which relic drops is still uniform - the caller decides how often, not
+     * what.
      */
-    fun rollFor(tier: LedgerTaskTier): Relic? =
-        if (Math.random() < tier.relicChance) ALL.random() else null
+    fun rollFor(chance: Double): Relic? =
+        if (Math.random() < chance) ALL.random() else null
 }

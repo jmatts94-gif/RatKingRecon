@@ -178,7 +178,7 @@ class RelicsTest {
     @Test
     fun `a roll only ever returns a relic from the roster`() {
         repeat(500) {
-            Relics.rollFor(LedgerTasks.M3)?.let { assertTrue(it in Relics.ALL) }
+            Relics.rollFor(LedgerTasks.M3.relicChance)?.let { assertTrue(it in Relics.ALL) }
         }
     }
 }

@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -163,13 +164,61 @@ class MainActivity : AppCompatActivity() {
             isExpeditionActive = false
             sharedPreferences.edit().putBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false).apply()
 
-            // Give a massive payout for waiting (e.g., 200 to 500 Scrap)
-            val reward = (200..500).random()
-            val currentScrap = sharedPreferences.getInt(GameEngine.KEY_SCRAP, 0)
-            sharedPreferences.edit().putInt(GameEngine.KEY_SCRAP, currentScrap + reward).apply()
+            // The deployed rat's faction, if any - read off the DAO, so this
+            // has to leave the main thread. Gone entirely (spliced away since
+            // deploying) reads the same as never having named one: no bonus,
+            // not a crash.
+            val ratId = sharedPreferences.getLong("DEPLOYED_RAT_ID", -1L)
 
-            Toast.makeText(this, getString(R.string.toast_expedition_complete, reward), Toast.LENGTH_LONG).show()
-            updateScreen()
+            lifecycleScope.launch {
+                val dao = RatRepository.dao(this@MainActivity)
+                val faction = withContext(Dispatchers.IO) {
+                    if (ratId < 0) null else dao.byId(ratId)?.faction
+                }
+
+                // Give a massive payout for waiting (e.g., 200 to 500 Scrap),
+                // boosted for a Smuggler.
+                val reward = TaskBonuses.scrapFor((200..500).random(), faction)
+                val currentScrap = sharedPreferences.getInt(GameEngine.KEY_SCRAP, 0)
+                sharedPreferences.edit().putInt(GameEngine.KEY_SCRAP, currentScrap + reward).apply()
+
+                // The Scrap Run never rolled for a relic before this - see
+                // TaskBonuses.EXPEDITION_BASE_RELIC_CHANCE.
+                val relicChance = TaskBonuses.relicChanceFor(
+                    TaskBonuses.EXPEDITION_BASE_RELIC_CHANCE, faction
+                )
+                val relic = withContext(Dispatchers.IO) { Relics.rollFor(relicChance) }
+                relic?.let {
+                    val editor = sharedPreferences.edit()
+                    Relics.grant(sharedPreferences, editor, it)
+                    editor.apply()
+                }
+
+                // Foundry-born's bonus EXP, banked through the same path a
+                // walked step would use - see GameEngine.bankBonusExp.
+                val expBonus = TaskBonuses.expFor(TaskBonuses.Activity.EXPEDITION, faction)
+                val hatched = if (expBonus > 0) {
+                    withContext(Dispatchers.IO) {
+                        GameEngine.bankBonusExp(dao, sharedPreferences, expBonus)
+                    }
+                } else {
+                    null
+                }
+
+                Toast.makeText(
+                    this@MainActivity,
+                    if (relic != null) {
+                        getString(R.string.toast_expedition_complete_relic, reward, getString(relic.nameRes))
+                    } else {
+                        getString(R.string.toast_expedition_complete, reward)
+                    },
+                    Toast.LENGTH_LONG
+                ).show()
+
+                reloadProgress()
+                if (hatched != null) celebrateHatch(hatched.artKey, hatched.name)
+                updateScreen()
+            }
         } else {
             // SCENARIO B: STILL WORKING (Tell them how long is left)
             val timeLeftMillis = expeditionEndTime - currentTime

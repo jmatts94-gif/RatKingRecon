@@ -271,10 +271,16 @@ class GalleryActivity : AppCompatActivity() {
         // since it is flavor drawn from the same roster entry.
         val species = Roster.all.firstOrNull { it.artKey == pet.artKey }
         speciesText.text = getString(R.string.enlarged_rat_species, species?.name ?: pet.name)
-        factionText.text = getString(
+        val factionLine = getString(
             R.string.enlarged_rat_faction,
             species?.faction ?: getString(R.string.enlarged_rat_faction_unknown)
         )
+        // What this rat is worth on the Scrap Run, appended so the bonus is a
+        // visible reason to deploy this rat rather than a hidden incentive -
+        // see TaskBonuses.
+        factionText.text = TaskBonuses.descriptionFor(pet.faction)?.let {
+            "$factionLine  ·  ${getString(it)}"
+        } ?: factionLine
 
         // The star is part of the name text now, not a compound drawable -
         // Battle Rat stays a drawable at the far end, unaffected.
@@ -328,9 +334,13 @@ class GalleryActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Set the timer for 4 hours from right now
+            // 4 hours from right now, shortened for a Scavenger or skipped
+            // outright for a Brawler's instant-complete - see TaskBonuses.
+            // Rolled once, here, rather than re-checked on every later look at
+            // the tile: the outcome is decided the moment the rat is sent out.
             val msToAdd = 4 * 60 * 60 * 1000L
-            val endTime = System.currentTimeMillis() + msToAdd
+            val startTime = System.currentTimeMillis()
+            val endTime = TaskBonuses.endTimeFor(startTime, msToAdd, pet.faction)
 
             // Save it to the exact same file the Home Screen checks
             prefs.edit()

@@ -341,7 +341,7 @@ class TasksActivity : AppCompatActivity() {
             playerStat >= reqAmount -> {
                 btn.text = getString(R.string.task_start)
                 tintButton(btn, R.color.amber)
-                btn.setOnClickListener { start(tier) }
+                btn.setOnClickListener { pickRatFor(tier) }
             }
 
             else -> {
@@ -360,41 +360,128 @@ class TasksActivity : AppCompatActivity() {
         }
     }
 
-    private fun start(tier: LedgerTaskTier) {
-        val endAt = System.currentTimeMillis() + tier.durationMs
-        prefs.edit()
-            .putBoolean(LedgerTasks.activeKey(tier.id), true)
-            .putLong(LedgerTasks.endTimeKey(tier.id), endAt)
-            .apply()
+    /**
+     * Which flat Foundry-born EXP amount a tier's slot pays - see
+     * [TaskBonuses.expFor]. A plain id switch rather than a field on
+     * [LedgerTaskTier] itself, since nothing else about a tier needs to know
+     * this and [LedgerTaskTier] is meant to stay a plain data description.
+     */
+    private fun activityFor(tier: LedgerTaskTier): TaskBonuses.Activity = when (tier.id) {
+        "M1" -> TaskBonuses.Activity.LEDGER_M1
+        "M2" -> TaskBonuses.Activity.LEDGER_M2
+        else -> TaskBonuses.Activity.LEDGER_M3
+    }
 
-        // Nothing else is watching the clock, so the alert is armed here.
-        LedgerTaskAlarms.schedule(this, tier.id, endAt)
-        refresh()
+    /**
+     * Offers to name one rat for [tier]'s bonus before starting it - see
+     * [TaskBonuses]. Purely optional: dismissing without picking, or picking
+     * "No rat", starts the job at baseline exactly as it always has.
+     *
+     * The rat named here is not reserved by this - a Ledger Task has never
+     * locked anything up, and naming one for a bonus does not change that.
+     */
+    private fun pickRatFor(tier: LedgerTaskTier) {
+        lifecycleScope.launch {
+            val roster = withContext(Dispatchers.IO) { RatRepository.dao(this@TasksActivity).all() }
+
+            val labels = ArrayList<String>(roster.size + 1)
+            labels += getString(R.string.task_pick_no_rat)
+            labels += roster.map { rat ->
+                val bonus = TaskBonuses.descriptionFor(rat.faction)?.let { getString(it) }
+                if (bonus != null) "${rat.name} — $bonus" else rat.name
+            }
+
+            android.app.AlertDialog.Builder(this@TasksActivity)
+                .setTitle(R.string.task_pick_rat_title)
+                .setItems(labels.toTypedArray()) { _, which ->
+                    val ratId = if (which == 0) LedgerTasks.NO_RAT else roster[which - 1].id
+                    start(tier, ratId)
+                }
+                .setNegativeButton(R.string.btn_close, null)
+                .show()
+        }
+    }
+
+    private fun start(tier: LedgerTaskTier, ratId: Long) {
+        lifecycleScope.launch {
+            val faction = withContext(Dispatchers.IO) {
+                if (ratId == LedgerTasks.NO_RAT) {
+                    null
+                } else {
+                    RatRepository.dao(this@TasksActivity).byId(ratId)?.faction
+                }
+            }
+
+            val startTime = System.currentTimeMillis()
+            val endAt = TaskBonuses.endTimeFor(startTime, tier.durationMs, faction)
+            prefs.edit()
+                .putBoolean(LedgerTasks.activeKey(tier.id), true)
+                .putLong(LedgerTasks.endTimeKey(tier.id), endAt)
+                .putLong(LedgerTasks.assignedRatKey(tier.id), ratId)
+                .apply()
+
+            // Nothing else is watching the clock, so the alert is armed here.
+            // Armed for the bonus-adjusted time, so a Scavenger or an instant
+            // Brawler completion does not leave a stale alert far in the future.
+            LedgerTaskAlarms.schedule(this@TasksActivity, tier.id, endAt)
+            refresh()
+        }
     }
 
     private fun claim(tier: LedgerTaskTier, rewardAmount: Int) {
-        val editor = prefs.edit()
+        lifecycleScope.launch {
+            val dao = RatRepository.dao(this@TasksActivity)
+            val ratId = prefs.getLong(LedgerTasks.assignedRatKey(tier.id), LedgerTasks.NO_RAT)
+            val faction = withContext(Dispatchers.IO) {
+                if (ratId == LedgerTasks.NO_RAT) null else dao.byId(ratId)?.faction
+            }
 
-        var message = getString(R.string.task_success, rewardAmount)
+            val reward = TaskBonuses.scrapFor(rewardAmount, faction)
+            val relicChance = TaskBonuses.relicChanceFor(tier.relicChance, faction)
+            val relic = withContext(Dispatchers.IO) { Relics.rollFor(relicChance) }
 
-        // Scaled by tier now, and counted rather than collected: a second Rusted
-        // Gear used to be dropped on the floor by the Set that stored it.
-        Relics.rollFor(tier)?.let { relic ->
-            Relics.grant(prefs, editor, relic)
-            message = getString(R.string.task_success_relic, rewardAmount, getString(relic.nameRes))
-            GameSounds.play(this, GameSounds.Cue.RELIC)
+            val editor = prefs.edit()
+            relic?.let { Relics.grant(prefs, editor, it) }
+            editor.putInt(GameEngine.KEY_SCRAP, prefs.getInt(GameEngine.KEY_SCRAP, 0) + reward)
+            editor.putBoolean(LedgerTasks.activeKey(tier.id), false)
+            editor.remove(LedgerTasks.assignedRatKey(tier.id))
+
+            // Rerolled here rather than waiting for the next daily pass, so the
+            // slot offers a new job the moment this one is banked.
+            LedgerTasks.reroll(editor, tier)
+            editor.apply()
+
+            if (relic != null) GameSounds.play(this@TasksActivity, GameSounds.Cue.RELIC)
+
+            // Foundry-born's bonus EXP, banked through the same path a walked
+            // step would use - see GameEngine.bankBonusExp. A hatch from this
+            // gets no home-screen reveal (nothing broadcasts off this screen),
+            // just this toast naming the new rat - a deliberately small
+            // consolation for what should be a rare event given how small the
+            // bonus is.
+            val expBonus = TaskBonuses.expFor(activityFor(tier), faction)
+            val hatched = if (expBonus > 0) {
+                withContext(Dispatchers.IO) { GameEngine.bankBonusExp(dao, prefs, expBonus) }
+            } else {
+                null
+            }
+
+            var message = if (relic != null) {
+                getString(R.string.task_success_relic, reward, getString(relic.nameRes))
+            } else {
+                getString(R.string.task_success, reward)
+            }
+            if (hatched != null) {
+                message += "\n" + getString(R.string.task_success_hatch, hatched.name)
+            }
+
+            Toast.makeText(this@TasksActivity, message, Toast.LENGTH_LONG).show()
+
+            // A hatch can change the roster's best stats, so the cache that
+            // would otherwise skip straight back to the old numbers has to go.
+            rosterStats = null
+            refresh()
         }
-
-        editor.putInt(GameEngine.KEY_SCRAP, prefs.getInt(GameEngine.KEY_SCRAP, 0) + rewardAmount)
-        editor.putBoolean(LedgerTasks.activeKey(tier.id), false)
-
-        // Rerolled here rather than waiting for the next daily pass, so the slot
-        // offers a new job the moment this one is banked.
-        LedgerTasks.reroll(editor, tier)
-        editor.apply()
-
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-        refresh()
     }
 
     /**

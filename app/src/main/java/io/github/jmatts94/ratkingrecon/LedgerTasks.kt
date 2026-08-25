@@ -118,6 +118,16 @@ object LedgerTasks {
     fun activeKey(id: String): String = "${id}_ACTIVE"
     fun endTimeKey(id: String): String = "${id}_END_TIME"
 
+    /**
+     * The rat named for this slot's faction bonus, if any - separate from
+     * whether the slot is running, since nothing about a Ledger Task reserves
+     * the rat it names. See [TaskBonuses].
+     */
+    fun assignedRatKey(id: String): String = "${id}_RAT_ID"
+
+    /** No rat named for this slot's bonus. */
+    const val NO_RAT = -1L
+
     /** True while the slot is out on a job, claimed or not. */
     fun isRunning(prefs: SharedPreferences, tier: LedgerTaskTier): Boolean =
         prefs.getBoolean(activeKey(tier.id), false)

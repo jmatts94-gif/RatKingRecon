@@ -17,10 +17,19 @@
     <string name="fusion_pot_text">The Fusion Pot: Fuse 2 Weakest (Cost: 5 Scrap)</string>
     <!-- species name, read from artKey rather than the rat's own name field -->
     <string name="enlarged_rat_species">Species: %1$s</string>
-    <!-- faction, read from artKey the same way species is - flavor only -->
+    <!-- faction, read from artKey the same way species is - also what a Scrap
+         Run or Ledger Task bonus reads, via TaskBonuses -->
     <string name="enlarged_rat_faction">Faction: %1$s</string>
     <!-- shown for an artKey the roster no longer recognises, in place of a faction -->
     <string name="enlarged_rat_faction_unknown">Unaffiliated</string>
+
+    <!-- What each faction is worth to a Scrap Run or Ledger Task, shown beside
+         the faction line above and in the Ledger Task rat picker. See TaskBonuses. -->
+    <string name="task_bonus_smugglers">+15% Scrap on completion</string>
+    <string name="task_bonus_scavengers">10% shorter</string>
+    <string name="task_bonus_tinkerers">+8% relic chance</string>
+    <string name="task_bonus_brawlers">small chance to finish instantly</string>
+    <string name="task_bonus_foundry_born">a little bonus EXP</string>
     <!-- rat name -->
     <string name="card_name_shiny">%1$s ☆</string>
 
@@ -224,6 +233,9 @@
     <string name="toast_no_rats_out">No rats currently in the Scrapyard.</string>
     <!-- reward in Scrap -->
     <string name="toast_expedition_complete">Expedition Complete! Your rat brought back %1$d Scrap!</string>
+    <!-- reward, relic name -->
+    <string name="toast_expedition_complete_relic">Expedition Complete! Your rat brought back %1$d Scrap!
+RARE DROP: %2$s</string>
     <!-- minutes remaining -->
     <string name="toast_expedition_running">Rat is still scavenging... %1$d minutes left.</string>
     <string name="toast_rat_already_out">You already have a rat in the Scrapyard!</string>
@@ -258,6 +270,10 @@
     <!-- reward, relic name -->
     <string name="task_success_relic">Task complete! +%1$d Scrap
 RARE DROP: %2$s</string>
+    <!-- appended to the claim toast when Foundry-born EXP hatched a rat -->
+    <string name="task_success_hatch">New rat: %1$s!</string>
+    <string name="task_pick_rat_title">Assign a rat? (optional)</string>
+    <string name="task_pick_no_rat">No rat - start at baseline</string>
     <string name="tooltip_tasks_title">Ledger Tasks</string>
     <string name="tooltip_tasks_body">Timed jobs your roster qualifies for on its best stats. Start one, walk away, and claim the Scrap when it finishes.</string>
 
