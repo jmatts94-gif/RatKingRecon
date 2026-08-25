@@ -165,27 +165,62 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/tileColumn"
             app:layout_constraintTop_toTopOf="parent"
-            android:background="@drawable/bg_egg_panel"
+            android:background="@drawable/bg_hatch_panel"
             android:elevation="14dp"
             android:outlineAmbientShadowColor="@color/shadow_warm"
             android:outlineSpotShadowColor="@color/shadow_warm"
             android:clipChildren="false"
             tools:targetApi="28">
 
-            <View
-                android:layout_width="150dp"
-                android:layout_height="30dp"
-                android:layout_gravity="center_horizontal|bottom"
-                android:layout_marginBottom="34dp"
-                android:background="@drawable/egg_contact_shadow" />
+            <!--
+              Faint blueprint linework behind the pipes, matched to the style
+              already on miller_pic.jpg. Its own view rather than baked into
+              hatch_tunnel.xml so it never has to be duplicated into whatever
+              the tunnel art becomes next.
+            -->
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:src="@drawable/bg_hatch_blueprint"
+                android:importantForAccessibility="no" />
 
+            <!--
+              The tunnel and the rat travelling down it - replaces the five-
+              stage cracked egg. No contact shadow beneath them the way the
+              egg had one: that shadow was for a small object resting on the
+              panel floor, and the tunnel fills the panel itself rather than
+              sitting on it.
+            -->
+            <ImageView
+                android:id="@+id/tunnelImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitCenter"
+                android:src="@drawable/hatch_tunnel"
+                android:contentDescription="@string/battle_title" />
+
+            <ImageView
+                android:id="@+id/tunnelRatIcon"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_gravity="top|start"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_rat_silhouette"
+                android:importantForAccessibility="no" />
+
+            <!-- The reveal: shown in place of the tunnel for a few seconds
+                 right after a hatch, exactly where the egg used to reappear
+                 as the new rat - see MainActivity.celebrateHatch. -->
             <ImageView
                 android:id="@+id/petImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="20dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/egg_stage_0" />
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:src="@drawable/hatch_tunnel" />
         </FrameLayout>
 
             <!--

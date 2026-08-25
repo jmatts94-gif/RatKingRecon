@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Faint gear/blueprint linework scattered across the hatch tile's background,
+  behind the pipe - thin schematic circles with crosshair ticks, small gear
+  outlines, a dimension line, scattered bolt dots, all in one muted tone at
+  low opacity. No rat drawn into it on purpose - the tile already has its own
+  rat riding the cart, and this is background texture only.
+
+  Matched by eye to the reference rather than extracted from a resource:
+  there is no standalone texture asset anywhere in this app to pull a
+  drawable from - the closest precedent, miller_pic.jpg, is a flattened JPEG
+  with its own linework baked into the same pixels as the artwork, not a
+  separate layer. This redraws the same motifs as their own small vector at
+  low opacity instead.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="220dp"
+    android:height="220dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Large tick circles, opposite corners. -->
+    <path android:pathData="M93,88 a7,7 0 1,0 -14,0 a7,7 0 1,0 14,0"
+        android:fillColor="#00000000" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M86,81 L86,78.5" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M86,95 L86,97.5" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M79,88 L76.5,88" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M93,88 L95.5,88" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+
+    <path android:pathData="M19,9 a6,6 0 1,0 -12,0 a6,6 0 1,0 12,0"
+        android:fillColor="#00000000" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M13,3 L13,0.8" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M13,15 L13,17.2" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M7,9 L4.8,9" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M19,9 L21.2,9" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+
+    <!-- A third tick circle, bottom middle. -->
+    <path android:pathData="M65,92 a5,5 0 1,0 -10,0 a5,5 0 1,0 10,0"
+        android:fillColor="#00000000" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M60,87 L60,84.5" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M60,97 L60,99.3" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M55,92 L52.5,92" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+    <path android:pathData="M65,92 L67.5,92" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.4" />
+
+    <!-- Small gear outlines, one in each gap between pipe runs. -->
+    <path android:pathData="M34,21 L31.73,22 L32,24.46 L30,23 L28,24.46 L28.27,22 L26,21 L28.27,20 L28,17.54 L30,19 L32,17.54 L31.73,20 Z"
+        android:fillColor="#00000000" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.35" />
+    <path android:pathData="M54,39 L51.73,40 L52,42.46 L50,41 L48,42.46 L48.27,40 L46,39 L48.27,38 L48,35.54 L50,37 L52,35.54 L51.73,38 Z"
+        android:fillColor="#00000000" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.35" />
+    <path android:pathData="M74,57 L71.73,58 L72,60.46 L70,59 L68,60.46 L68.27,58 L66,57 L68.27,56 L68,53.54 L70,55 L72,53.54 L71.73,56 Z"
+        android:fillColor="#00000000" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.35" />
+    <path android:pathData="M54,75 L51.73,76 L52,78.46 L50,77 L48,78.46 L48.27,76 L46,75 L48.27,74 L48,71.54 L50,73 L52,71.54 L51.73,74 Z"
+        android:fillColor="#00000000" android:strokeColor="@color/copper" android:strokeAlpha="0.15" android:strokeWidth="0.35" />
+
+    <!-- A dimension line, and scattered bolt dots. -->
+    <path android:pathData="M35,97 L65,97" android:strokeColor="@color/copper" android:strokeAlpha="0.13" android:strokeWidth="0.3" />
+    <path android:pathData="M35,95 L35,99" android:strokeColor="@color/copper" android:strokeAlpha="0.13" android:strokeWidth="0.3" />
+    <path android:pathData="M65,95 L65,99" android:strokeColor="@color/copper" android:strokeAlpha="0.13" android:strokeWidth="0.3" />
+
+    <path android:pathData="M26,96 a1,1 0 1,0 -2,0 a1,1 0 1,0 2,0" android:fillColor="@color/copper" android:fillAlpha="0.15" />
+    <path android:pathData="M76,4 a1,1 0 1,0 -2,0 a1,1 0 1,0 2,0" android:fillColor="@color/copper" android:fillAlpha="0.15" />
+    <path android:pathData="M91,8 a1,1 0 1,0 -2,0 a1,1 0 1,0 2,0" android:fillColor="@color/copper" android:fillAlpha="0.15" />
+    <path android:pathData="M11,50 a1,1 0 1,0 -2,0 a1,1 0 1,0 2,0" android:fillColor="@color/copper" android:fillAlpha="0.15" />
+    <path android:pathData="M93,72 a1,1 0 1,0 -2,0 a1,1 0 1,0 2,0" android:fillColor="@color/copper" android:fillAlpha="0.15" />
+</vector>

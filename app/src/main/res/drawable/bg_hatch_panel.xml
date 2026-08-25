@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The hatch tile's own background - a separate drawable from bg_egg_panel
+  rather than a recolour of it, since that one is shared with the onboarding
+  walkthrough and changing it there was never asked for. Warm cream fading to
+  tan, top to bottom: notably calmer than bg_egg_panel's amber, which is the
+  point - the tile's own colour recedes behind the pipes now instead of
+  competing with them the way the punchier amber did.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="270"
+        android:startColor="@color/cream"
+        android:endColor="@color/tan" />
+    <corners android:radius="24dp" />
+</shape>

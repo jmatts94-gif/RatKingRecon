@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.graphics.Path
+import android.graphics.PathMeasure
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -94,14 +96,43 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
 
     private lateinit var petImage: ImageView
+    private lateinit var eggPanel: FrameLayout
+    private lateinit var tunnelImage: ImageView
+    private lateinit var tunnelRatIcon: ImageView
     private lateinit var scrapText: TextView
     private lateinit var playerLevelText: TextView
     private lateinit var stepCountText: TextView
     private lateinit var tipText: TextView
 
     /**
+     * The tunnel's centreline, in the same 0..100 viewport hatch_tunnel.xml's
+     * own pathData uses - duplicated from that file rather than parsed out of
+     * it, since a VectorDrawable's pathData isn't available to read back at
+     * runtime. The two must be changed together; see the note in the drawable.
+     *
+     * A snake of five straight runs joined by short drops - top right to
+     * bottom left - rather than a curve. [PathMeasure] does not care which:
+     * it walks arc length along whatever [Path] it is given, so switching
+     * this from cubicTo curves to plain lineTo segments needed no change to
+     * [positionTunnelRat] at all.
+     */
+    private val tunnelPath = Path().apply {
+        moveTo(85f, 12f)
+        lineTo(15f, 12f)
+        lineTo(15f, 30f)
+        lineTo(85f, 30f)
+        lineTo(85f, 48f)
+        lineTo(15f, 48f)
+        lineTo(15f, 66f)
+        lineTo(85f, 66f)
+        lineTo(85f, 84f)
+        lineTo(15f, 84f)
+    }
+    private val tunnelPathMeasure = PathMeasure(tunnelPath, false)
+
+    /**
      * While this timestamp is in the future the freshly hatched rat stays on
-     * screen instead of snapping back to the egg. Walking keeps earning EXP
+     * screen instead of snapping back to the tunnel. Walking keeps earning EXP
      * throughout - this only affects what the image shows.
      */
     private var revealUntil = 0L
@@ -176,6 +207,9 @@ class MainActivity : AppCompatActivity() {
 
         // 2. Initialize UI (We do this FIRST so the buttons exist before we click them)
         petImage = findViewById(R.id.petImage)
+        eggPanel = findViewById(R.id.eggPanel)
+        tunnelImage = findViewById(R.id.tunnelImage)
+        tunnelRatIcon = findViewById(R.id.tunnelRatIcon)
         scrapText = findViewById(R.id.scrapText)
         playerLevelText = findViewById(R.id.playerLevelText)
         stepCountText = findViewById(R.id.stepCountText)
@@ -549,27 +583,48 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Swaps the egg artwork as EXP fills: intact below 25%, a heavier fracture
-     * at each quarter, fully split at 100%. Skipped once hatched, because the
-     * image is showing a rat by then.
-     *
-     * Each stage is a self-contained vector, so swapping in commissioned art
-     * later means pointing these five branches at the new drawables.
+     * Slides the rat icon down the tunnel as EXP fills, at the top when a
+     * level just started and at the tunnel's mouth right as the next hatch
+     * fires. Skipped once hatched - [petImage] is showing the new rat by then,
+     * covering the tunnel entirely, the same swap the egg used to make.
      */
     private fun updateEggStage() {
-        // Leave the just-hatched rat on screen until its moment is up.
-        if (System.currentTimeMillis() < revealUntil) return
+        val revealing = System.currentTimeMillis() < revealUntil
+        petImage.visibility = if (revealing) View.VISIBLE else View.GONE
+        tunnelImage.visibility = if (revealing) View.GONE else View.VISIBLE
+        tunnelRatIcon.visibility = if (revealing) View.GONE else View.VISIBLE
+        if (revealing) return
 
         val progress = if (maxExp <= 0) 0f else currentExp.toFloat() / maxExp
-        petImage.setImageResource(
-            when {
-                progress >= 1.00f -> R.drawable.egg_stage_4
-                progress >= 0.75f -> R.drawable.egg_stage_3
-                progress >= 0.50f -> R.drawable.egg_stage_2
-                progress >= 0.25f -> R.drawable.egg_stage_1
-                else -> R.drawable.egg_stage_0
-            }
-        )
+        positionTunnelRat(progress.coerceIn(0f, 1f))
+    }
+
+    /**
+     * Places [tunnelRatIcon] at [progress] of the way along [tunnelPath].
+     *
+     * Posted rather than applied immediately: [eggPanel] is sized by
+     * ConstraintLayout against the width available (see the layout's own
+     * comment on why it is not a fixed dp), so its measured size is not known
+     * the instant this is first called from onCreate. `post` runs after the
+     * pending layout pass instead of guessing whether one has already
+     * happened.
+     */
+    private fun positionTunnelRat(progress: Float) {
+        eggPanel.post {
+            val panelWidth = eggPanel.width.toFloat()
+            val panelHeight = eggPanel.height.toFloat()
+            if (panelWidth <= 0f || panelHeight <= 0f) return@post
+
+            val point = FloatArray(2)
+            tunnelPathMeasure.getPosTan(progress * tunnelPathMeasure.length, point, null)
+
+            // point[] is in the drawable's 0..100 viewport; hatch_tunnel.xml
+            // fills eggPanel exactly (fitCenter over a square drawable in a
+            // square parent), so scaling by the panel's own pixel size lines
+            // the icon up with the pipe drawn under it.
+            tunnelRatIcon.translationX = point[0] / 100f * panelWidth - tunnelRatIcon.width / 2f
+            tunnelRatIcon.translationY = point[1] / 100f * panelHeight - tunnelRatIcon.height / 2f
+        }
     }
 
     private fun loadGame() {

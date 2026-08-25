@@ -182,7 +182,7 @@
             <ImageView
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:src="@drawable/egg_stage_0"
+                android:src="@drawable/ic_egg"
                 android:alpha="0.55"
                 android:layout_marginBottom="14dp"
                 android:importantForAccessibility="no" />

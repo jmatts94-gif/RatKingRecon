@@ -29,6 +29,14 @@
     <color name="pewter">#9A8B76</color>
 
     <!--
+      The hatch tunnel's pipe (hatch_tunnel.xml) reads as more than two flat
+      tones by stepping through this on the way from shadow_warm's rim down
+      to copper's lit body - one more stop in the same gradient rather than
+      a second colour competing with it.
+    -->
+    <color name="copper_shadow">#8C5426</color>
+
+    <!--
       The moving parts of an animated frame, deliberately brighter than the
       border they sit on. Copper cogs on a copper border read as texture rather
       than as machinery, and pewter steam on white barely reads at all.
