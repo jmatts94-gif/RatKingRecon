@@ -322,6 +322,20 @@ RARE DROP: %2$s</string>
     <!-- boss name -->
     <string name="boss_badge_earned">Badge earned: %1$s defeated for the first time.</string>
 
+    <!-- A boss's named Special. -->
+    <string name="boss_move_gear_smash">Gear Smash</string>
+    <string name="boss_move_rusty_rake">Rusty Rake</string>
+    <string name="boss_move_steam_jet">Steam Jet</string>
+    <string name="boss_move_wire_mesh">Wire Mesh</string>
+
+    <!-- Boss intro/result screens -->
+    <string name="boss_intro_title">Boss Encounter</string>
+    <string name="boss_intro_cta">Begin</string>
+    <string name="boss_result_title_win">Boss Defeated!</string>
+    <string name="boss_result_title_loss">Boss Victorious</string>
+    <!-- reward in Scrap -->
+    <string name="boss_result_reward">+%1$d Scrap</string>
+
     <!-- Achievements -->
     <string name="btn_achievements">Achievements</string>
     <string name="achievements_title">Achievements</string>
@@ -412,6 +426,10 @@ RARE DROP: %2$s</string>
     <string name="battle_revive_done">Back on their feet.</string>
     <string name="battle_revive_poor">Not enough Scrap to revive.</string>
     <string name="battle_gone">That encounter is no longer waiting.</string>
+    <!-- corrosion damage this round, from a boss's lingering Rusty Rake -->
+    <string name="battle_dot_tick">Rust corrodes the wound for %1$d more.</string>
+    <!-- appended to a hit that landed on a faction weakness, either direction -->
+    <string name="battle_weak_point">(exploits a weak point!)</string>
 
     <!-- Encounter notification -->
     <string name="channel_encounter_name">Rustbot Encounters</string>

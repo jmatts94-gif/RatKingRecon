@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shown when a boss fight ends, before the screen returns to the normal
+  post-fight flow (the log, and a revive offer on a loss). Plain bg_card_white
+  rather than bg_card_earned's amber wash - that wash is only 20% opaque, sized
+  to sit on top of an achievement row that is already opaque, and used here
+  alone it let the dimmed fight screen show through behind it. Win and loss
+  are told apart by the title and reward text, not by the card itself.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bossResultCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_card_white"
+    android:layout_margin="24dp"
+    android:padding="28dp">
+
+    <ImageView
+        android:id="@+id/bossResultArt"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="12dp"
+        android:scaleType="fitCenter"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_hexagon" />
+
+    <TextView
+        android:id="@+id/bossResultTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/text_primary"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        tools:text="Boss Defeated!" />
+
+    <TextView
+        android:id="@+id/bossResultBossName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAlignment="center"
+        android:textColor="@color/text_muted"
+        android:textSize="14sp"
+        tools:text="The Junk Golem" />
+
+    <TextView
+        android:id="@+id/bossResultBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:textAlignment="center"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:lineSpacingExtra="3dp"
+        tools:text="Victory! Bolt scrapped the Junk Golem." />
+
+    <TextView
+        android:id="@+id/bossResultReward"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textAlignment="center"
+        android:textColor="@color/amber_dark"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="+42 Scrap" />
+
+    <TextView
+        android:id="@+id/bossResultBadge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textAlignment="center"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Badge earned: The Junk Golem defeated for the first time." />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/bossResultCloseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="@string/btn_close"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        app:backgroundTint="@color/amber"
+        app:cornerRadius="16dp"
+        app:elevation="4dp" />
+
+</LinearLayout>

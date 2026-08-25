@@ -2,6 +2,7 @@ package io.github.jmatts94.ratkingrecon
 
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -120,13 +121,54 @@ class BattleActivity : AppCompatActivity() {
             // Opens the log, so the card has something in it before round one
             // and the fight starts by saying what turned up rather than by
             // counting. Fixed for this encounter, not rolled per draw - see
-            // RustbotFlavour.
-            lines += getString(RustbotFlavour.openingFor(encounter), battle.botName)
+            // RustbotFlavour. Reused as the boss intro's flavour line below,
+            // rather than drawing a second one, so the two never disagree.
+            val opening = getString(RustbotFlavour.openingFor(encounter), battle.botName)
+            lines += opening
 
             bindStaticViews()
             wireActions()
             render()
+
+            // The intro replaces the normal drop straight into combat, and only
+            // for a boss - an ordinary Rustbot falls straight through to the
+            // screen already rendered above, exactly as it always has.
+            encounter.bossId?.let { Bosses.byId(it) }?.let { spec ->
+                showBossIntro(spec, opening)
+            }
         }
+    }
+
+    /**
+     * The splash shown before a boss fight, in place of the ordinary encounter's
+     * silent drop into round one.
+     *
+     * A plain, non-cancelable [android.app.Dialog] rather than a second Activity
+     * - the banked-boss hand-off that gets a fight onto this screen at all was
+     * fragile enough to need fixing once already (see [AppScope]), and a second
+     * screen in the navigation graph is a second place that fragility could
+     * hide. This is presentation laid over a fight that is already fully built
+     * and rendered underneath it; dismissing it reveals a screen already ready
+     * to play, not one still being set up.
+     */
+    private fun showBossIntro(spec: BossSpec, flavourLine: String) {
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_boss_intro)
+        dialog.setCancelable(false)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        dialog.findViewById<ImageView>(R.id.bossIntroArt).setImageResource(spec.badgeRes)
+        dialog.findViewById<TextView>(R.id.bossIntroName).text = getString(spec.nameRes)
+        dialog.findViewById<TextView>(R.id.bossIntroFlavor).text = flavourLine
+        dialog.findViewById<MaterialButton>(R.id.bossIntroBeginButton).setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun bindStaticViews() {
@@ -168,19 +210,35 @@ class BattleActivity : AppCompatActivity() {
     }
 
     private fun describe(r: RoundResult): String {
+        // Both directions of the faction cycle share one marker, appended to
+        // whichever side's hit actually carried it - the same visible-not-
+        // hidden treatment the corrosion line below gets.
+        val weakPoint = " " + getString(R.string.battle_weak_point)
+
         val verb = when (r.action) {
             BattleAction.ATTACK -> "attacks for ${r.damageDealt}"
-            BattleAction.SPECIAL -> "unleashes Special for ${r.damageDealt}"
+            BattleAction.SPECIAL ->
+                "unleashes Special for ${r.damageDealt}" + if (r.ratWeaknessBonusApplied) weakPoint else ""
             BattleAction.DEFEND -> "braces"
         }
         // Names the Rustbot's Special rather than letting a hit half again as
-        // big as usual look like an unexplained spike.
+        // big as usual look like an unexplained spike - a boss's own named
+        // move takes priority over the generic "overloads" every Rustbot's
+        // Special otherwise gets.
         val reply = when {
             r.damageTaken <= 0 -> ""
+            r.bossMoveNameRes != null ->
+                " — ${battle.botName} unleashes ${getString(r.bossMoveNameRes)} for ${r.damageTaken}" +
+                    if (r.bossMoveBonusApplied) weakPoint else ""
             r.botUsedSpecial -> " — ${battle.botName} overloads for ${r.damageTaken}"
             else -> " — takes ${r.damageTaken}"
         }
-        return "Round ${r.round}: ${battle.ratName} $verb$reply"
+        // A separate line rather than folded into the reply above: the corrosion
+        // is not this round's hit, it is last landing still costing something -
+        // the requirement was that it read as its own visible event, not a
+        // bigger number on the swing that caused it.
+        val dot = if (r.dotDamage > 0) "\n" + getString(R.string.battle_dot_tick, r.dotDamage) else ""
+        return "Round ${r.round}: ${battle.ratName} $verb$reply$dot"
     }
 
     private fun render() {
@@ -215,13 +273,19 @@ class BattleActivity : AppCompatActivity() {
                 EncounterResolver.apply(this@BattleActivity, encounter, rat, battle)
             }
 
+            // Everything below is the fight settling exactly as it always has -
+            // the payout, the badge, the log line, the revive offer on a loss.
+            // A boss result only wraps that in the ceremonial screen; it does
+            // not change any of it.
+            val bossSpec = resolution.bossId?.let { Bosses.byId(it) }
+
             if (resolution.won) {
                 GameSounds.play(this@BattleActivity, GameSounds.Cue.VICTORY)
                 lines += getString(
                     R.string.battle_won, resolution.ratName, resolution.botName, resolution.reward
                 )
                 if (resolution.badgeEarned) {
-                    Bosses.byId(resolution.bossId)?.let {
+                    bossSpec?.let {
                         lines += getString(R.string.boss_badge_earned, getString(it.nameRes))
                     }
                 }
@@ -229,9 +293,73 @@ class BattleActivity : AppCompatActivity() {
             } else {
                 lines += EncounterResolver.lossMessage(this@BattleActivity, resolution)
                 render()
+            }
+
+            if (bossSpec != null) {
+                showBossResult(bossSpec, resolution) {
+                    if (!resolution.won) offerRevive(resolution)
+                }
+            } else if (!resolution.won) {
                 offerRevive(resolution)
             }
         }
+    }
+
+    /**
+     * The ceremonial screen a boss fight ends on, bigger than the plain log
+     * line an ordinary Rustbot settles for. Shown after [EncounterResolver.apply]
+     * has already banked everything - the reward, the badge, the recovery
+     * timer - so this is purely how the same result is presented, never a
+     * second place any of that gets decided.
+     *
+     * [onDone] runs once the player dismisses it, which is where the existing
+     * revive offer on a loss still belongs - after the ceremony, not instead
+     * of it.
+     */
+    private fun showBossResult(
+        spec: BossSpec,
+        resolution: EncounterResolver.Resolution,
+        onDone: () -> Unit
+    ) {
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_boss_result)
+        dialog.setCancelable(false)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        dialog.findViewById<ImageView>(R.id.bossResultArt).setImageResource(spec.badgeRes)
+        dialog.findViewById<TextView>(R.id.bossResultTitle).setText(
+            if (resolution.won) R.string.boss_result_title_win else R.string.boss_result_title_loss
+        )
+        dialog.findViewById<TextView>(R.id.bossResultBossName).text = getString(spec.nameRes)
+        dialog.findViewById<TextView>(R.id.bossResultBody).text = if (resolution.won) {
+            getString(R.string.battle_won, resolution.ratName, resolution.botName, resolution.reward)
+        } else {
+            EncounterResolver.lossMessage(this, resolution)
+        }
+
+        if (resolution.won) {
+            dialog.findViewById<TextView>(R.id.bossResultReward).apply {
+                text = getString(R.string.boss_result_reward, resolution.reward)
+                visibility = View.VISIBLE
+            }
+        }
+        if (resolution.badgeEarned) {
+            dialog.findViewById<TextView>(R.id.bossResultBadge).apply {
+                text = getString(R.string.boss_badge_earned, getString(spec.nameRes))
+                visibility = View.VISIBLE
+            }
+        }
+
+        dialog.findViewById<MaterialButton>(R.id.bossResultCloseButton).setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.setOnDismissListener { onDone() }
+        dialog.show()
     }
 
     /** A loss is not final if the player would rather pay to skip the wait. */
@@ -247,6 +375,14 @@ class BattleActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     val ok = withContext(Dispatchers.IO) {
                         EncounterResolver.revive(this@BattleActivity, rat.id)
+                    }
+                    // The DB half only frees the rat up for next time - see
+                    // Battle.revive. This is the half that actually puts the
+                    // fight back in the player's hands.
+                    if (ok) {
+                        battle.revive()
+                        lines += getString(R.string.battle_revive_done)
+                        render()
                     }
                     Toast.makeText(
                         this@BattleActivity,

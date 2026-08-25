@@ -282,6 +282,8 @@ data class Encounter(
         ratMaxHp = loadout.maxHpFor(rat.effectiveMaxHp),
         botName = botName,
         botPower = botPower,
-        botMaxHp = botMaxHp
+        botMaxHp = botMaxHp,
+        bossId = bossId,
+        ratFaction = rat.faction
     )
 }

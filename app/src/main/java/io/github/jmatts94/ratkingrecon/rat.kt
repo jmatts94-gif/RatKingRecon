@@ -10,7 +10,7 @@ data class Rat(
     val artKey: String,
     val name: String,
     val rarity: String,
-    /** Flavor only - nothing in the game reads this to decide anything. */
+    /** Which boss Special hits a rat of this faction harder - see [BossMoves]. */
     val faction: String
 )
 

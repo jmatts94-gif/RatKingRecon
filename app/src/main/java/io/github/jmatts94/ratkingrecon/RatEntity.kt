@@ -80,6 +80,14 @@ data class RatEntity(
      */
     val rarity: String? get() = Roster.all.firstOrNull { it.artKey == artKey }?.rarity
 
+    /**
+     * The species [artKey] belongs to's faction, looked up fresh; see [rarity].
+     *
+     * Used to check a boss's named Special against - see [BossMoves] - which is
+     * the first thing [Rat.faction] actually decides rather than merely labels.
+     */
+    val faction: String? get() = Roster.all.firstOrNull { it.artKey == artKey }?.faction
+
     /** Power with the rarity bonus folded in. What combat and every display use. */
     val effectivePower: Int get() = power + Roster.statBonusFor(rarity)
 

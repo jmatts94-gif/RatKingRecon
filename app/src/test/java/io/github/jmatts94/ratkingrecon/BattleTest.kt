@@ -2,6 +2,8 @@ package io.github.jmatts94.ratkingrecon
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -259,6 +261,196 @@ class BattleTest {
                 )
             }
         }
+    }
+
+    // --- reviving mid-fight with Scrap --------------------------------------
+
+    @Test
+    fun `reviving a lost battle restores full hp and reopens it for play`() {
+        val b = battle(ratPower = 1, ratHp = 4, botPower = 4, botHp = 500)
+        val loss = b.advance(BattleAction.ATTACK)
+        assertEquals(BattleOutcome.PLAYER_LOST, loss.outcome)
+        assertEquals(0, b.ratHp)
+
+        b.revive()
+
+        assertEquals(BattleOutcome.ONGOING, b.outcome)
+        assertEquals("full hp, not merely alive", b.ratMaxHp, b.ratHp)
+
+        // And the fight actually continues rather than only looking like it does.
+        val next = b.advance(BattleAction.ATTACK)
+        assertEquals(1, next.damageDealt)
+    }
+
+    @Test
+    fun `reviving does not reset the round count or the bot's own special cooldown`() {
+        // Tuned so round 3 lands the bot's Special without killing the rat, and
+        // round 4's plain hit is what finishes it - so the loss happens with the
+        // bot's cooldown already mid-cycle, which is the state revive must not
+        // disturb.
+        val b = Battle("Rat", 1, 85, "Bot", 20, 5000)
+        b.advance(BattleAction.ATTACK)
+        b.advance(BattleAction.ATTACK)
+        val special = b.advance(BattleAction.ATTACK)
+        assertTrue("bot special due on round 3", special.botUsedSpecial)
+        assertFalse("cooldown just started", b.botSpecialReady)
+
+        val loss = b.advance(BattleAction.ATTACK)
+        assertEquals(BattleOutcome.PLAYER_LOST, loss.outcome)
+
+        b.revive()
+
+        assertEquals("the round count is not reset", 4, b.round)
+        assertFalse(
+            "the bot's cooldown must not be reset to ready by a revive",
+            b.botSpecialReady
+        )
+    }
+
+    @Test
+    fun `reviving an ongoing or already-won battle is a caller error`() {
+        assertThrows(IllegalStateException::class.java) { battle().revive() }
+
+        val won = battle(ratPower = 100, botHp = 1)
+        won.advance(BattleAction.ATTACK)
+        assertThrows(IllegalStateException::class.java) { won.revive() }
+    }
+
+    // --- a boss's named Special ---------------------------------------------
+
+    @Test
+    fun `a boss's named move deals bonus damage against its target faction`() {
+        val b = Battle(
+            "Rat", 1, 5000, "The Junk Golem", 20, 5000,
+            bossId = "junk_golem", ratFaction = Roster.SMUGGLERS
+        )
+        repeat(2) { b.advance(BattleAction.ATTACK) }
+        val hit = b.advance(BattleAction.ATTACK)
+
+        assertEquals(R.string.boss_move_gear_smash, hit.bossMoveNameRes)
+        assertEquals("30 base Special, +10% for the matching faction", 33, hit.damageTaken)
+    }
+
+    @Test
+    fun `a boss's named move deals no bonus outside its target faction`() {
+        val b = Battle(
+            "Rat", 1, 5000, "The Junk Golem", 20, 5000,
+            bossId = "junk_golem", ratFaction = Roster.TINKERERS
+        )
+        repeat(2) { b.advance(BattleAction.ATTACK) }
+        val hit = b.advance(BattleAction.ATTACK)
+
+        assertEquals(R.string.boss_move_gear_smash, hit.bossMoveNameRes)
+        assertEquals("no faction match, no bonus", 30, hit.damageTaken)
+    }
+
+    @Test
+    fun `a boss move never applies to an ordinary encounter`() {
+        val b = battle(ratPower = 1, ratHp = 5000, botPower = 20, botHp = 5000)
+        repeat(2) { b.advance(BattleAction.ATTACK) }
+        val hit = b.advance(BattleAction.ATTACK)
+
+        assertNull(hit.bossMoveNameRes)
+        assertEquals(30, hit.damageTaken)
+        assertEquals(0, hit.dotDamage)
+    }
+
+    @Test
+    fun `rusty rake applies a lingering dot for three rounds, whether or not the bonus lands`() {
+        val b = Battle(
+            "Rat", 1, 5000, "Old Ironclaw", 20, 5000,
+            // A mismatched faction, so this also checks the dot is unconditional
+            // even when the bonus damage on the hit itself is not.
+            bossId = "old_ironclaw", ratFaction = Roster.FOUNDRY_BORN
+        )
+
+        val r1 = b.advance(BattleAction.ATTACK)
+        val r2 = b.advance(BattleAction.ATTACK)
+        assertEquals(0, r1.dotDamage)
+        assertEquals(0, r2.dotDamage)
+
+        val r3 = b.advance(BattleAction.ATTACK)
+        assertEquals(R.string.boss_move_rusty_rake, r3.bossMoveNameRes)
+        assertEquals("no bonus - Foundry-born is not Rusty Rake's target", 30, r3.damageTaken)
+        assertEquals(3, r3.dotDamage)
+
+        val r4 = b.advance(BattleAction.ATTACK)
+        assertNull("only the round the move lands names it", r4.bossMoveNameRes)
+        assertEquals(20, r4.damageTaken)
+        assertEquals("corrosion outlasts the round it started on", 3, r4.dotDamage)
+
+        val r5 = b.advance(BattleAction.ATTACK)
+        assertEquals(3, r5.dotDamage)
+    }
+
+    // --- the other direction: a rat exploiting the boss's own weakness ------
+
+    @Test
+    fun `a rat from the boss's weak faction deals bonus damage on its own special`() {
+        // Junk Golem is weak to Brawlers - see BossMovesTest.
+        val b = Battle(
+            "Rat", 20, 5000, "The Junk Golem", 1, 5000,
+            bossId = "junk_golem", ratFaction = Roster.BRAWLERS
+        )
+        val plain = b.advance(BattleAction.ATTACK)
+        assertFalse(plain.ratWeaknessBonusApplied)
+
+        val special = b.advance(BattleAction.SPECIAL)
+        assertTrue(special.ratWeaknessBonusApplied)
+        assertEquals("30 base Special, +10% for the boss's weak faction", 33, special.damageDealt)
+    }
+
+    @Test
+    fun `a rat outside the boss's weak faction gets no bonus on its special`() {
+        val b = Battle(
+            "Rat", 20, 5000, "The Junk Golem", 1, 5000,
+            bossId = "junk_golem", ratFaction = Roster.SMUGGLERS
+        )
+        val special = b.advance(BattleAction.SPECIAL)
+        assertFalse(special.ratWeaknessBonusApplied)
+        assertEquals(30, special.damageDealt)
+    }
+
+    @Test
+    fun `foundry-born gets no bonus and no penalty against any boss`() {
+        val bosses = listOf("junk_golem", "old_ironclaw", "boiler_baron", "circuit_reaper", "rustbringer")
+
+        for (bossId in bosses) {
+            // The rat's own special: no weakness bonus for a faction outside the wheel.
+            val outgoing = Battle(
+                "Rat", 20, 5000, "Boss", 1, 5000, bossId = bossId, ratFaction = Roster.FOUNDRY_BORN
+            )
+            val ratHit = outgoing.advance(BattleAction.SPECIAL)
+            assertFalse("$bossId should not favour Foundry-born", ratHit.ratWeaknessBonusApplied)
+            assertEquals("$bossId: plain special damage only", 30, ratHit.damageDealt)
+
+            // The boss's own move: only rustbringer (targetFaction = null) may
+            // still hit a Foundry-born rat - every named boss must spare it.
+            val incoming = Battle(
+                "Rat", 1, 5000, "Boss", 20, 5000, bossId = bossId, ratFaction = Roster.FOUNDRY_BORN
+            )
+            repeat(2) { incoming.advance(BattleAction.ATTACK) }
+            val botHit = incoming.advance(BattleAction.ATTACK)
+            if (bossId == "rustbringer") {
+                assertTrue("rustbringer spares no faction", botHit.bossMoveBonusApplied)
+            } else {
+                assertFalse("$bossId should not target Foundry-born", botHit.bossMoveBonusApplied)
+            }
+        }
+    }
+
+    @Test
+    fun `rustbringer's bonus reaches a faction every other boss spares`() {
+        // Foundry-born is the one faction none of the four named moves target.
+        val b = Battle(
+            "Rat", 1, 5000, "The Rustbringer", 20, 5000,
+            bossId = "rustbringer", ratFaction = Roster.FOUNDRY_BORN
+        )
+        repeat(2) { b.advance(BattleAction.ATTACK) }
+        val hit = b.advance(BattleAction.ATTACK)
+
+        assertEquals(R.string.boss_move_gear_smash, hit.bossMoveNameRes)
+        assertEquals("no faction is spared from the last boss", 33, hit.damageTaken)
     }
 
     // --- bot HP is scaled, not derived from an integer ---------------------

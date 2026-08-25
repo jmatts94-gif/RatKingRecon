@@ -44,7 +44,15 @@ data class RoundResult(
     val botHp: Int,
     val outcome: BattleOutcome,
     /** Whether the Rustbot's reply this round was its Special. */
-    val botUsedSpecial: Boolean = false
+    val botUsedSpecial: Boolean = false,
+    /** Which named boss move [damageTaken] came from, if this round's reply used one. */
+    val bossMoveNameRes: Int? = null,
+    /** Corrosion from a lingering Rusty Rake, applied this round on top of [damageTaken]. */
+    val dotDamage: Int = 0,
+    /** Whether [damageTaken] carried the boss's own bonus against the rat's faction. */
+    val bossMoveBonusApplied: Boolean = false,
+    /** Whether [damageDealt] carried the bonus from fighting a boss weak to the rat's faction. */
+    val ratWeaknessBonusApplied: Boolean = false
 )
 
 /**
@@ -64,7 +72,18 @@ class Battle(
     val ratMaxHp: Int,
     val botName: String,
     val botPower: Int,
-    val botMaxHp: Int
+    val botMaxHp: Int,
+    /**
+     * Which boss this is, so its Special can carry a named move rather than
+     * the plain "overloads" every ordinary Rustbot's Special does.
+     *
+     * Null for every ordinary encounter, which is what keeps them byte-for-
+     * byte unchanged - everything below this point in the class only runs
+     * when a boss id is actually present.
+     */
+    private val bossId: String? = null,
+    /** The fighting rat's faction, checked against a boss move's target. */
+    private val ratFaction: String? = null
 ) {
 
     companion object {
@@ -116,6 +135,13 @@ class Battle(
      */
     private var botLastSpecialRound = 0
 
+    /** How many times the bot's Special has fired, for [BossMoves.forBoss]'s rotation. */
+    private var botSpecialUses = 0
+
+    /** Rounds of Rusty Rake corrosion left, its own round included. 0 means none active. */
+    private var dotRoundsRemaining = 0
+    private var dotPerRound = 0
+
     val log = mutableListOf<RoundResult>()
 
     /** Special is ready when enough rounds have passed since it was last used. */
@@ -129,7 +155,25 @@ class Battle(
 
     fun attackDamage(): Int = ratPower
 
-    fun specialDamage(): Int = (ratPower * SPECIAL_MULTIPLIER).roundToInt()
+    /**
+     * The rat's own Special, carrying the same [BossMoves.BONUS_MULTIPLIER]
+     * bonus a boss's move does when the matchup runs the other way - a rat
+     * whose faction is this boss's weakness (see [BossMoves.weakFactionFor])
+     * hits harder on its Special, the one hit the boss's own bonus is scoped
+     * to as well. Scoped to Special rather than every plain Attack for the
+     * same reason: a bounded, periodic bonus rather than a flat rescale of
+     * the whole fight.
+     */
+    fun specialDamage(): Int {
+        val base = (ratPower * SPECIAL_MULTIPLIER).roundToInt()
+        return if (ratSpecialBonusApplies()) (base * BossMoves.BONUS_MULTIPLIER).roundToInt() else base
+    }
+
+    /** Whether the rat's faction is the boss it is fighting's own weakness. */
+    private fun ratSpecialBonusApplies(): Boolean {
+        val weakness = bossId?.let { BossMoves.weakFactionFor(it) } ?: return false
+        return weakness.equals(ratFaction, ignoreCase = true)
+    }
 
     /** Whether the Rustbot's reply next round will be its Special. */
     val botSpecialReady: Boolean
@@ -163,6 +207,7 @@ class Battle(
 
         round += 1
 
+        val ratBonusHit = action == BattleAction.SPECIAL && ratSpecialBonusApplies()
         val dealt = when (action) {
             BattleAction.ATTACK -> attackDamage()
             BattleAction.SPECIAL -> {
@@ -176,13 +221,35 @@ class Battle(
         // The Rustbot only swings if it survived the round.
         var taken = 0
         var botSpecial = false
+        var move: BossMove? = null
+        var dotTick = 0
+        var botBonusHit = false
         if (botHp > 0) {
             botSpecial = round - botLastSpecialRound >= BOT_SPECIAL_COOLDOWN
-            if (botSpecial) botLastSpecialRound = round
+            if (botSpecial) {
+                botLastSpecialRound = round
+                botSpecialUses += 1
+                move = bossId?.let { BossMoves.forBoss(it, botSpecialUses) }
+            }
 
-            val incoming = if (botSpecial) botSpecialDamage() else botPower
-            taken = if (action == BattleAction.DEFEND) incoming / 2 else incoming
+            val base = if (botSpecial) botSpecialDamage() else botPower
+            botBonusHit = move != null && BossMoves.bonusApplies(move, ratFaction)
+            val bonused = if (botBonusHit) (base * BossMoves.BONUS_MULTIPLIER).roundToInt() else base
+            taken = if (action == BattleAction.DEFEND) bonused / 2 else bonused
             ratHp = max(0, ratHp - taken)
+
+            if (move?.appliesDot == true) {
+                dotRoundsRemaining = BossMoves.DOT_ROUNDS
+                dotPerRound = max(1, (botPower * BossMoves.DOT_FRACTION).roundToInt())
+            }
+
+            // Corrosion is not a swing DEFEND can brace against - it ticks
+            // whether or not the round's hit was blocked.
+            if (dotRoundsRemaining > 0 && ratHp > 0) {
+                dotTick = dotPerRound
+                ratHp = max(0, ratHp - dotTick)
+                dotRoundsRemaining -= 1
+            }
         }
 
         outcome = when {
@@ -192,8 +259,40 @@ class Battle(
             else -> BattleOutcome.ONGOING
         }
 
-        return RoundResult(round, action, dealt, taken, ratHp, botHp, outcome, botSpecial)
-            .also { log += it }
+        return RoundResult(
+            round = round,
+            action = action,
+            damageDealt = dealt,
+            damageTaken = taken,
+            ratHp = ratHp,
+            botHp = botHp,
+            outcome = outcome,
+            botUsedSpecial = botSpecial,
+            bossMoveNameRes = move?.nameRes,
+            dotDamage = dotTick,
+            bossMoveBonusApplied = botBonusHit,
+            ratWeaknessBonusApplied = ratBonusHit
+        ).also { log += it }
+    }
+
+    /**
+     * Brings the rat back into a fight it had just lost, Scrap having paid for
+     * it - see [EncounterResolver.revive].
+     *
+     * HP is restored to full and the fight reopens for play; everything else
+     * carries over untouched. The round count, the bot's own Special cadence
+     * and any Rusty Rake corrosion still in effect are exactly where they were,
+     * because Scrap buys the rat back into the fight in progress, not a clean
+     * restart against a bot that forgets what it already did.
+     *
+     * [EncounterResolver.revive] only ever clears the DB-side knockout timer -
+     * there is no stored HP to restore, since a rat's HP has never lived
+     * anywhere but here. This is the other half of the same action.
+     */
+    fun revive() {
+        check(outcome == BattleOutcome.PLAYER_LOST) { "Only a lost battle can be revived" }
+        ratHp = ratMaxHp
+        outcome = BattleOutcome.ONGOING
     }
 
     /** Whoever has kept the larger share of their health takes a stalled fight. */

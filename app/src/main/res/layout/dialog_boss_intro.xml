@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shown before a boss fight starts, in place of the normal drop straight into
+  combat an ordinary Rustbot encounter gets. See BattleActivity - this only
+  ever appears when the pending encounter names a boss.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_card_white"
+    android:layout_margin="24dp"
+    android:padding="28dp">
+
+    <!-- The glow is a fixed wash here rather than the lantern's progress-driven
+         alpha - there is no progress to show, only weight to lend the badge. -->
+    <FrameLayout
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginBottom="8dp">
+
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_lantern_glow"
+            android:alpha="0.7" />
+
+        <ImageView
+            android:id="@+id/bossIntroArt"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:scaleType="fitCenter"
+            android:importantForAccessibility="no"
+            tools:src="@drawable/ic_hexagon" />
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/boss_intro_title"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp"
+        android:letterSpacing="0.08" />
+
+    <TextView
+        android:id="@+id/bossIntroName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAlignment="center"
+        android:textColor="@color/text_primary"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        tools:text="The Junk Golem" />
+
+    <TextView
+        android:id="@+id/bossIntroFlavor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textAlignment="center"
+        android:textColor="@color/text_muted"
+        android:textSize="14sp"
+        android:lineSpacingExtra="3dp"
+        tools:text="Something shifts in the rubbish. The Junk Golem has been waiting." />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/bossIntroBeginButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="@string/boss_intro_cta"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        app:backgroundTint="@color/amber"
+        app:cornerRadius="16dp"
+        app:elevation="4dp" />
+
+</LinearLayout>
