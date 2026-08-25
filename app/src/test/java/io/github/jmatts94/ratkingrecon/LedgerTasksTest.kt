@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Calendar
 
 /**
  * The Ledger board's refresh rules.
@@ -17,9 +18,18 @@ import org.junit.Test
  */
 class LedgerTasksTest {
 
-    /** Whole days since the epoch, matching the board's own boundary. */
-    private val dayOne = 20_000L * 24 * 60 * 60 * 1000
-    private val dayTwo = dayOne + 24 * 60 * 60 * 1000
+    /** Local midnight, matching the board's own boundary. Same convention as DailyStepsTest. */
+    private fun localMidnight(year: Int, month: Int, day: Int): Long {
+        val calendar = Calendar.getInstance()
+        calendar.set(year, month, day, 0, 0, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        return calendar.timeInMillis
+    }
+
+    // January, away from any DST transition in either hemisphere, so dayOne + 23h
+    // never accidentally crosses into dayTwo on a machine in a DST-observing zone.
+    private val dayOne = localMidnight(2026, Calendar.JANUARY, 12)
+    private val dayTwo = localMidnight(2026, Calendar.JANUARY, 13)
 
     private fun startRunning(prefs: FakePrefs, tier: LedgerTaskTier) {
         prefs.edit().putBoolean(LedgerTasks.activeKey(tier.id), true).apply()
@@ -209,8 +219,16 @@ class LedgerTasksTest {
         assertTrue("requirement was ${offer.requirement}", offer.requirement in LedgerTasks.M1.requirements)
     }
 
+    /**
+     * The bug this pins the fix for: the board used to turn over on a fixed
+     * twenty-four hours from the epoch, a UTC boundary no player outside UTC
+     * actually lives on. It now turns over at local midnight, the same
+     * boundary Steps, the daily quest and the streak already share - a
+     * calendar day, not a fixed span, which is what makes it agree with them
+     * across a DST change too.
+     */
     @Test
-    fun `the day index turns over exactly once every twenty four hours`() {
+    fun `the day index turns over at local midnight, not a fixed twenty four hours`() {
         assertEquals(LedgerTasks.dayIndexOf(dayOne), LedgerTasks.dayIndexOf(dayOne + 23 * 3_600_000L))
         assertNotEquals(LedgerTasks.dayIndexOf(dayOne), LedgerTasks.dayIndexOf(dayTwo))
     }

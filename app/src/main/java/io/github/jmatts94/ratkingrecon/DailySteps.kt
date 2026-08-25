@@ -42,9 +42,9 @@ object DailySteps {
      * The instant the local day containing [now] began.
      *
      * Lives here because this object already owns what "a day" means to the
-     * player, and the daily quest needs the same boundary. Two encodings of one
-     * boundary is fine; two boundaries would not be - the Ledger Task reroll
-     * already runs on a UTC day index, and a third would be one too many.
+     * player, and the daily quest needs the same boundary. [LedgerTasks] shares
+     * [dayStamp] itself for the same reason, rather than carrying a boundary of
+     * its own.
      */
     fun localMidnight(now: Long = System.currentTimeMillis()): Long {
         val calendar = Calendar.getInstance()

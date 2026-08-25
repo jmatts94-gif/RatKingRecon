@@ -156,12 +156,21 @@ object LedgerTasks {
     /**
      * The day the board last refreshed on.
      *
-     * Whole days since the epoch, which makes this a UTC boundary rather than a
-     * local one - unlike [DailySteps], which rolls at the player's own midnight.
-     * Kept as it was rather than quietly moved: changing it would shift when
-     * every existing player's board refreshes.
+     * Delegates to [DailySteps.dayStamp] rather than counting whole days since
+     * the epoch. The UTC boundary that used to live here was a real bug for
+     * every player outside it: Steps, the daily quest and the streak all roll
+     * at the player's own midnight, and the board disagreeing with all three
+     * meant it could refresh hours away from the day the rest of the game
+     * called "today" - worse across a DST change, where the gap moves.
+     *
+     * Existing saves carry the old UTC-encoded value, which will not match this
+     * on the first read after the change ships - so the board treats that read
+     * as a new day exactly once. Any slot sitting idle rerolls, same as any
+     * other daily pass; a slot that is running is untouched, since
+     * [rerollForNewDay] already skips those. No migration for the stored value
+     * is needed beyond that.
      */
-    fun dayIndexOf(now: Long): Int = (now / (1000 * 60 * 60 * 24)).toInt()
+    fun dayIndexOf(now: Long): Int = DailySteps.dayStamp(now)
 
     /**
      * The daily pass: gives every idle slot a new job, once per day.
