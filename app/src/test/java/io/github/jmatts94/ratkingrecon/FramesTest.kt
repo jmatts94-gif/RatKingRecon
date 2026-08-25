@@ -64,13 +64,20 @@ class FramesTest {
         }
     }
 
+    /**
+     * No longer one tight band: Riveted Copper sits below Clockwork and
+     * Boiler as a mid tier, Aether Coil above them as the new top. What still
+     * has to hold is that every non-tradeable frame is priced like the
+     * premium item it is, not like something that slipped back into base
+     * tier range.
+     */
     @Test
-    fun `premium frames are priced into the premium band`() {
+    fun `non-tradeable frames are priced above the base tier, across a widening range`() {
         val premium = Frames.all.filterNot { it.tradeable }
 
-        assertTrue("expected two premium frames", premium.size == 2)
+        assertTrue("expected four non-tradeable frames", premium.size == 4)
         for (frame in premium) {
-            assertTrue("${frame.id} priced ${frame.price}", frame.price in 350..500)
+            assertTrue("${frame.id} priced ${frame.price}", frame.price in 250..700)
         }
     }
 
@@ -85,19 +92,30 @@ class FramesTest {
         )
     }
 
-    /** Four frames, four different looks - which was the point of the pass. */
+    /**
+     * Six frames, no longer six different looks - Riveted Copper reuses
+     * Brass's stillness and Aether Coil reuses Ember's pulse on purpose,
+     * the same way Ember once reused Brass's plain-border shape and was
+     * told apart from it by motion instead of by colour. What still has to
+     * hold, either way: two frames sharing a style must never also share
+     * every colour, or they would be the same frame twice.
+     */
     @Test
-    fun `no two frames share an animation style`() {
+    fun `frames sharing a style are still told apart by colour`() {
         val styles = Frames.all.map { it.style }
-
         assertTrue(FrameStyle.GEARS in styles)
         assertTrue(FrameStyle.STEAM in styles)
         assertTrue(FrameStyle.PULSE in styles)
-        assertEquals(
-            "two frames sharing a style would not be distinguishable",
-            Frames.all.size,
-            styles.distinct().size
-        )
+        assertTrue(FrameStyle.STATIC in styles)
+
+        for ((style, frames) in Frames.all.groupBy { it.style }) {
+            val colours = frames.map { Triple(it.strokeColorRes, it.accentColorRes, it.accentAltColorRes) }
+            assertEquals(
+                "two $style frames share every colour",
+                frames.size,
+                colours.distinct().size
+            )
+        }
     }
 
     /** A two-colour style needs two colours; a one-colour style must not break. */
@@ -138,7 +156,7 @@ class FramesTest {
             listOf(Frames.BRASS.id, Frames.EMBER.id),
             Frames.tradeable.map { it.id }
         )
-        for (frame in listOf(Frames.CLOCKWORK, Frames.BOILER)) {
+        for (frame in listOf(Frames.CLOCKWORK, Frames.BOILER, Frames.RIVETED_COPPER, Frames.AETHER_COIL)) {
             assertFalse("${frame.id} must not be tradeable", frame.tradeable)
         }
     }

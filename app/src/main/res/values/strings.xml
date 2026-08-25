@@ -439,6 +439,10 @@ RARE DROP: %2$s</string>
     <string name="shop_desc_frame_clockwork">Copper border with a brass gear track running its edge. Animated.</string>
     <string name="shop_name_frame_boiler">Boiler Frame</string>
     <string name="shop_desc_frame_boiler">Pewter border with steam drifting up both edges. Animated.</string>
+    <string name="shop_name_frame_riveted">Riveted Copper Frame</string>
+    <string name="shop_desc_frame_riveted">Copper plating with visible rivets. An industrial trim that does not move.</string>
+    <string name="shop_name_frame_aether">Aether Coil Frame</string>
+    <string name="shop_desc_frame_aether">A faint blue-white arc that pulses along the border. Animated.</string>
 
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
     <string name="relic_rusted_gear">⚙️ Rusted Gear</string>

@@ -126,7 +126,45 @@ object Frames {
         tradeable = false
     )
 
-    val all: List<CardFrame> = listOf(BRASS, EMBER, CLOCKWORK, BOILER)
+    /**
+     * The gap between the base pair and the animated premium two: a colour
+     * that does not move, priced above 200 but below the machinery.
+     *
+     * Copper rather than a colour of its own on purpose. What sets this apart
+     * from Clockwork's own copper border is the rivets and the stillness, not
+     * the metal - the same way Brass and Ember share a family of colour and
+     * are told apart by motion instead.
+     */
+    val RIVETED_COPPER = CardFrame(
+        id = "riveted_copper",
+        nameRes = R.string.shop_name_frame_riveted,
+        descRes = R.string.shop_desc_frame_riveted,
+        strokeColorRes = R.color.copper,
+        accentColorRes = R.color.copper,
+        style = FrameStyle.STATIC,
+        price = 275,
+        tradeable = false
+    )
+
+    /**
+     * The top of the premium tier. Breathes the same way Ember does - between
+     * two colours on [FrameStyle.PULSE] rather than a kind of movement of its
+     * own - priced above Boiler as the most expensive frame in the shop.
+     */
+    val AETHER_COIL = CardFrame(
+        id = "aether_coil",
+        nameRes = R.string.shop_name_frame_aether,
+        descRes = R.string.shop_desc_frame_aether,
+        strokeColorRes = R.color.aether_border,
+        accentColorRes = R.color.aether_glow,
+        accentAltColorRes = R.color.aether_deep,
+        style = FrameStyle.PULSE,
+        price = 650,
+        tradeable = false
+    )
+
+    val all: List<CardFrame> =
+        listOf(BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL)
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }
 

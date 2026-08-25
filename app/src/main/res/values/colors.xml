@@ -68,4 +68,16 @@
     <color name="teal_bg">#EAF3F0</color>
     <color name="teal_border">#BFDDD5</color>
     <color name="teal_fill">#3E8A73</color>
+
+    <!--
+      The Aether Coil frame's pulse: pale blue-white brightening to a richer
+      blue and back. Deliberately outside the warm palette every other frame
+      above sits inside - an energy arc that read as warm brass or copper
+      would just be another Boiler. The one other cool exception in this file
+      (teal, above) broke the same rule for accessibility; this one breaks it
+      because "energy" reading as warm metal would not read as energy at all.
+    -->
+    <color name="aether_border">#5C87AC</color>
+    <color name="aether_glow">#D6EEFF</color>
+    <color name="aether_deep">#3E86C4</color>
 </resources>
