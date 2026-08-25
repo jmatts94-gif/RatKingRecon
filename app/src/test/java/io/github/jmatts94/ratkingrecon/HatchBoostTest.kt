@@ -20,13 +20,13 @@ class HatchBoostTest {
     /**
      * Walks far enough to cross the Level 1 threshold, forcing exactly one hatch.
      *
-     * The first reading only establishes the step baseline; the second banks 60
-     * EXP, which clears the 50 needed for the first level.
+     * The first reading only establishes the step baseline; the second banks 260
+     * EXP, which clears the 250 needed for the first level.
      */
     private fun hatchOnce(prefs: FakePrefs, dao: FakeRatDao = FakeRatDao()): RatEntity {
         GameEngine.onSteps(dao, prefs, 0f)
-        val outcome = GameEngine.onSteps(dao, prefs, 60f)
-        return requireNotNull(outcome.hatched) { "expected the 60 steps to hatch a rat" }
+        val outcome = GameEngine.onSteps(dao, prefs, 260f)
+        return requireNotNull(outcome.hatched) { "expected the 260 steps to hatch a rat" }
     }
 
     @Test
@@ -145,8 +145,9 @@ class HatchBoostTest {
         val boosted = hatchOnce(prefs, dao)
         assertTrue("power was ${boosted.power}", boosted.power in 6..10)
 
-        // Level 2 needs 100 EXP, so 100 more steps hatches exactly once more.
-        val next = requireNotNull(GameEngine.onSteps(dao, prefs, 160f).hatched)
+        // Level 2 needs 500 EXP; hatchOnce left 10 banked, so 500 more clears it
+        // with the same +10 margin hatchOnce itself uses.
+        val next = requireNotNull(GameEngine.onSteps(dao, prefs, 760f).hatched)
         assertTrue("power was ${next.power}", next.power in 1..5)
         assertTrue("toughness was ${next.toughness}", next.toughness in 1..5)
     }

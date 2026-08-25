@@ -85,7 +85,7 @@ class MainActivity : AppCompatActivity() {
     private var bountyTargetSteps = 0f // We use a float because the sensor uses floats
     private var bountyEndTime: Long = 0L // Long is used for big time numbers
     private var playerLevel = 1
-    private var maxExp = 50
+    private var maxExp = GameEngine.maxExpFor(1)
 
     private var isExpeditionActive = false
     private var deployedRatId: Long = -1L // -1 means "no rat selected"
@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity() {
         sharedPreferences = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
 
         playerLevel = sharedPreferences.getInt("PLAYER_LEVEL", 1)
-        maxExp = playerLevel * 50
+        maxExp = GameEngine.maxExpFor(playerLevel)
 
         isBountyActive = ActiveContract.isActive(sharedPreferences)
         ActiveContract.load(sharedPreferences)?.let {
@@ -273,7 +273,7 @@ class MainActivity : AppCompatActivity() {
             sharedPreferences.edit().clear().apply()
             playerLevel = 1
             currentExp = 0
-            maxExp = 50
+            maxExp = GameEngine.maxExpFor(1)
 
             // In-memory state has to go too, or a cleared bounty still blocks
             // the Contract Board until the app is restarted.
@@ -575,9 +575,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadGame() {
         playerLevel = sharedPreferences.getInt("PLAYER_LEVEL", 1)
         currentExp = sharedPreferences.getInt("CURRENT_EXP", 0)
-
-        // Fixed Math to match the rest of your app!
-        maxExp = playerLevel * 50
+        maxExp = GameEngine.maxExpFor(playerLevel)
 
         updateScreen()
     }

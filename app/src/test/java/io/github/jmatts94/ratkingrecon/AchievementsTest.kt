@@ -65,9 +65,9 @@ class AchievementsTest {
 
     @Test
     fun `an existing save seeds from its level`() {
-        // 50 EXP per level, one step per EXP: level 6 cost at least 50+100+150+200+250.
-        assertEquals(750L, GameEngine.seedLifetimeFor(6))
-        assertEquals(2_250L, GameEngine.seedLifetimeFor(10))
+        // 250 EXP per level, one step per EXP: level 6 cost at least 250+500+750+1000+1250.
+        assertEquals(3_750L, GameEngine.seedLifetimeFor(6))
+        assertEquals(11_250L, GameEngine.seedLifetimeFor(10))
     }
 
     @Test
@@ -77,10 +77,10 @@ class AchievementsTest {
         prefs.values[GameEngine.KEY_LEVEL] = 6
 
         GameEngine.onSteps(dao, prefs, 0f)
-        assertEquals(750L, GameEngine.lifetimeStepsOf(prefs))
+        assertEquals(3_750L, GameEngine.lifetimeStepsOf(prefs))
 
         GameEngine.onSteps(dao, prefs, 50f)
-        assertEquals("the seed must not be reapplied", 800L, GameEngine.lifetimeStepsOf(prefs))
+        assertEquals("the seed must not be reapplied", 3_800L, GameEngine.lifetimeStepsOf(prefs))
     }
 
     @Test

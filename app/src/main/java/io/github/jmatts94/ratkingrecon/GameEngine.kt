@@ -59,7 +59,22 @@ object GameEngine {
     const val KEY_BOUNTY_END = "BOUNTY_END_TIME"
     const val KEY_BOUNTY_REWARD = "BOUNTY_REWARD"
 
-    private const val EXP_PER_LEVEL = 50
+    /**
+     * Steps to close one level of EXP, per level - so level L costs L times
+     * this many steps to clear, and reaching level N takes this times
+     * N*(N-1)/2 steps in total.
+     *
+     * Was 50, which put level 50 - Rustbringer's tier, the last boss and the
+     * practical ceiling on how far leveling matters - at 61,250 cumulative
+     * steps: 6% of the 1,000,000-step "Rat King" milestone the achievement
+     * track treats as a late-game amount of walking. 250 puts the same level
+     * at 306,250, just past the achievement track's Trailblazer tier (250k)
+     * rather than trivially before it, while leaving the back two-thirds of
+     * the track - 500k to 1M - as real endgame past Rustbringer's unlock.
+     * Hatching moves on the same number: a hatch happens exactly on a level-
+     * up, so this is the only constant either curve has.
+     */
+    private const val EXP_PER_LEVEL = 250
 
     // --- combat encounters, entirely separate from hatching ---
 
