@@ -3,6 +3,9 @@ package io.github.jmatts94.ratkingrecon
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 /**
  * Tracks whether any of our screens is currently in front.
@@ -26,6 +29,22 @@ object AppVisibility {
         synchronized(this) { if (startedActivities > 0) startedActivities-- }
     }
 }
+
+/**
+ * A coroutine scope that outlives any single Activity.
+ *
+ * [MainActivity.maybeStartBankedBoss] used to run on `lifecycleScope`, which is
+ * cancelled the moment the Activity that started it is destroyed. That left a
+ * real gap: [Bosses.startBanked] writes the pending [Encounter] and clears the
+ * bank *before* the coroutine resumes to actually open [BattleActivity], so an
+ * Activity torn down in that narrow window - a resume that loses the screen
+ * almost as soon as it gets it, which is exactly what "mid walk" looks like -
+ * silently dropped the launch. The fight was still saved, but nothing was left
+ * in the app that ever routed back to it. Work that must run to completion once
+ * it has mutated the save belongs here instead, where only process death - not
+ * a destroyed Activity - can interrupt it.
+ */
+object AppScope : CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 class RatKingApp : Application() {
 

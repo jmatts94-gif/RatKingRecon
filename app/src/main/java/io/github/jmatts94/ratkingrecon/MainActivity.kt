@@ -13,7 +13,6 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -660,24 +659,50 @@ class MainActivity : AppCompatActivity() {
      * [Bosses.startBanked] declines - leaving the boss banked for next time - if
      * an ordinary Rustbot is still waiting or every rat is knocked out, so both
      * of those cases simply do nothing here.
+     *
+     * Also recovers a boss fight that already made it into a pending [Encounter]
+     * but never reached [BattleActivity] - the trace of a previous call to this
+     * same method losing its Activity mid-flight (see [AppScope]). There is
+     * nothing else in the app that would ever offer that fight again, so a
+     * pending encounter with a [Encounter.bossId] is routed straight back in
+     * rather than left to sit.
+     *
+     * Runs on [AppScope] rather than `lifecycleScope`: [Bosses.startBanked]
+     * mutates the save (clears the bank, writes the pending encounter) partway
+     * through, and a scope tied to this Activity would drop the rest of the
+     * work - including the `startActivity` call below - if this screen is torn
+     * down between that write and its own resumption. A scope that survives the
+     * Activity guarantees the hand-off either completes or never started.
      */
     private fun maybeStartBankedBoss() {
-        if (Bosses.bankedId(sharedPreferences) == null) return
+        val orphaned = Encounter.load(sharedPreferences)?.takeIf { it.isBoss }
+        if (orphaned == null && Bosses.bankedId(sharedPreferences) == null) return
 
-        lifecycleScope.launch {
-            val started = withContext(Dispatchers.IO) {
-                Bosses.startBanked(
-                    RatRepository.dao(this@MainActivity),
-                    sharedPreferences
-                ) { getString(it.nameRes) }
+        val appContext = applicationContext
+
+        AppScope.launch {
+            val spec = withContext(Dispatchers.IO) {
+                if (orphaned != null) {
+                    Bosses.byId(orphaned.bossId)
+                } else {
+                    Bosses.startBanked(
+                        RatRepository.dao(appContext),
+                        sharedPreferences
+                    ) { appContext.getString(it.nameRes) }
+                }
             } ?: return@launch
 
-            Toast.makeText(
-                this@MainActivity,
-                getString(R.string.boss_arrived, getString(started.nameRes)),
-                Toast.LENGTH_LONG
-            ).show()
-            startActivity(android.content.Intent(this@MainActivity, BattleActivity::class.java))
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    appContext,
+                    appContext.getString(R.string.boss_arrived, appContext.getString(spec.nameRes)),
+                    Toast.LENGTH_LONG
+                ).show()
+                appContext.startActivity(
+                    android.content.Intent(appContext, BattleActivity::class.java)
+                        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
         }
     }
 
