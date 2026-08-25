@@ -274,6 +274,7 @@ RARE DROP: %2$s</string>
     <string name="task_success_hatch">New rat: %1$s!</string>
     <string name="task_pick_rat_title">Assign a rat? (optional)</string>
     <string name="task_pick_no_rat">No rat - start at baseline</string>
+    <string name="task_pick_none_owned">(none owned)</string>
     <string name="tooltip_tasks_title">Ledger Tasks</string>
     <string name="tooltip_tasks_body">Timed jobs your roster qualifies for on its best stats. Start one, walk away, and claim the Scrap when it finishes.</string>
 

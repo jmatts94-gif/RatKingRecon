@@ -54,6 +54,15 @@ object TaskBonuses {
     /** Which activity EXP is being banked for, so [expFor] knows which flat amount applies. */
     enum class Activity { EXPEDITION, LEDGER_M1, LEDGER_M2, LEDGER_M3 }
 
+    /**
+     * The five factions in the order they are always presented - the Ledger
+     * Task rat picker collapses to one row per entry here, rather than one
+     * row per owned rat.
+     */
+    val FACTIONS: List<String> = listOf(
+        Roster.SMUGGLERS, Roster.SCAVENGERS, Roster.TINKERERS, Roster.BRAWLERS, Roster.FOUNDRY_BORN
+    )
+
     private fun matches(faction: String?, target: String): Boolean =
         target.equals(faction, ignoreCase = true)
 
