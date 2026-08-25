@@ -137,7 +137,7 @@
       per release; the bullets are literal characters and the breaks are \n.
     -->
     <string name="whats_new_title">What\'s New</string>
-    <string name="whats_new_body">• Boss fights now have named moves and their own faction wheel\n• The egg hatches through an animated pipe-maze tunnel\n• Rats can be assigned to Scrap Runs and Ledger Tasks for a faction bonus\n• New portrait art for over 30 rats\n• Riveted Copper and Aether Coil frames added to the Binder\n• Leveling and hatching pacing rebalanced\n• The Ledger board rerolls at your own midnight, not UTC\n• Fixed a boss fight that could vanish with no way back</string>
+    <string name="whats_new_body">• Ledger Tasks now ask for a faction, not a specific rat, and look the part</string>
     <string name="btn_got_it">Got it</string>
 
     <!-- Settings and save transfer -->
