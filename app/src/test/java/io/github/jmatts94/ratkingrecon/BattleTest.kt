@@ -514,6 +514,124 @@ class BattleTest {
         )
     }
 
+    // --- the four combat items ----------------------------------------------
+
+    @Test
+    fun `using an item with none named falls back to attack`() {
+        val b = battle(ratPower = 4)
+        val r = b.advance(BattleAction.USE_ITEM)
+        assertEquals(BattleAction.ATTACK, r.action)
+        assertEquals(4, r.damageDealt)
+    }
+
+    @Test
+    fun `round result names which item was used, or null for an ordinary round`() {
+        val b = battle()
+        val r = b.advance(BattleAction.USE_ITEM, BattleItem.CLEANSE)
+        assertEquals(BattleItem.CLEANSE, r.itemUsed)
+
+        val plain = b.advance(BattleAction.ATTACK)
+        assertNull(plain.itemUsed)
+    }
+
+    @Test
+    fun `using an item deals no damage and does not halve the reply, unlike defend`() {
+        val b = battle(botPower = 6)
+        val r = b.advance(BattleAction.USE_ITEM, BattleItem.HP_TONIC)
+        assertEquals(0, r.damageDealt)
+        assertEquals("full exposure, not halved like Defend", 6, r.damageTaken)
+    }
+
+    @Test
+    fun `hp tonic restores 70 percent of max hp`() {
+        val b = Battle("Rat", 1, 100, "Bot", 80, 5000)
+        b.advance(BattleAction.ATTACK) // ratHp: 100 - 80 = 20
+        assertEquals(20, b.ratHp)
+
+        // 70 healed to 90, then the same round's reply takes 80 back off.
+        b.advance(BattleAction.USE_ITEM, BattleItem.HP_TONIC)
+        assertEquals(10, b.ratHp)
+    }
+
+    @Test
+    fun `hp tonic cannot heal past max hp`() {
+        val b = Battle("Rat", 1, 100, "Bot", 10, 5000)
+        b.advance(BattleAction.ATTACK) // ratHp: 100 - 10 = 90
+        assertEquals(90, b.ratHp)
+
+        // 70 healed would be 160, capped at 100, then this round's reply takes 10.
+        b.advance(BattleAction.USE_ITEM, BattleItem.HP_TONIC)
+        assertEquals(90, b.ratHp)
+    }
+
+    @Test
+    fun `corrosive charge stacks compound rather than refresh`() {
+        val b = Battle("Rat", 10, 5000, "Bot", 1, 5000)
+
+        val r1 = b.advance(BattleAction.USE_ITEM, BattleItem.CORROSIVE_CHARGE)
+        assertEquals("20% of the rat's own Power, ticking the same round it lands", 2, r1.enemyDotDamage)
+
+        val r2 = b.advance(BattleAction.USE_ITEM, BattleItem.CORROSIVE_CHARGE)
+        assertEquals("a second stack adds to the first rather than replacing it", 4, r2.enemyDotDamage)
+
+        val r3 = b.advance(BattleAction.ATTACK)
+        assertEquals("both stacks are still on their third and final round each", 4, r3.enemyDotDamage)
+
+        val r4 = b.advance(BattleAction.ATTACK)
+        assertEquals("the first stack has expired; only the second remains", 2, r4.enemyDotDamage)
+
+        val r5 = b.advance(BattleAction.ATTACK)
+        assertEquals("both stacks have now expired", 0, r5.enemyDotDamage)
+    }
+
+    @Test
+    fun `corrosive charge can finish the bot off, and a dead bot does not reply`() {
+        val b = Battle("Rat", 100, 5000, "Bot", 50, 3)
+        // 20% of 100 Power is 20, comfortably past the bot's 3 HP.
+        val r = b.advance(BattleAction.USE_ITEM, BattleItem.CORROSIVE_CHARGE)
+
+        assertEquals(0, b.botHp)
+        assertEquals(BattleOutcome.PLAYER_WON, r.outcome)
+        assertEquals("a bot killed by corrosion does not swing back", 0, r.damageTaken)
+    }
+
+    @Test
+    fun `reinforced plating cuts incoming damage for three rounds including the one it is used on`() {
+        val b = Battle("Rat", 1, 5000, "Bot", 10, 5000)
+
+        val r1 = b.advance(BattleAction.USE_ITEM, BattleItem.REINFORCED_PLATING)
+        assertEquals("30% off a plain 10, applied the same round it activates", 7, r1.damageTaken)
+
+        val r2 = b.advance(BattleAction.ATTACK)
+        assertEquals("still active on its second round", 7, r2.damageTaken)
+
+        // Round three is also the bot's own Special (every three rounds), so
+        // the reduction here is checked against that base instead of a plain hit.
+        val r3 = b.advance(BattleAction.ATTACK)
+        assertTrue(r3.botUsedSpecial)
+        assertEquals("30% off a 15 Special - its third and last protected round", 11, r3.damageTaken)
+
+        val r4 = b.advance(BattleAction.ATTACK)
+        assertEquals("worn off by the fourth round", 10, r4.damageTaken)
+    }
+
+    @Test
+    fun `cleanse clears an active dot on the player's own rat`() {
+        val b = Battle(
+            "Rat", 1, 5000, "Old Ironclaw", 20, 5000,
+            bossId = "old_ironclaw", ratFaction = Roster.FOUNDRY_BORN
+        )
+        repeat(2) { b.advance(BattleAction.ATTACK) }
+        val hit = b.advance(BattleAction.ATTACK)
+        assertEquals("rusty rake has armed the corrosion", 3, hit.dotDamage)
+
+        val cleansed = b.advance(BattleAction.USE_ITEM, BattleItem.CLEANSE)
+        assertEquals("gone the same round it is cleansed", 0, cleansed.dotDamage)
+
+        val after = b.advance(BattleAction.ATTACK)
+        assertEquals("and stays gone", 0, after.dotDamage)
+    }
+
     @Test
     fun `rewards stay inside the intended band`() {
         for (level in intArrayOf(1, 10, 30)) {

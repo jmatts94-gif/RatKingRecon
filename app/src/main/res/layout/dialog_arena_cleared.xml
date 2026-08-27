@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The fight-15 celebration - see BattleActivity.showArenaClearedDialog. A
+  bigger, more ceremonial variant of dialog_arena_breather for the one win
+  that ends the run outright: the glow behind the badge is the same
+  bg_lantern_glow the Arena's own "Enter" button sits on in
+  activity_arena_prep, reused here for the same reason - marking this as the
+  one moment the run built toward.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_card_arena"
+    android:layout_margin="24dp"
+    android:padding="28dp">
+
+    <FrameLayout
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginBottom="10dp">
+
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_lantern_glow" />
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_star"
+            app:tint="@color/brass_bright"
+            android:importantForAccessibility="no" />
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/arena_cleared_title"
+        android:textAlignment="center"
+        android:textColor="@color/cream"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/arenaClearedBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textAlignment="center"
+        android:textColor="@color/arena_text_muted"
+        android:textSize="14sp"
+        android:lineSpacingExtra="3dp"
+        tools:text="Bolt has beaten all 15 fights of the Arena." />
+
+    <TextView
+        android:id="@+id/arenaClearedReward"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textAlignment="center"
+        android:textColor="@color/brass_bright"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="+96 Scrap" />
+
+    <TextView
+        android:id="@+id/arenaClearedRelic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textAlignment="center"
+        android:textColor="@color/cream"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Relic found: Heavy Wrench" />
+
+    <TextView
+        android:id="@+id/arenaClearedCosmetic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textAlignment="center"
+        android:textColor="@color/copper"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="New frame unlocked: Riveted Copper" />
+
+    <TextView
+        android:id="@+id/arenaClearedMilestone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textAlignment="center"
+        android:textColor="@color/copper"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Milestone earned: Arena Champion" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/arenaClearedReturnButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="@string/btn_arena_return_workshop"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="@color/arena_bg_deep"
+        app:backgroundTint="@color/brass_bright"
+        app:cornerRadius="16dp"
+        app:elevation="4dp" />
+
+</LinearLayout>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The run-ending loss popup - see BattleActivity.showArenaLossDialog. No
+  continue option and no revive offer: Scrap-revive is disabled in the
+  Arena by design, and a loss simply ends the run, rewards already banked
+  kept rather than forfeited.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_card_arena"
+    android:layout_margin="24dp"
+    android:padding="28dp">
+
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="10dp"
+        android:src="@drawable/ic_toughness"
+        app:tint="@color/arena_text_muted"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/arena_loss_title"
+        android:textAlignment="center"
+        android:textColor="@color/cream"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/arenaLossBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textAlignment="center"
+        android:textColor="@color/arena_text_muted"
+        android:textSize="14sp"
+        android:lineSpacingExtra="3dp"
+        tools:text="Bolt fell at Fight 7." />
+
+    <TextView
+        android:id="@+id/arenaLossSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:textAlignment="center"
+        android:textColor="@color/brass_bright"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        tools:text="Banked from this run: 210 Scrap" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/arenaLossReturnButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="@string/btn_arena_return_workshop"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="@color/cream"
+        app:backgroundTint="@color/shadow_warm"
+        app:strokeColor="@color/copper"
+        app:strokeWidth="1dp"
+        app:cornerRadius="16dp" />
+
+</LinearLayout>

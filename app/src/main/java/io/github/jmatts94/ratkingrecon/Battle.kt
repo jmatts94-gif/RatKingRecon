@@ -1,11 +1,26 @@
 package io.github.jmatts94.ratkingrecon
 
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
-enum class BattleAction { ATTACK, DEFEND, SPECIAL }
+enum class BattleAction { ATTACK, DEFEND, SPECIAL, USE_ITEM }
+
+/** The four Shop-bought consumables usable mid-fight - see [Battle.applyItem]. */
+enum class BattleItem { HP_TONIC, CORROSIVE_CHARGE, REINFORCED_PLATING, CLEANSE }
 
 enum class BattleOutcome { ONGOING, PLAYER_WON, PLAYER_LOST }
+
+/**
+ * One still-ticking Corrosive Charge stack on the bot.
+ *
+ * A list rather than the single scalar Rusty Rake's own corrosion uses,
+ * because a Charge is bought and applied deliberately and is meant to reward
+ * stacking several - Rusty Rake's is a boss's free periodic hit and refires
+ * on the same cadence, so it refreshes a single value instead. The two never
+ * share a field, only the tick-and-decrement shape.
+ */
+data class DotEffect(val roundsRemaining: Int, val perRound: Int)
 
 /**
  * What the Shop has armed for one fight.
@@ -52,7 +67,11 @@ data class RoundResult(
     /** Whether [damageTaken] carried the boss's own bonus against the rat's faction. */
     val bossMoveBonusApplied: Boolean = false,
     /** Whether [damageDealt] carried the bonus from fighting a boss weak to the rat's faction. */
-    val ratWeaknessBonusApplied: Boolean = false
+    val ratWeaknessBonusApplied: Boolean = false,
+    /** Which item this round spent, if [action] was [BattleAction.USE_ITEM]. */
+    val itemUsed: BattleItem? = null,
+    /** Corrosive Charge damage the bot took this round, from every stack still active. */
+    val enemyDotDamage: Int = 0
 )
 
 /**
@@ -83,7 +102,13 @@ class Battle(
      */
     private val bossId: String? = null,
     /** The fighting rat's faction, checked against a boss move's target. */
-    private val ratFaction: String? = null
+    private val ratFaction: String? = null,
+    /**
+     * HP the rat starts this fight with. Defaults to a full heal - every
+     * fight but an Arena run's second one onward, which carries the rat's HP
+     * in from how the last fight ended instead. See [Encounter.toBattle].
+     */
+    startingRatHp: Int = ratMaxHp
 ) {
 
     companion object {
@@ -113,9 +138,32 @@ class Battle(
          * loop forever. Reaching this decides the fight on remaining HP share.
          */
         const val MAX_ROUNDS = 200
+
+        // --- the four Shop-bought combat items ---------------------------------
+
+        /** HP Tonic: restores this share of max HP, capped at max. */
+        const val HP_TONIC_FRACTION = 0.70
+
+        /**
+         * Corrosive Charge: each use adds its own stack at this share of the
+         * rat's own Power per round - a bit above Rusty Rake's 15%, since this
+         * one costs a turn and an item rather than being a boss's free periodic
+         * hit.
+         */
+        const val CORROSIVE_DOT_FRACTION = 0.20
+        const val CORROSIVE_DOT_ROUNDS = 3
+
+        /**
+         * Reinforced Plating: cuts incoming damage by this share for this many
+         * rounds, its own round included - the same "round it lands on counts"
+         * rule Rusty Rake's corrosion already uses, so a Plating used on round 5
+         * protects rounds 5 through 7.
+         */
+        const val PLATING_REDUCTION = 0.30
+        const val PLATING_ROUNDS = 3
     }
 
-    var ratHp = ratMaxHp
+    var ratHp = startingRatHp
         private set
 
     var botHp = botMaxHp
@@ -141,6 +189,12 @@ class Battle(
     /** Rounds of Rusty Rake corrosion left, its own round included. 0 means none active. */
     private var dotRoundsRemaining = 0
     private var dotPerRound = 0
+
+    /** Every Corrosive Charge stack still ticking against the bot; see [DotEffect]. */
+    private var botDots: List<DotEffect> = emptyList()
+
+    /** Rounds of Reinforced Plating left, its own round included. 0 means none active. */
+    private var plateRoundsRemaining = 0
 
     val log = mutableListOf<RoundResult>()
 
@@ -191,18 +245,50 @@ class Battle(
     fun botNextDamage(): Int = if (botSpecialReady) botSpecialDamage() else botPower
 
     /**
+     * Applies one item's effect. Called from [advance] the round [BattleItem.USE_ITEM]
+     * is requested; whether the player actually holds a charge of [item] is the
+     * caller's concern (Battle stays free of the Shop's economy, same as it
+     * stays free of Android), not this simulator's.
+     */
+    private fun applyItem(item: BattleItem) {
+        when (item) {
+            BattleItem.HP_TONIC ->
+                ratHp = min(ratMaxHp, ratHp + (ratMaxHp * HP_TONIC_FRACTION).roundToInt())
+
+            BattleItem.CORROSIVE_CHARGE -> botDots = botDots + DotEffect(
+                roundsRemaining = CORROSIVE_DOT_ROUNDS,
+                perRound = max(1, (ratPower * CORROSIVE_DOT_FRACTION).roundToInt())
+            )
+
+            // Set, not added to - a second Plating while one is already up
+            // refreshes its duration rather than doubling the reduction, the
+            // same as re-arming a Shop buff does for an ordinary fight.
+            BattleItem.REINFORCED_PLATING -> plateRoundsRemaining = PLATING_ROUNDS
+
+            BattleItem.CLEANSE -> dotRoundsRemaining = 0
+        }
+    }
+
+    /**
      * Plays one round: the rat acts, then the Rustbot strikes back if it lives.
      *
      * Requesting SPECIAL while it is on cooldown falls back to ATTACK rather
-     * than throwing, so a stale button tap cannot crash the screen.
+     * than throwing, so a stale button tap cannot crash the screen; requesting
+     * USE_ITEM with no [item] named does the same, for the same reason.
+     *
+     * An item spends the round exactly like DEFEND does - zero damage dealt -
+     * but without DEFEND's own halving of the reply coming back, Reinforced
+     * Plating aside. Letting an item also blunt the same round's hit for free
+     * would make it strictly better than defending outright, which is the one
+     * choice this is meant to cost something.
      */
-    fun advance(requested: BattleAction): RoundResult {
+    fun advance(requested: BattleAction, item: BattleItem? = null): RoundResult {
         check(outcome == BattleOutcome.ONGOING) { "Battle is already over" }
 
-        val action = if (requested == BattleAction.SPECIAL && !specialAvailable) {
-            BattleAction.ATTACK
-        } else {
-            requested
+        val action = when {
+            requested == BattleAction.SPECIAL && !specialAvailable -> BattleAction.ATTACK
+            requested == BattleAction.USE_ITEM && item == null -> BattleAction.ATTACK
+            else -> requested
         }
 
         round += 1
@@ -215,8 +301,26 @@ class Battle(
                 specialDamage()
             }
             BattleAction.DEFEND -> 0
+            BattleAction.USE_ITEM -> {
+                applyItem(item!!)
+                0
+            }
         }
         botHp = max(0, botHp - dealt)
+
+        // Every Corrosive Charge stack ticks against the bot each round it is
+        // still standing, independent of whatever action was taken this round -
+        // the same unconditional cadence Rusty Rake's own corrosion ticks the
+        // rat's HP on below, just aimed the other way and able to hold more
+        // than one stack at once. A bot this finishes off does not swing back,
+        // the same as one an attack finishes off.
+        var enemyDotTick = 0
+        if (botHp > 0 && botDots.isNotEmpty()) {
+            enemyDotTick = botDots.sumOf { it.perRound }
+            botHp = max(0, botHp - enemyDotTick)
+            botDots = botDots.map { it.copy(roundsRemaining = it.roundsRemaining - 1) }
+                .filter { it.roundsRemaining > 0 }
+        }
 
         // The Rustbot only swings if it survived the round.
         var taken = 0
@@ -235,7 +339,14 @@ class Battle(
             val base = if (botSpecial) botSpecialDamage() else botPower
             botBonusHit = move != null && BossMoves.bonusApplies(move, ratFaction)
             val bonused = if (botBonusHit) (base * BossMoves.BONUS_MULTIPLIER).roundToInt() else base
-            taken = if (action == BattleAction.DEFEND) bonused / 2 else bonused
+            // Reinforced Plating, if it is up - including the very round it was
+            // just used, the same way DEFEND immediately halves this same hit.
+            val plated = if (plateRoundsRemaining > 0) {
+                (bonused * (1 - PLATING_REDUCTION)).roundToInt()
+            } else {
+                bonused
+            }
+            taken = if (action == BattleAction.DEFEND) plated / 2 else plated
             ratHp = max(0, ratHp - taken)
 
             if (move?.appliesDot == true) {
@@ -244,12 +355,16 @@ class Battle(
             }
 
             // Corrosion is not a swing DEFEND can brace against - it ticks
-            // whether or not the round's hit was blocked.
+            // whether or not the round's hit was blocked. Cleanse pre-empts
+            // this: it zeroes dotRoundsRemaining above, in applyItem, before
+            // this check ever runs.
             if (dotRoundsRemaining > 0 && ratHp > 0) {
                 dotTick = dotPerRound
                 ratHp = max(0, ratHp - dotTick)
                 dotRoundsRemaining -= 1
             }
+
+            if (plateRoundsRemaining > 0) plateRoundsRemaining -= 1
         }
 
         outcome = when {
@@ -271,7 +386,9 @@ class Battle(
             bossMoveNameRes = move?.nameRes,
             dotDamage = dotTick,
             bossMoveBonusApplied = botBonusHit,
-            ratWeaknessBonusApplied = ratBonusHit
+            ratWeaknessBonusApplied = ratBonusHit,
+            itemUsed = if (action == BattleAction.USE_ITEM) item else null,
+            enemyDotDamage = enemyDotTick
         ).also { log += it }
     }
 

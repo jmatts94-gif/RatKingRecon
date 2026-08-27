@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Arena's page background - the same two-layer idea bg_app_gradient uses
+  (a flat wash under a radial layer), just inverted: dark here instead of
+  warm cream, and the radial layer is a faint brass bloom rather than a
+  darkening vignette, since there is no white card floating on this screen
+  that needs separating from a same-brightness field behind it.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="@color/arena_bg_deep"
+                android:endColor="#2A1D10"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="radial"
+                android:centerX="0.5"
+                android:centerY="0.35"
+                android:gradientRadius="90%p"
+                android:startColor="#1AF2B831"
+                android:centerColor="#06F2B831"
+                android:endColor="#00F2B831" />
+        </shape>
+    </item>
+
+</layer-list>

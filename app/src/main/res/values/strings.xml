@@ -328,6 +328,89 @@ RARE DROP: %2$s</string>
     <string name="tooltip_wrench_body">Raises your rat\'s Power and maximum HP by half for a single fight, then it is spent — win or lose. Only one combat buff rides a fight, so it cannot be combined with a Power Surge. The extra HP is what carries a rat through the last boss.</string>
     <string name="shop_buff_conflict">One combat buff per fight — spend the one you are holding first.</string>
 
+    <!--
+      The four combat items - bought here, held as a count, spent from the
+      Items panel on the Battle screen. Unlike Power Surge/Golden Wrench they
+      are not armed ahead of a fight; they are used mid-fight, in any combat.
+    -->
+    <string name="shop_name_hp_tonic">HP Tonic</string>
+    <!-- restore percent, derived from Battle.HP_TONIC_FRACTION -->
+    <string name="shop_desc_hp_tonic">Restores %1$d%% of max HP, mid-fight.</string>
+    <string name="shop_name_corrosive_charge">Corrosive Charge</string>
+    <!-- damage percent of the rat's own Power per round, duration in rounds -->
+    <string name="shop_desc_corrosive_charge">Corrodes the enemy for %1$d%% of your rat\'s Power a round, for %2$d rounds. Stacks with itself.</string>
+    <string name="shop_name_reinforced_plating">Reinforced Plating</string>
+    <!-- reduction percent, duration in rounds -->
+    <string name="shop_desc_reinforced_plating">Cuts incoming damage by %1$d%% for %2$d rounds.</string>
+    <string name="shop_name_cleanse">Cleanse</string>
+    <string name="shop_desc_cleanse">Clears any corrosion currently on your rat.</string>
+    <string name="shop_item_max_held">Max Held</string>
+    <string name="shop_item_at_cap">You already hold the most of that you can carry.</string>
+
+    <!-- The Items panel on the Battle screen -->
+    <string name="battle_items">Items</string>
+    <string name="battle_items_title">Use an Item</string>
+    <string name="battle_use">Use</string>
+    <!-- item name, number held -->
+    <string name="battle_item_row">%1$s (%2$d held)</string>
+    <string name="battle_item_none_held">None held — buy more from the Shop.</string>
+    <string name="battle_used_hp_tonic">%1$s drinks an HP Tonic and recovers HP</string>
+    <string name="battle_used_corrosive_charge">%1$s hurls a Corrosive Charge at %2$s</string>
+    <string name="battle_used_reinforced_plating">%1$s bolts on Reinforced Plating</string>
+    <string name="battle_used_cleanse">%1$s cleanses the corrosion away</string>
+    <!-- damage dealt this round from every active Corrosive Charge stack -->
+    <string name="battle_enemy_dot_tick">Corrosion burns %1$s for %2$d more.</string>
+
+    <!-- The Battle Arena's entry flow: a landing screen, a champion picker, then prep -->
+    <string name="btn_battle_arena">Battle Arena</string>
+    <string name="arena_landing_title">The Battle Arena</string>
+    <string name="arena_landing_flavor">Fifteen fights. One rat. No safety net until the very end.</string>
+    <string name="btn_select_champion">Select a Champion</string>
+    <string name="arena_leave">Not Now</string>
+
+    <string name="arena_select_title">Choose Your Champion</string>
+    <string name="arena_select_hint">This rat carries the whole run — no swapping once you enter.</string>
+    <string name="arena_select_pick_one">Select a rat to continue.</string>
+    <string name="arena_select_none_eligible">No eligible rats — a recovering rat can\'t enter.</string>
+    <string name="btn_arena_select_confirm">Choose This Rat</string>
+
+    <string name="arena_prep_title">Prepare for the Arena</string>
+    <string name="arena_prep_items_title">Battle Items</string>
+    <string name="btn_arena_visit_shop">Need More? Visit the Shop</string>
+    <!-- the flat entry cost, Arena.ENTRY_COST -->
+    <string name="arena_prep_cost">Entry Cost: %1$d Scrap</string>
+    <string name="arena_prep_balance">You Have: %1$d Scrap</string>
+    <string name="btn_enter_arena">Enter the Arena</string>
+    <string name="arena_prep_rat_gone">That rat is no longer available.</string>
+    <string name="arena_prep_busy">Finish your current fight first.</string>
+
+    <!-- Multi-fight run progression - see ArenaRun and BattleActivity's Arena
+         handling. Scrap/relic amounts and the fight number are filled in from
+         ArenaFightOutcome/ArenaLossSummary, never hardcoded here. -->
+    <string name="arena_breather_title">Fight %1$d Cleared!</string>
+    <string name="arena_breather_progress">Fight %1$d of %2$d cleared</string>
+    <string name="arena_breather_reward">+%1$d Scrap</string>
+    <string name="arena_breather_relic">Relic found: %1$s</string>
+    <string name="arena_milestone_earned">Milestone earned: %1$s</string>
+    <string name="btn_arena_continue">Continue to Fight %1$d</string>
+
+    <string name="arena_cleared_title">Arena Cleared!</string>
+    <string name="arena_cleared_body">%1$s has beaten all %2$d fights of the Arena.</string>
+    <string name="arena_cleared_cosmetic">New frame unlocked: %1$s</string>
+    <string name="arena_cleared_cosmetic_fallback">+%1$d Scrap (every frame already owned)</string>
+    <string name="btn_arena_return_workshop">Return to Workshop</string>
+
+    <string name="arena_loss_title">Run Ended</string>
+    <string name="arena_loss_body">%1$s fell at Fight %2$d.</string>
+    <string name="arena_loss_summary">Banked from this run: %1$d Scrap</string>
+    <string name="arena_loss_summary_with_relics">Banked from this run: %1$d Scrap, %2$d relics</string>
+
+    <!-- Arena depth milestones - first-clear badges at fights 5/10/15, latched
+         permanently the same way a boss badge is. See ArenaRun.MILESTONE_FIGHTS. -->
+    <string name="arena_milestone_5_name">Arena Contender</string>
+    <string name="arena_milestone_10_name">Arena Veteran</string>
+    <string name="arena_milestone_15_name">Arena Champion</string>
+
     <!-- Boss Rustbots. Names are display only; the ids behind them live in Boss.kt. -->
     <string name="boss_junk_golem">The Junk Golem</string>
     <string name="boss_old_ironclaw">Old Ironclaw</string>

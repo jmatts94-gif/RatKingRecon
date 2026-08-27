@@ -187,6 +187,15 @@ class ShopActivity : AppCompatActivity() {
             return
         }
 
+        // A combat item's cap, if it has one - Revive Tokens and the
+        // Masterwork voucher pass this with cap == null and are unaffected.
+        if (effect is ShopEffect.Charge && effect.cap != null &&
+            ShopEffects.charges(prefs, effect.key) >= effect.cap
+        ) {
+            toast(getString(R.string.shop_item_at_cap))
+            return
+        }
+
         val price = effectivePrice(item)
         val scrap = prefs.getInt(GameEngine.KEY_SCRAP, 0)
         if (scrap < price) {
@@ -354,7 +363,14 @@ class ShopActivity : AppCompatActivity() {
             else -> Label(getString(R.string.shop_equip), enabled = true, fill = R.color.card_white)
         }
 
-        // Charges and actions are repeatable, so they always show their price.
+        is ShopEffect.Charge ->
+            if (effect.cap != null && ShopEffects.charges(prefs, effect.key) >= effect.cap) {
+                Label(getString(R.string.shop_item_max_held), enabled = false)
+            } else {
+                Label(price(item), enabled = true, fill = category.accentFillRes, textColor = category.accentTextRes)
+            }
+
+        // Actions are repeatable, so they always show their price.
         else -> Label(price(item), enabled = true, fill = category.accentFillRes, textColor = category.accentTextRes)
     }
 

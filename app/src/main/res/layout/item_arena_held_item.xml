@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One held combat item on the Arena prep screen - see ArenaPrepActivity.
+  Read-only, unlike item_battle_item.xml's row: this is inventory on the way
+  in, not something spent here, so there is no Use button.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginTop="10dp">
+
+    <ImageView
+        android:id="@+id/arenaHeldItemIcon"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginEnd="12dp"
+        android:importantForAccessibility="no"
+        android:tint="@color/brass_bright"
+        tools:src="@drawable/ic_flask" />
+
+    <TextView
+        android:id="@+id/arenaHeldItemLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@color/cream"
+        android:textSize="14sp"
+        tools:text="HP Tonic (5 held)" />
+
+</LinearLayout>

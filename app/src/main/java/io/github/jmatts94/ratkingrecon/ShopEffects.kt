@@ -123,6 +123,26 @@ object ShopEffects {
     /** Scrap off one Masterwork pull. */
     const val MASTERWORK_VOUCHER_VALUE = 100
 
+    /**
+     * The four combat items - see [Battle.applyItem] for what each does and
+     * [BattleActivity]'s Items panel for where they are spent. Usable in any
+     * fight, unlike Power Surge/Golden Wrench, which is why they are held as
+     * counts rather than armed one at a time.
+     */
+    const val KEY_HP_TONIC = "ITEM_HP_TONIC"
+    const val KEY_CORROSIVE_CHARGE = "ITEM_CORROSIVE_CHARGE"
+    const val KEY_REINFORCED_PLATING = "ITEM_REINFORCED_PLATING"
+    const val KEY_CLEANSE = "ITEM_CLEANSE"
+
+    /**
+     * How many of one combat item can be held at once.
+     *
+     * Applied only to the four keys above - Revive Tokens and the Masterwork
+     * voucher have never had a cap and this does not give them one. The Shop
+     * refuses a purchase that would cross it; see [ShopEffect.Charge.cap].
+     */
+    const val ITEM_CHARGE_CAP = 5
+
     /** What the Hatchery costs right now, with a voucher applied if one is held. */
     fun masterworkPrice(prefs: SharedPreferences): Int =
         if (charges(prefs, KEY_MASTERWORK_VOUCHER) > 0) {

@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The last stop before an Arena run actually starts - see ArenaPrepActivity.
+  Same dark theme as the landing screen; every panel reuses bg_card_arena
+  rather than inventing a second dark surface treatment.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_arena_gradient"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/arena_prep_title"
+            android:textColor="@color/cream"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:layout_marginBottom="20dp" />
+
+        <!-- The chosen champion -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_arena"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:id="@+id/arenaPrepRatImage"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:scaleType="centerCrop"
+                android:layout_marginEnd="14dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/arenaPrepRatName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/cream"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    tools:text="Spliced Mutant" />
+
+                <TextView
+                    android:id="@+id/arenaPrepRatFaction"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="6dp"
+                    android:textColor="@color/arena_text_muted"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/arenaPrepRatPower"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/cream"
+                        android:textSize="15sp"
+                        android:drawableStart="@drawable/ic_power"
+                        android:drawableTint="@color/brass_bright"
+                        android:drawablePadding="6dp"
+                        android:layout_marginEnd="20dp"
+                        tools:text="17" />
+
+                    <TextView
+                        android:id="@+id/arenaPrepRatToughness"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/cream"
+                        android:textSize="15sp"
+                        android:drawableStart="@drawable/ic_toughness"
+                        android:drawableTint="@color/brass_bright"
+                        android:drawablePadding="6dp"
+                        tools:text="14" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Held combat items -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_arena"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/arena_prep_items_title"
+                android:textColor="@color/cream"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/arenaPrepItemsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/arenaPrepShopButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/btn_arena_visit_shop"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                android:textColor="@color/cream"
+                app:backgroundTint="@color/shadow_warm"
+                app:strokeColor="@color/copper"
+                app:strokeWidth="1dp"
+                app:cornerRadius="14dp" />
+        </LinearLayout>
+
+        <!-- Cost -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_arena"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:id="@+id/arenaPrepCostText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cream"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="Entry Cost: 150 Scrap" />
+
+            <TextView
+                android:id="@+id/arenaPrepBalanceText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="@color/arena_text_muted"
+                android:textSize="13sp"
+                tools:text="You Have: 1400 Scrap" />
+        </LinearLayout>
+
+        <!-- Commit -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_lantern_glow" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/arenaPrepEnterButton"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:text="@string/btn_enter_arena"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/arena_bg_deep"
+                app:backgroundTint="@color/brass_bright"
+                app:cornerRadius="20dp"
+                app:elevation="8dp" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/arenaPrepLeaveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="8dp"
+            android:text="@string/arena_leave"
+            android:textColor="@color/arena_text_muted"
+            android:textSize="13sp"
+            android:background="?attr/selectableItemBackground" />
+
+    </LinearLayout>
+</ScrollView>

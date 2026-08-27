@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Arena's front door - see ArenaLandingActivity. Two large, faint gear
+  silhouettes sit behind the foreground column and turn slowly and forever;
+  see ArenaLandingActivity.spin for why a plain rotation animator is enough
+  here rather than FrameOverlay's hand-rolled Choreographer loop.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_arena_gradient"
+    android:fitsSystemWindows="true">
+
+    <ImageView
+        android:id="@+id/arenaGearOne"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="-80dp"
+        android:layout_marginEnd="-100dp"
+        android:src="@drawable/ic_settings"
+        android:alpha="0.10"
+        android:importantForAccessibility="no"
+        android:tint="@color/copper" />
+
+    <ImageView
+        android:id="@+id/arenaGearTwo"
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginBottom="-60dp"
+        android:layout_marginStart="-80dp"
+        android:src="@drawable/ic_settings"
+        android:alpha="0.12"
+        android:importantForAccessibility="no"
+        android:tint="@color/brass_bright" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/arena_landing_title"
+            android:textColor="@color/cream"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/arena_landing_flavor"
+            android:textColor="@color/arena_text_muted"
+            android:textSize="15sp"
+            android:textAlignment="center"
+            android:lineSpacingExtra="3dp"
+            android:layout_marginBottom="48dp" />
+
+        <!--
+          The glow sits behind the button rather than inside it, the same
+          layering bg_lantern_glow already uses for the streak lantern -
+          reused as-is, since it is already the brass_bright this screen
+          wants.
+        -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <View
+                android:layout_width="260dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_lantern_glow" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/arenaSelectChampionButton"
+                android:layout_width="240dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:text="@string/btn_select_champion"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/arena_bg_deep"
+                app:backgroundTint="@color/brass_bright"
+                app:cornerRadius="20dp"
+                app:elevation="8dp" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/arenaLeaveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:padding="8dp"
+            android:text="@string/arena_leave"
+            android:textColor="@color/arena_text_muted"
+            android:textSize="13sp"
+            android:background="?attr/selectableItemBackground" />
+
+    </LinearLayout>
+
+</FrameLayout>

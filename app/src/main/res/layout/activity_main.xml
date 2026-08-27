@@ -541,6 +541,27 @@
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/battleArenaButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_battle_arena"
+            app:icon="@drawable/ic_hexagon"
+            app:iconGravity="textStart"
+            app:iconPadding="10dp"
+            app:iconTint="@color/text_primary"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:background="@drawable/bg_pill_tan"
+            app:backgroundTint="@null"
+            android:foreground="?attr/selectableItemBackground"
+            android:clipToOutline="true"
+            android:elevation="6dp"
+            android:outlineAmbientShadowColor="@color/shadow_warm"
+            android:outlineSpotShadowColor="@color/shadow_warm"
+            tools:targetApi="28"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/achievementsButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

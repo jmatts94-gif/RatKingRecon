@@ -352,6 +352,10 @@ class MainActivity : AppCompatActivity() {
             startActivity(android.content.Intent(this, AchievementsActivity::class.java))
         }
 
+        findViewById<Button>(R.id.battleArenaButton).setOnClickListener {
+            startActivity(android.content.Intent(this, ArenaLandingActivity::class.java))
+        }
+
         findViewById<Button>(R.id.devResetButton).setOnClickListener {
             sharedPreferences.edit().clear().apply()
             playerLevel = 1

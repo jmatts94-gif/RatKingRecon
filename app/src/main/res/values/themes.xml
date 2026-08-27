@@ -29,4 +29,21 @@
     </style>
 
     <style name="Theme.RatKingRecon" parent="Base.Theme.RatKingRecon" />
+
+    <!--
+      The Battle Arena's landing and prep screens. Inherits everything but the
+      surface colours - buttons, screen transitions - from the base theme, so
+      it reads as the same app with the lights turned down rather than a
+      second theme to maintain. See colors.xml's arena_bg_deep for why the
+      palette stays inside the app's existing warm family.
+    -->
+    <style name="Theme.RatKingRecon.Arena" parent="Base.Theme.RatKingRecon">
+        <item name="colorSurface">@color/arena_bg_deep</item>
+        <item name="colorOnSurface">@color/cream</item>
+        <item name="android:colorBackground">@color/arena_bg_deep</item>
+        <item name="android:statusBarColor">@color/arena_bg_deep</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/arena_bg_deep</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+    </style>
 </resources>

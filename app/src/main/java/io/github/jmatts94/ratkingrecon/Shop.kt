@@ -3,6 +3,7 @@ package io.github.jmatts94.ratkingrecon
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import kotlin.math.roundToInt
 
 /**
  * What buying an item actually does.
@@ -15,8 +16,14 @@ sealed interface ShopEffect {
     /** Sets a flag that the next relevant event reads and clears. */
     data class Flag(val key: String) : ShopEffect
 
-    /** Adds one to a stack the player spends later. */
-    data class Charge(val key: String) : ShopEffect
+    /**
+     * Adds one to a stack the player spends later.
+     *
+     * [cap] is null for the two charges that have always stacked without limit
+     * (Revive Tokens, the Masterwork voucher) and a real number for the four
+     * combat items, which the Shop refuses to sell past.
+     */
+    data class Charge(val key: String, val cap: Int? = null) : ShopEffect
 
     /** Happens on purchase. [apply] returns false when it could not, and nothing is charged. */
     data class Action(val id: String) : ShopEffect
@@ -173,6 +180,48 @@ object Shop {
                 tooltipTitleRes = R.string.tooltip_wrench_title,
                 tooltipBodyRes = R.string.tooltip_wrench_body,
                 bodyArgs = listOf(ShopEffects.percentBonus(ShopEffects.WRENCH_MULTIPLIER))
+            ),
+
+            // The four combat items - held as counts up to ITEM_CHARGE_CAP and
+            // spent mid-fight from the Battle screen's Items panel, unlike the
+            // three rows above which arm ahead of a fight. See Battle.applyItem
+            // for what each one actually does.
+            ShopItem(
+                price = 120,
+                effect = ShopEffect.Charge(ShopEffects.KEY_HP_TONIC, cap = ShopEffects.ITEM_CHARGE_CAP),
+                nameRes = R.string.shop_name_hp_tonic,
+                bodyRes = R.string.shop_desc_hp_tonic,
+                iconRes = R.drawable.ic_flask,
+                bodyArgs = listOf((Battle.HP_TONIC_FRACTION * 100).roundToInt())
+            ),
+            ShopItem(
+                price = 80,
+                effect = ShopEffect.Charge(ShopEffects.KEY_REINFORCED_PLATING, cap = ShopEffects.ITEM_CHARGE_CAP),
+                nameRes = R.string.shop_name_reinforced_plating,
+                bodyRes = R.string.shop_desc_reinforced_plating,
+                iconRes = R.drawable.ic_toughness,
+                bodyArgs = listOf(
+                    (Battle.PLATING_REDUCTION * 100).roundToInt(),
+                    Battle.PLATING_ROUNDS
+                )
+            ),
+            ShopItem(
+                price = 60,
+                effect = ShopEffect.Charge(ShopEffects.KEY_CORROSIVE_CHARGE, cap = ShopEffects.ITEM_CHARGE_CAP),
+                nameRes = R.string.shop_name_corrosive_charge,
+                bodyRes = R.string.shop_desc_corrosive_charge,
+                iconRes = R.drawable.ic_settings,
+                bodyArgs = listOf(
+                    (Battle.CORROSIVE_DOT_FRACTION * 100).roundToInt(),
+                    Battle.CORROSIVE_DOT_ROUNDS
+                )
+            ),
+            ShopItem(
+                price = 40,
+                effect = ShopEffect.Charge(ShopEffects.KEY_CLEANSE, cap = ShopEffects.ITEM_CHARGE_CAP),
+                nameRes = R.string.shop_name_cleanse,
+                bodyRes = R.string.shop_desc_cleanse,
+                iconRes = R.drawable.ic_sparkle
             )
         )
     )

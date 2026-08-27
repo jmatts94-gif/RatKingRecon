@@ -88,4 +88,17 @@
     <color name="aether_border">#5C87AC</color>
     <color name="aether_glow">#D6EEFF</color>
     <color name="aether_deep">#3E86C4</color>
+
+    <!--
+      The Battle Arena: the one screen in the app that deliberately breaks
+      from the warm-on-cream palette everywhere else, for the "end game"
+      contrast the mode is meant to carry. Kept inside the same warm hue
+      family - copper and brass_bright, already what the Clockwork frame's
+      gears and the streak lantern's glow are made of - rather than reaching
+      for a new colour, so it reads as this game turned up, not a different
+      app. Deliberately nowhere near red/green, the one pairing this app's
+      colour-blind owner cannot reliably tell apart.
+    -->
+    <color name="arena_bg_deep">#1C130A</color>
+    <color name="arena_text_muted">#B7A489</color>
 </resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A panel on the Arena's dark screens - the same solid-fill-plus-stroke shape
+  bg_card_white uses everywhere else, just in the Arena's own palette: the
+  same shadow_warm a light-theme shadow is made of, now doing duty as a
+  surface in its own right, with a copper border - the Clockwork frame's own
+  border colour - standing in for card_border.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/shadow_warm" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/copper" />
+    <corners android:radius="16dp" />
+</shape>

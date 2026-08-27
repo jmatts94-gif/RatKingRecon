@@ -276,14 +276,21 @@ data class Encounter(
      * Rare or Legendary rat is fighting an opponent sized for a plainer rat of
      * its same base stats, not one that grew to match it.
      */
-    fun toBattle(rat: RatEntity, loadout: Loadout = Loadout.NONE): Battle = Battle(
-        ratName = rat.name,
-        ratPower = loadout.powerFor(rat.effectivePower),
-        ratMaxHp = loadout.maxHpFor(rat.effectiveMaxHp),
-        botName = botName,
-        botPower = botPower,
-        botMaxHp = botMaxHp,
-        bossId = bossId,
-        ratFaction = rat.faction
-    )
+    fun toBattle(rat: RatEntity, loadout: Loadout = Loadout.NONE, startingRatHp: Int? = null): Battle {
+        val maxHp = loadout.maxHpFor(rat.effectiveMaxHp)
+        return Battle(
+            ratName = rat.name,
+            ratPower = loadout.powerFor(rat.effectivePower),
+            ratMaxHp = maxHp,
+            botName = botName,
+            botPower = botPower,
+            botMaxHp = botMaxHp,
+            bossId = bossId,
+            ratFaction = rat.faction,
+            // Clamped rather than trusted outright - a Loadout bought between
+            // an Arena run's fights could otherwise carry in more HP than
+            // this fight's max allows.
+            startingRatHp = startingRatHp?.coerceIn(1, maxHp) ?: maxHp
+        )
+    }
 }

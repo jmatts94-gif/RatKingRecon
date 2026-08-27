@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shown between Arena fights on a win, fight 15 excepted - see
+  BattleActivity.showArenaBreatherDialog. Uses the Arena's own dark theme
+  (bg_card_arena, cream/arena_text_muted, copper/brass_bright) rather than
+  the light bg_card_white the ordinary boss-result dialog uses: this is the
+  Arena run's own ceremony, not an ordinary encounter's, and everything else
+  the run shows the player - landing, select, prep - already lives in that
+  same dark palette.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_card_arena"
+    android:layout_margin="24dp"
+    android:padding="28dp">
+
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="10dp"
+        android:src="@drawable/ic_settings"
+        app:tint="@color/brass_bright"
+        android:importantForAccessibility="no" />
+
+    <TextView
+        android:id="@+id/arenaBreatherTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textColor="@color/cream"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        tools:text="Fight 3 Cleared!" />
+
+    <TextView
+        android:id="@+id/arenaBreatherProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAlignment="center"
+        android:textColor="@color/arena_text_muted"
+        android:textSize="13sp"
+        tools:text="Fight 3 of 15 cleared" />
+
+    <TextView
+        android:id="@+id/arenaBreatherReward"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textAlignment="center"
+        android:textColor="@color/brass_bright"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="+42 Scrap" />
+
+    <TextView
+        android:id="@+id/arenaBreatherRelic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textAlignment="center"
+        android:textColor="@color/cream"
+        android:textSize="14sp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Relic found: Rusted Gear" />
+
+    <TextView
+        android:id="@+id/arenaBreatherMilestone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textAlignment="center"
+        android:textColor="@color/copper"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="Milestone earned: Arena Contender" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/arenaBreatherContinueButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="@color/arena_bg_deep"
+        app:backgroundTint="@color/brass_bright"
+        app:cornerRadius="16dp"
+        app:elevation="4dp"
+        tools:text="Continue to Fight 4" />
+
+</LinearLayout>

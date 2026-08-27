@@ -2,6 +2,8 @@ package io.github.jmatts94.ratkingrecon
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
@@ -45,12 +47,18 @@ object CardIcons {
  *
  * [equippedFrame] is fixed for the life of an adapter: equipping a frame happens
  * in the Shop, and coming back here rebuilds the screen.
+ *
+ * [isDisabled] and [isSelected] default to "no card is" - only the Splicing
+ * screen needs a card to read as unpickable or picked, so the Binder grid
+ * itself passes nothing and gets its plain look unchanged.
  */
 class RatCardAdapter(
     private val prefs: SharedPreferences,
     private val equippedFrame: CardFrame?,
     private val animator: FrameAnimator,
-    private val onCardClick: (RatEntity) -> Unit
+    private val onCardClick: (RatEntity) -> Unit,
+    private val isDisabled: (RatEntity) -> Boolean = { false },
+    private val isSelected: (RatEntity) -> Boolean = { false }
 ) : ListAdapter<RatEntity, RatCardAdapter.CardHolder>(DIFF) {
 
     private companion object {
@@ -85,14 +93,12 @@ class RatCardAdapter(
 
         val holder = CardHolder(view)
 
-        // The frame is the same on every card, so it is applied once here rather
-        // than on every bind - a recycled holder already has it.
+        // The frame's overlay is the same on every card, so it is built once
+        // here rather than on every bind - a recycled holder already has it.
+        // The border itself is set per bind instead, alongside it - see
+        // onBindViewHolder - because a selected card needs to override it.
         equippedFrame?.let { frame ->
             val context = parent.context
-            holder.card.strokeColor = ContextCompat.getColor(context, frame.strokeColorRes)
-            holder.card.strokeWidth =
-                (Frames.STROKE_DP * context.resources.displayMetrics.density).toInt()
-
             if (frame.style != FrameStyle.STATIC) {
                 // The accent, not the border colour: the moving parts have to
                 // stand off the edge they sit against to read at all.
@@ -110,6 +116,7 @@ class RatCardAdapter(
     override fun onBindViewHolder(holder: CardHolder, position: Int) {
         val pet = getItem(position)
         val context = holder.itemView.context
+        val density = context.resources.displayMetrics.density
 
         // The stat icons live in item_rat_card.xml, so these are bare numbers.
         // Effective, not stored - a Rare or Legendary card reads the number it
@@ -127,22 +134,58 @@ class RatCardAdapter(
         } else {
             pet.name
         }
-        holder.name.setTextColor(
-            ContextCompat.getColor(context, if (pet.shiny) R.color.shiny_gold else R.color.text_primary)
-        )
-
-        val onDuty = BattleRat.isBattleRat(prefs, pet.id)
-        holder.name.setCompoundDrawablesRelative(
-            null, null, if (onDuty) CardIcons.battle(context, 14) else null, null
-        )
-        holder.name.compoundDrawablePadding = (3 * context.resources.displayMetrics.density).toInt()
 
         // One gear per rarity tier, stacked in the corner of the art.
         holder.gear1.visibility = if (pet.gearCount >= 1) View.VISIBLE else View.GONE
         holder.gear2.visibility = if (pet.gearCount >= 2) View.VISIBLE else View.GONE
         holder.gear3.visibility = if (pet.gearCount >= 3) View.VISIBLE else View.GONE
 
-        holder.itemView.setOnClickListener { onCardClick(pet) }
+        val disabled = isDisabled(pet)
+        val selected = isSelected(pet)
+
+        // Disabled reads the same as a locked Achievement: desaturated art,
+        // dimmed, muted text - an option that exists but cannot be taken right
+        // now, not one that has vanished.
+        if (disabled) {
+            holder.image.colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0f) })
+            holder.image.alpha = 0.3f
+        } else {
+            holder.image.colorFilter = null
+            holder.image.alpha = 1f
+        }
+        holder.name.setTextColor(
+            ContextCompat.getColor(
+                context,
+                when {
+                    disabled -> R.color.text_muted
+                    pet.shiny -> R.color.shiny_gold
+                    else -> R.color.text_primary
+                }
+            )
+        )
+
+        val onDuty = BattleRat.isBattleRat(prefs, pet.id)
+        holder.name.setCompoundDrawablesRelative(
+            null, null, if (onDuty) CardIcons.battle(context, 14) else null, null
+        )
+        holder.name.compoundDrawablePadding = (3 * density).toInt()
+
+        // The frame's own border, unless a selection needs to stand out over
+        // it - the same amber the rest of the app uses for a highlighted
+        // choice, thickened so it reads at a glance in a grid this small.
+        if (selected) {
+            holder.card.strokeColor = ContextCompat.getColor(context, R.color.amber)
+            holder.card.strokeWidth = (3 * density).toInt()
+        } else {
+            holder.card.strokeColor = ContextCompat.getColor(
+                context, equippedFrame?.strokeColorRes ?: R.color.card_border
+            )
+            holder.card.strokeWidth =
+                ((equippedFrame?.let { Frames.STROKE_DP.toFloat() } ?: 1f) * density).toInt()
+        }
+
+        holder.itemView.isEnabled = !disabled
+        holder.itemView.setOnClickListener(if (disabled) null else View.OnClickListener { onCardClick(pet) })
     }
 
     /**

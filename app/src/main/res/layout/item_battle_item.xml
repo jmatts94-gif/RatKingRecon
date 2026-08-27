@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One row in the Battle screen's Items panel - see dialog_battle_items.xml and
+  BattleActivity.showItemsDialog. Background/text swap between bg_card_white/
+  text_primary and bg_card_muted/text_muted in code when none are held, the
+  same disabled treatment used elsewhere for an option that cannot be taken
+  right now (see item_task_faction_pick.xml).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/battleItemRow"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_card_white"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp">
+
+    <ImageView
+        android:id="@+id/battleItemIcon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="12dp"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_flask" />
+
+    <TextView
+        android:id="@+id/battleItemLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        tools:text="HP Tonic (3 held)" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/battleItemUseButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/battle_use"
+        android:textAllCaps="false"
+        android:textSize="13sp"
+        android:textColor="@color/text_primary"
+        app:backgroundTint="@color/amber"
+        app:cornerRadius="14dp" />
+
+</LinearLayout>

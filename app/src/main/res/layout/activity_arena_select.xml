@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Picks the one rat an Arena run is built around - see ArenaSelectActivity.
+  Only the header band carries the Arena's dark theme; the grid itself stays
+  the app's normal light look; the same RatCardAdapter/item_rat_card.xml
+  SplicingActivity already uses, unthemed, because that component's warm
+  card-on-text styling is tuned for reading many small stat blocks at a
+  glance and is shared with two other screens - legibility first here, not
+  another surface to reskin for one screen the player passes through once.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_app_gradient"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/arena_bg_deep"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/arena_select_title"
+            android:textColor="@color/cream"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textAlignment="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/arena_select_hint"
+            android:textColor="@color/arena_text_muted"
+            android:textSize="13sp"
+            android:textAlignment="center" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/arenaSelectGrid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="4dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="3" />
+
+        <LinearLayout
+            android:id="@+id/arenaSelectEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingHorizontal="40dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ledger_empty_title"
+                android:textAlignment="center"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/arenaSelectStatusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/arena_select_pick_one"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp"
+        android:textAlignment="center"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/arenaSelectConfirmButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/btn_arena_select_confirm"
+        android:textAllCaps="false"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        app:backgroundTint="@color/amber"
+        app:cornerRadius="16dp"
+        app:elevation="4dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/arenaSelectCancelButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginTop="0dp"
+        android:text="@string/btn_cancel"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        app:backgroundTint="@color/card_white"
+        app:strokeColor="@color/card_border"
+        app:strokeWidth="1dp"
+        app:cornerRadius="16dp" />
+
+</LinearLayout>
