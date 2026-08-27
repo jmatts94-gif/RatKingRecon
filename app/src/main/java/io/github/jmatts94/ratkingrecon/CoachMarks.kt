@@ -40,7 +40,7 @@ object CoachMarks {
      * a caption rewritten, and set the [CoachMark.revisedIn] of whatever changed
      * to match - that pair is the whole mechanism.
      */
-    const val REVISION = 2
+    const val REVISION = 3
 
     /**
      * What a save carrying only the old boolean has already been shown.
@@ -110,7 +110,14 @@ object CoachMarks {
      * right, then the tiles beside the egg top to bottom. The three tiles are
      * one object on the screen and are walked through as one, which is also why
      * the lantern comes last rather than staying where it was - it was the only
-     * tile when this list was written.
+     * tile when this list was written. The Arena tile follows it for the same
+     * reason - the two now share a row, so the eye reaches the Arena tile
+     * immediately after the lantern rather than at some unrelated point.
+     *
+     * The Battle Arena button closes the list rather than sitting with the
+     * other buttons in between: everything above it is something a new player
+     * uses right away, and this is the one thing on the screen meant for
+     * later - fifteen fights deep is not a first session's business.
      */
     val steps = listOf(
         CoachMark(R.id.playerLevelText, R.string.coach_level),
@@ -119,6 +126,8 @@ object CoachMarks {
         CoachMark(R.id.scrapText, R.string.coach_scrap),
         CoachMark(R.id.expeditionTile, R.string.coach_expedition, revisedIn = 2),
         CoachMark(R.id.stepsTile, R.string.coach_steps_today, revisedIn = 2),
-        CoachMark(R.id.streakTile, R.string.coach_streak)
+        CoachMark(R.id.streakTile, R.string.coach_streak),
+        CoachMark(R.id.arenaTile, R.string.coach_arena_tile, revisedIn = 3),
+        CoachMark(R.id.battleArenaButton, R.string.coach_battle_arena, revisedIn = 3)
     )
 }

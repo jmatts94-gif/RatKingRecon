@@ -104,6 +104,26 @@ class CoachMarksTest {
         )
     }
 
+    /**
+     * The case revision 3 exists for: somebody who finished the walkthrough
+     * at revision 2, before the Arena tile or its button existed.
+     */
+    @Test
+    fun `a save already at revision 2 is owed only the Arena stops`() {
+        val prefs = FakePrefs()
+        Onboarding.markComplete(prefs)
+        CoachMarks.markComplete(prefs) // markComplete always writes CoachMarks.REVISION...
+        prefs.edit().putInt(CoachMarks.KEY_REVISION, 2).apply() // ...so set the real target explicitly.
+
+        assertTrue("there is something new to show", CoachMarks.shouldShow(prefs))
+
+        val owed = CoachMarks.stepsFor(prefs)
+        assertEquals(
+            listOf(R.id.arenaTile, R.id.battleArenaButton),
+            owed.map { it.targetId }
+        )
+    }
+
     @Test
     fun `a new save is owed the whole walkthrough`() {
         val prefs = FakePrefs()
@@ -152,8 +172,8 @@ class CoachMarksTest {
     // ---- the stops -----------------------------------------------------------
 
     @Test
-    fun `points at six things, each of them once`() {
-        assertEquals(6, CoachMarks.steps.size)
+    fun `points at eight things, each of them once`() {
+        assertEquals(8, CoachMarks.steps.size)
 
         assertEquals(
             "two stops pointing at the same view would dim the screen twice over",
@@ -170,10 +190,13 @@ class CoachMarksTest {
     /**
      * The order is the order the eye takes them in, and the tiles are walked as
      * the one group they read as - which is why the lantern is last rather than
-     * where it originally sat, back when it was the only tile there was.
+     * where it originally sat, back when it was the only tile there was. The
+     * Arena tile follows it since the two now share a row, and the Battle
+     * Arena button closes the list as the one thing here meant for later
+     * rather than a first session.
      */
     @Test
-    fun `runs the header left to right, then the tiles top to bottom`() {
+    fun `runs the header left to right, then the tiles top to bottom, ending on the Arena`() {
         assertEquals(
             listOf(
                 R.id.playerLevelText,
@@ -181,7 +204,9 @@ class CoachMarksTest {
                 R.id.scrapText,
                 R.id.expeditionTile,
                 R.id.stepsTile,
-                R.id.streakTile
+                R.id.streakTile,
+                R.id.arenaTile,
+                R.id.battleArenaButton
             ),
             CoachMarks.steps.map { it.targetId }
         )

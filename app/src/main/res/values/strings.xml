@@ -175,6 +175,8 @@
     <string name="coach_expedition">Whether a rat is out on a Scrap Run, and how long is left of it.</string>
     <string name="coach_steps_today">Today\'s walking, and roughly how far it comes to. This one resets every morning.</string>
     <string name="coach_streak">Your daily streak. Tap the lantern for today\'s quest — it burns brighter the longer you keep it going.</string>
+    <string name="coach_arena_tile">Your deepest Battle Arena run, and the badges earned along the way. Tap to see them on the Achievements screen.</string>
+    <string name="coach_battle_arena">The Battle Arena: an escalating 15-fight gauntlet for your strongest rat, no healing between fights, with an exclusive reward for clearing it.</string>
 
     <!-- First-launch walkthrough -->
     <string name="onboarding_skip">Skip</string>
