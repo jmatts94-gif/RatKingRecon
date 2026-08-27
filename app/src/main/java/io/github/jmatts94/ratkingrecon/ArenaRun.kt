@@ -1,8 +1,38 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.content.SharedPreferences
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import kotlin.math.max
 import kotlin.math.roundToInt
+
+/**
+ * One Arena depth milestone - see [ArenaRun.MILESTONES].
+ *
+ * The same shape [Milestone] and [BossSpec] already carry an id/name/icon in,
+ * so [AchievementsActivity]'s existing row renderer can draw these exactly
+ * the way it draws a boss badge, with no new layout logic of its own.
+ * [tierColorRes], [glowAlpha] and [glowScale] additionally drive the
+ * medallion treatment both there and on the home screen's Arena tile - see
+ * [ArenaBadgeMedallion] - bronze/silver/gold, with the glow strengthening
+ * as the badge gets harder to earn.
+ */
+data class ArenaMilestone(
+    val fight: Int,
+    @param:StringRes val nameRes: Int,
+    @param:DrawableRes val iconRes: Int,
+    @param:ColorRes val tierColorRes: Int,
+    /** Peak alpha (0..255) of the glow behind an earned medallion; 0 for none. */
+    val glowAlpha: Int,
+    /**
+     * How much bigger than the medallion itself the glow renders, on top of
+     * [glowAlpha] - the fight-15 badge is meant to read as clearly the most
+     * premium of the three, not merely the brightest, so its glow is
+     * physically larger as well as stronger.
+     */
+    val glowScale: Float = 1f
+)
 
 /**
  * What a cleared fight handed back, for whichever popup [BattleActivity] shows
@@ -41,7 +71,16 @@ data class ArenaLossSummary(
 object ArenaRun {
 
     const val TOTAL_FIGHTS = 15
-    val MILESTONE_FIGHTS = setOf(5, 10, 15)
+
+    val MILESTONES: List<ArenaMilestone> = listOf(
+        ArenaMilestone(5, R.string.arena_milestone_5_name, R.drawable.ic_settings, R.color.copper, glowAlpha = 0),
+        ArenaMilestone(10, R.string.arena_milestone_10_name, R.drawable.ic_gear_double, R.color.pewter, glowAlpha = 90),
+        ArenaMilestone(
+            15, R.string.arena_milestone_15_name, R.drawable.ic_gear_blade, R.color.brass_bright,
+            glowAlpha = 225, glowScale = 1.4f
+        )
+    )
+    val MILESTONE_FIGHTS: Set<Int> = MILESTONES.map { it.fight }.toSet()
 
     private const val KEY_ACTIVE = "ARENA_RUN_ACTIVE"
     private const val KEY_RAT_ID = "ARENA_RUN_RAT_ID"
@@ -70,6 +109,49 @@ object ArenaRun {
      */
     fun relicChanceFor(fight: Int): Double =
         0.10 + (fight - 1).toDouble() / (TOTAL_FIGHTS - 1) * 0.40
+
+    // ---- difficulty curve ------------------------------------------------
+
+    /** Where the curve begins - already past what a typical early ordinary encounter risks. */
+    private const val START_RATIO = 0.90
+
+    /**
+     * Where the curve ends, at fight 15.
+     *
+     * Anchored to [RustbotFactory.MAX_RATIO]'s own documented simulation data
+     * rather than picked fresh: that ratio wins 53% of pairings, and 1.20 wins
+     * 27% - the "no safety net" finish this run is meant to earn.
+     */
+    private const val MAX_RATIO = 1.20
+
+    /**
+     * How close to - or past - the rat's own stats [fight] gets.
+     *
+     * Deliberately independent of player level, unlike [RustbotFactory.rampFor]
+     * - the Arena has no level gate the way a boss does, so its difficulty
+     * cannot lean on one either, or grinding levels would trivialise the run
+     * the same way it was doing before this curve existed at all. Every
+     * player meets the same fifteen fights.
+     */
+    fun ratioFor(fight: Int): Double =
+        START_RATIO + (MAX_RATIO - START_RATIO) * (fight - 1).toDouble() / (TOTAL_FIGHTS - 1)
+
+    /**
+     * The Rustbot for [fight], scaled by [ratioFor] alone.
+     *
+     * Uncapped on both Power and HP - the same treatment [Bosses.rustbotFor]
+     * gives a boss, and for the same reason: past the curve's midpoint this is
+     * meant to be allowed to out-hit the rat outright, not merely catch up to
+     * it. An ordinary Rustbot's Power stops at parity; this one does not.
+     */
+    fun rustbotFor(fight: Int, rat: RatEntity): Rustbot {
+        val ratio = ratioFor(fight)
+        return Rustbot(
+            name = RustbotFactory.randomVariantName(),
+            power = max(1, (rat.power * ratio).roundToInt()),
+            maxHp = max(1, (rat.maxHp * ratio).roundToInt())
+        )
+    }
 
     // ---- run state ---------------------------------------------------------
 
@@ -133,6 +215,9 @@ object ArenaRun {
     fun isMilestoneEarned(prefs: SharedPreferences, fight: Int): Boolean =
         prefs.getBoolean(MILESTONE_LATCH_PREFIX + fight, false)
 
+    fun milestonesEarnedCount(prefs: SharedPreferences): Int =
+        MILESTONES.count { isMilestoneEarned(prefs, it.fight) }
+
     /** Latches [fight]'s badge and returns it, or null if already earned. */
     private fun markMilestone(editor: SharedPreferences.Editor, prefs: SharedPreferences, fight: Int): Int? {
         if (isMilestoneEarned(prefs, fight)) return null
@@ -145,15 +230,24 @@ object ArenaRun {
     /**
      * The frame Arena Cleared grants, or null once every frame is owned.
      *
-     * Drawn from every frame, not just [RelicTrader.availableFrames] - the
-     * Trader keeps the animated pair out because three relics is a far
-     * cheaper route to one than its own Scrap price, which has nothing to do
-     * with a reward for finishing all 15 fights. Weighted by [CardFrame.price]
-     * instead of picked uniformly, so the frames priced highest - the premium
-     * pair this is meant to feel like a real payoff for reaching - come up
-     * markedly more often than Brass or Ember, without making them a lock.
+     * [Frames.ARENA_CHAMPION] is guaranteed the first time - the flagship
+     * prize a run this long is built around, not one more entry a weighted
+     * pool might simply skip. Once owned, it drops out of contention the same
+     * way every other frame already does, and a repeat clear falls back to
+     * the ordinary pool.
+     *
+     * That pool is drawn from every remaining frame, not just
+     * [RelicTrader.availableFrames] - the Trader keeps the animated pair out
+     * because three relics is a far cheaper route to one than its own Scrap
+     * price, which has nothing to do with a reward for finishing all 15
+     * fights. Weighted by [CardFrame.price] instead of picked uniformly, so
+     * the frames priced highest - the premium pair this is meant to feel like
+     * a real payoff for reaching - come up markedly more often than Brass or
+     * Ember, without making them a lock.
      */
     private fun weightedClearedFrame(prefs: SharedPreferences): CardFrame? {
+        if (!ShopEffects.ownsCosmetic(prefs, Frames.ARENA_CHAMPION.id)) return Frames.ARENA_CHAMPION
+
         val candidates = Frames.all.filterNot { ShopEffects.ownsCosmetic(prefs, it.id) }
         if (candidates.isEmpty()) return null
 
@@ -231,7 +325,7 @@ object ArenaRun {
             val fighter = dao.byId(ratId(prefs))
             if (fighter != null) {
                 val nextFight = fightJustCleared + 1
-                val bot = RustbotFactory.forEncounter(playerLevel, fighter)
+                val bot = rustbotFor(nextFight, fighter)
                 val reward = max(
                     1,
                     (RustbotFactory.rewardFor(playerLevel) * scrapMultiplierFor(nextFight)).roundToInt()

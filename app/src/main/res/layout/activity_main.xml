@@ -359,17 +359,27 @@
                 </LinearLayout>
 
                 <!--
-                  The streak tile, unchanged in what it does: it still opens
-                  today's quest, the lantern still carries the four stages, and
-                  the count is still the streak. Only the shape is new - laid
-                  out across rather than down, to match the two tiles above it.
+                  The streak tile and the Arena tile, side by side rather than
+                  the streak tile alone filling the row - the same "two tiles
+                  across" shape the steps/expedition rows above already use,
+                  just split a second time within this one row instead of a
+                  fourth row being added beneath it. Splitting the row keeps
+                  the whole tileColumn's height driven by the egg panel
+                  exactly as it already was; a fourth stacked tile would not.
                 -->
                 <LinearLayout
-                    android:id="@+id/streakTile"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    android:clipChildren="false">
+
+                <LinearLayout
+                    android:id="@+id/streakTile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:paddingStart="10dp"
@@ -463,6 +473,76 @@
                         android:textSize="17sp"
                         android:textStyle="bold"
                         android:text="@string/header_scrap_default" />
+                </LinearLayout>
+
+                <!--
+                  The Arena tile. Dark rather than the cream every other tile
+                  on this screen uses - bg_pill_arena reuses the Arena's own
+                  arena_bg_deep/copper palette rather than a new dark tone -
+                  since this is the one door on the home screen into that mode,
+                  and reads as a lit window into it rather than another pill
+                  of the same colour with different content behind it.
+                -->
+                <LinearLayout
+                    android:id="@+id/arenaTile"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:background="@drawable/bg_pill_arena"
+                    android:elevation="6dp"
+                    android:outlineAmbientShadowColor="@color/shadow_warm"
+                    android:outlineSpotShadowColor="@color/shadow_warm"
+                    tools:targetApi="28"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:clipChildren="false">
+
+                    <TextView
+                        android:id="@+id/arenaTileStatus"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textColor="@color/cream"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        tools:text="Fight 10 cleared" />
+
+                    <!--
+                      The three badge medallions - view_arena_badge_medallion_small,
+                      the tile's own properly-sized twin of the Achievements row's
+                      36dp layout, not that layout scaled down. See ArenaBadgeMedallion
+                      and that layout's own doc comment for why.
+                    -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:orientation="horizontal"
+                        android:clipChildren="false">
+
+                        <include
+                            android:id="@+id/arenaTileBadge5"
+                            layout="@layout/view_arena_badge_medallion_small" />
+
+                        <include
+                            android:id="@+id/arenaTileBadge10"
+                            layout="@layout/view_arena_badge_medallion_small"
+                            android:layout_marginStart="4dp" />
+
+                        <include
+                            android:id="@+id/arenaTileBadge15"
+                            layout="@layout/view_arena_badge_medallion_small"
+                            android:layout_marginStart="4dp" />
+                    </LinearLayout>
+                </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>

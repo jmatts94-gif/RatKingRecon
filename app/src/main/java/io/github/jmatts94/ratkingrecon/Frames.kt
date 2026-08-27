@@ -15,7 +15,10 @@ enum class FrameStyle {
     STEAM,
 
     /** A border glow breathing between two colours. */
-    PULSE
+    PULSE,
+
+    /** A dark, battle-worn border with a few glowing cracks breathing through it. */
+    SCARRED
 }
 
 /**
@@ -54,7 +57,18 @@ data class CardFrame(
      * relics, and letting it produce a 500-Scrap frame would make it the cheap
      * way to get one, which is the opposite of what the higher tier is for.
      */
-    val tradeable: Boolean
+    val tradeable: Boolean,
+    /**
+     * Whether the Shop lists this frame at all.
+     *
+     * True for every frame that shipped before this flag existed - Shop.kt
+     * builds its cosmetic category straight from [Frames.all], so a frame
+     * left off this would silently go on sale otherwise. False is for a
+     * frame meant to be earned, not bought: [price] still describes what it
+     * would be worth, since [ArenaRun]'s weighted pick still reads it, but
+     * nothing ever charges it.
+     */
+    val sellable: Boolean = true
 )
 
 /**
@@ -163,13 +177,39 @@ object Frames {
         tradeable = false
     )
 
+    /**
+     * The one frame nothing sells or trades for - guaranteed on the first
+     * time a run clears all fifteen Arena fights, see
+     * [ArenaRun.weightedClearedFrame]. The only [FrameStyle.SCARRED] frame:
+     * a dark, battle-worn border with a few cracks breathing between the
+     * same two colours the Arena's own screens are built from -
+     * [R.color.brass_bright] lights its "Enter" button, [R.color.copper]
+     * borders every panel - so it reads as carried out of that mode, not as
+     * a seventh entry in the same warm-and-still family the base six share.
+     */
+    val ARENA_CHAMPION = CardFrame(
+        id = "arena_champion",
+        nameRes = R.string.shop_name_frame_arena_champion,
+        descRes = R.string.shop_desc_frame_arena_champion,
+        strokeColorRes = R.color.scarred_iron,
+        accentColorRes = R.color.brass_bright,
+        accentAltColorRes = R.color.copper,
+        style = FrameStyle.SCARRED,
+        price = 750,
+        tradeable = false,
+        sellable = false
+    )
+
     val all: List<CardFrame> =
-        listOf(BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL)
+        listOf(BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL, ARENA_CHAMPION)
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }
 
     /** The frames the Relic Trader is allowed to deal in. */
     val tradeable: List<CardFrame> = all.filter { it.tradeable }
+
+    /** The frames the Shop lists for sale. */
+    val sellable: List<CardFrame> = all.filter { it.sellable }
 
     /** Border width for every frame, in dp. Uniform so none looks heavier. */
     const val STROKE_DP = 3

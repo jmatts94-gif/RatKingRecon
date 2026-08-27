@@ -71,6 +71,7 @@
     <string name="shop_active">Active</string>
     <string name="shop_equip">Equip</string>
     <string name="shop_equipped">Equipped</string>
+    <string name="shop_arena_reward_only">Arena Reward Only</string>
     <string name="shop_coming_soon_btn">Coming Soon</string>
     <!-- description, number held -->
     <string name="shop_held">%1$s  ·  %2$d held</string>
@@ -443,6 +444,13 @@ RARE DROP: %2$s</string>
     <string name="achievements_summary">%1$d of %2$d earned</string>
     <string name="achievements_combat">Combat Badges</string>
     <string name="achievements_combat_sub">One for each boss Rustbot, earned on your first win.</string>
+
+    <string name="achievements_arena">Arena Badges</string>
+    <string name="achievements_arena_sub">Depth reached in the Battle Arena, earned once per checkpoint.</string>
+
+    <!-- The home screen's Arena tile - see MainActivity.updateArenaTile. -->
+    <string name="arena_tile_status">Fight %1$d cleared</string>
+    <string name="arena_tile_status_none">Not started</string>
     <string name="achievements_steps">Lifetime Steps</string>
     <!-- lifetime steps, approximate kilometres -->
     <string name="achievements_steps_sub">%1$d steps walked, about %2$.1f km</string>
@@ -456,6 +464,8 @@ RARE DROP: %2$s</string>
     <!-- minimum level at which the boss can appear -->
     <string name="badge_locked_detail">Stalks walkers from Level %1$d.</string>
     <string name="badge_earned_detail">Defeated.</string>
+    <string name="arena_badge_locked_detail">Clear Fight %1$d of the Battle Arena.</string>
+    <string name="arena_badge_earned_detail">Cleared.</string>
 
     <!-- Lifetime step milestones -->
     <string name="milestone_first_steps">First Steps</string>
@@ -561,6 +571,11 @@ RARE DROP: %2$s</string>
     <string name="shop_desc_frame_riveted">Copper plating with visible rivets. An industrial trim that does not move.</string>
     <string name="shop_name_frame_aether">Aether Coil Frame</string>
     <string name="shop_desc_frame_aether">A faint blue-white arc that pulses along the border. Animated.</string>
+
+    <!-- Arena-exclusive - see Frames.ARENA_CHAMPION. Not sold in the Shop or
+         tradeable at the Relic Trader; only clearing all 15 Arena fights grants it. -->
+    <string name="shop_name_frame_arena_champion">Champion\'s Banner</string>
+    <string name="shop_desc_frame_arena_champion">A battle-scarred border, cracks glowing brass-and-copper. Earned only by clearing every fight of the Battle Arena. Animated.</string>
 
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
     <string name="relic_rusted_gear">⚙️ Rusted Gear</string>

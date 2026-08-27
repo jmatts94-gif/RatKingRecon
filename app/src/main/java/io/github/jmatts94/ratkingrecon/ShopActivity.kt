@@ -178,6 +178,12 @@ class ShopActivity : AppCompatActivity() {
             return
         }
 
+        // Belt-and-braces alongside the disabled "Arena Reward Only" label
+        // above: that keeps an ordinary tap from ever reaching here, but this
+        // is the one place Scrap actually leaves, and it must refuse on its
+        // own rather than trust a button state it does not control.
+        if (effect is ShopEffect.Cosmetic && Frames.byId(effect.id)?.sellable == false) return
+
         if (effect is ShopEffect.Flag && prefs.getBoolean(effect.key, false)) return
 
         // Power Surge and the Golden Wrench are mutually exclusive: only one can
@@ -357,6 +363,12 @@ class ShopActivity : AppCompatActivity() {
             }
 
         is ShopEffect.Cosmetic -> when {
+            // Checked before ownership: a frame taken off sale after the
+            // player already owns it - none does yet, but the rule should
+            // not depend on that - still has to fall through to Equip/Equipped
+            // below rather than freeze on a label that no longer applies.
+            !ShopEffects.ownsCosmetic(prefs, effect.id) && Frames.byId(effect.id)?.sellable == false ->
+                Label(getString(R.string.shop_arena_reward_only), enabled = false)
             !ShopEffects.ownsCosmetic(prefs, effect.id) -> Label(price(item), enabled = true)
             ShopEffects.equippedCosmetic(prefs) == effect.id ->
                 Label(getString(R.string.shop_equipped), enabled = true, fill = R.color.amber_dark)

@@ -86,6 +86,9 @@ object RustbotFactory {
     fun rampFor(playerLevel: Int): Double =
         min(MAX_RATIO, START_RATIO + RATIO_PER_LEVEL * (playerLevel - 1))
 
+    /** One of [VARIANTS], for a caller building its own [Rustbot] rather than [forEncounter]'s. */
+    fun randomVariantName(): String = VARIANTS.random()
+
     /**
      * The Rustbot for this encounter.
      *

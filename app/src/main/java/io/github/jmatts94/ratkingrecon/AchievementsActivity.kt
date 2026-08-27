@@ -1,5 +1,6 @@
 package io.github.jmatts94.ratkingrecon
 
+import android.animation.ObjectAnimator
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.os.Bundle
@@ -9,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -34,7 +36,14 @@ import kotlinx.coroutines.withContext
  */
 class AchievementsActivity : AppCompatActivity() {
 
+    companion object {
+        /** Opens the screen already scrolled to the Arena Badges section - see the home tile. */
+        const val EXTRA_SCROLL_TO_ARENA = "scroll_to_arena"
+    }
+
+    private lateinit var scrollView: ScrollView
     private lateinit var badgeList: LinearLayout
+    private lateinit var arenaBadgeList: LinearLayout
     private lateinit var stepsList: LinearLayout
     private lateinit var rosterList: LinearLayout
     private lateinit var hatchingList: LinearLayout
@@ -42,11 +51,19 @@ class AchievementsActivity : AppCompatActivity() {
     private lateinit var stepsSubtitle: TextView
     private lateinit var rosterSubtitle: TextView
 
+    /** The Arena medallions' own spin/glow animators, live only while this screen is in front. */
+    private val arenaAnimators = mutableListOf<ObjectAnimator>()
+
+    /** So a rotation (onResume firing again) does not scroll the player back down a second time. */
+    private var scrolledToArena = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_achievements)
 
+        scrollView = findViewById(R.id.achievementsScroll)
         badgeList = findViewById(R.id.badgeList)
+        arenaBadgeList = findViewById(R.id.arenaBadgeList)
         stepsList = findViewById(R.id.stepsList)
         rosterList = findViewById(R.id.rosterList)
         hatchingList = findViewById(R.id.hatchingList)
@@ -69,7 +86,23 @@ class AchievementsActivity : AppCompatActivity() {
                 read
             }
             render(progress)
+
+            if (intent.getBooleanExtra(EXTRA_SCROLL_TO_ARENA, false) && !scrolledToArena) {
+                scrolledToArena = true
+                scrollView.post { scrollView.smoothScrollTo(0, arenaBadgeList.top) }
+            }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Every card frame in the Ledger stops turning the same way when this
+        // screen is not the one in front - see FrameAnimator.stop via
+        // GalleryActivity.onPause - so a medallion left spinning behind a
+        // dialog or another screen would be the one animation in the app
+        // that did not follow that rule.
+        ArenaBadgeMedallion.stop(arenaAnimators)
+        arenaAnimators.clear()
     }
 
     private fun render(progress: MilestoneProgress) {
@@ -77,8 +110,8 @@ class AchievementsActivity : AppCompatActivity() {
 
         summary.text = getString(
             R.string.achievements_summary,
-            Bosses.defeatedCount(prefs) + Milestones.earnedCount(prefs),
-            Bosses.all.size + Milestones.all.size
+            Bosses.defeatedCount(prefs) + Milestones.earnedCount(prefs) + ArenaRun.milestonesEarnedCount(prefs),
+            Bosses.all.size + Milestones.all.size + ArenaRun.MILESTONES.size
         )
 
         stepsSubtitle.text = getString(
@@ -94,6 +127,7 @@ class AchievementsActivity : AppCompatActivity() {
         )
 
         renderBadges(prefs)
+        renderArenaBadges(prefs)
         renderMilestones(stepsList, Milestones.steps, prefs, progress)
         renderMilestones(rosterList, Milestones.roster, prefs, progress)
         renderMilestones(hatchingList, Milestones.hatching, prefs, progress)
@@ -117,6 +151,44 @@ class AchievementsActivity : AppCompatActivity() {
                 )
             )
         }
+    }
+
+    private fun renderArenaBadges(prefs: android.content.SharedPreferences) {
+        ArenaBadgeMedallion.stop(arenaAnimators)
+        arenaAnimators.clear()
+        arenaBadgeList.removeAllViews()
+
+        ArenaRun.MILESTONES.forEach { milestone ->
+            val earned = ArenaRun.isMilestoneEarned(prefs, milestone.fight)
+            arenaBadgeList.addView(arenaRow(milestone, earned))
+        }
+    }
+
+    /**
+     * One Arena badge row - the same shape [row] builds for every other list
+     * on this screen, but with an animated [ArenaBadgeMedallion] in place of
+     * the plain static icon [row] uses, since these are the one badge on
+     * this screen that spins and glows rather than sitting still.
+     */
+    private fun arenaRow(milestone: ArenaMilestone, earned: Boolean): View {
+        val view = LayoutInflater.from(this)
+            .inflate(R.layout.item_achievement_arena, arenaBadgeList, false)
+
+        view.setBackgroundResource(if (earned) R.drawable.bg_card_earned else R.drawable.bg_card_white)
+        view.findViewById<View>(R.id.achievementCheck).visibility = if (earned) View.VISIBLE else View.GONE
+
+        val medallion = view.findViewById<View>(R.id.achievementMedallion)
+        ArenaBadgeMedallion.bind(medallion, milestone, earned)
+        if (earned) arenaAnimators += ArenaBadgeMedallion.start(medallion, milestone)
+
+        view.findViewById<TextView>(R.id.achievementName).text =
+            if (earned) getString(milestone.nameRes) else getString(R.string.badge_locked)
+        view.findViewById<TextView>(R.id.achievementDetail).text = getString(
+            if (earned) R.string.arena_badge_earned_detail else R.string.arena_badge_locked_detail,
+            milestone.fight
+        )
+
+        return view
     }
 
     private fun renderMilestones(

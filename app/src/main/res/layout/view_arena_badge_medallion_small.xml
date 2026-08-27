@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The home tile's own size of view_arena_badge_medallion.xml - same
+  structure and the same three ids, so ArenaBadgeMedallion's bind/start work
+  on this unchanged, just authored at the tile's actual small size instead of
+  scaled down from the Achievements row's 36dp reference. The scale-and-clip
+  version of this tried to reuse one XML at two sizes and produced a visible
+  square artifact around the icon at the tile's size - a real risk whenever a
+  transformed view is clipped by an ancestor, and not worth chasing further
+  when two properly-sized layouts sharing one binder is this simple.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="18dp"
+    android:layout_height="18dp"
+    android:clipChildren="false">
+
+    <!--
+      clipChildren off above for exactly the reason the streak tile's own
+      glow already turns it off: fight 15's glow scales up past this box (see
+      ArenaMilestone.glowScale) to read as bigger, not just brighter, and a
+      clipped ancestor is what square-cornered it the first time.
+    -->
+    <View
+        android:id="@+id/medallionGlow"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_lantern_glow"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/medallionIcon"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_gravity="center"
+        android:scaleType="fitCenter"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_settings" />
+
+</FrameLayout>

@@ -5,6 +5,7 @@ import android.graphics.ColorFilter
 import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.PathMeasure
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.RectF
@@ -92,12 +93,31 @@ class FrameOverlayDrawable(
 
         /** Breaths per turn of the shared clock, so a pulse lasts three seconds. */
         const val PULSE_CYCLES = 2f
+
+        // --- the scarred border's glowing cracks ---
+        const val CRACK_WIDTH_DP = 2f
+        const val CRACK_HALO_WIDTH_DP = 5f
+        const val CRACK_HALO_ALPHA = 90
+        const val CRACK_MIN_ALPHA = 90
+        const val CRACK_MAX_ALPHA = 255
+        const val CRACK_JAG_DP = 5f
+
+        /** Breaths per turn of the clock - slower than PULSE, an old wound rather than a heartbeat. */
+        const val CRACK_CYCLES = 1f
+
+        /** Each crack sits this far around the perimeter from the last, 0..1 of the total path length. */
+        val CRACK_POSITIONS = floatArrayOf(0.08f, 0.38f, 0.62f, 0.88f)
     }
 
     private var density = 1f
 
     private val pulsePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
+        // Rounded rather than the default butt cap: PULSE draws a closed loop
+        // where this never shows, but SCARRED's cracks are open zigzags and a
+        // hard square end on a crack line reads as a drawing error.
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
     }
 
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -115,6 +135,7 @@ class FrameOverlayDrawable(
     private val borderRect = RectF()
 
     private var dashEffects: Array<DashPathEffect>? = null
+    private var crackPaths: List<Path> = emptyList()
     private var built = false
 
     /** Set by the view before this is attached, so dp can become px. */
@@ -138,6 +159,7 @@ class FrameOverlayDrawable(
      */
     private fun build() {
         buildTrack()
+        if (style == FrameStyle.SCARRED) buildCracks()
         built = true
     }
 
@@ -182,6 +204,47 @@ class FrameOverlayDrawable(
         }
     }
 
+    /**
+     * Four short jagged lines, anchored at fixed points around [borderPath]'s
+     * own perimeter via [PathMeasure] rather than at coordinates worked out by
+     * hand - the border's rounded corners already vary with [TRACK_CORNER_DP]
+     * and density, and walking the path itself is what keeps a crack sitting
+     * on the edge instead of drifting off it.
+     *
+     * Fixed positions rather than random ones, the same reason the gear track
+     * above is built from [DASH_STEPS] rather than rolled fresh: a crack that
+     * moved to a new spot every time this Drawable rebuilt would read as
+     * damage relocating itself, not as a mark the card already carries.
+     */
+    private fun buildCracks() {
+        val measure = PathMeasure(borderPath, false)
+        val total = measure.length
+        if (total <= 0f) return
+
+        val jag = dp(CRACK_JAG_DP)
+        val pos = FloatArray(2)
+        val tan = FloatArray(2)
+
+        crackPaths = CRACK_POSITIONS.map { fraction ->
+            measure.getPosTan(total * fraction, pos, tan)
+            val x = pos[0]
+            val y = pos[1]
+            val tx = tan[0]
+            val ty = tan[1]
+            // The inward normal - rotate the tangent 90°. borderPath winds
+            // clockwise, so this points into the card rather than out past it.
+            val nx = -ty
+            val ny = tx
+
+            Path().apply {
+                moveTo(x - tx * jag, y - ty * jag)
+                lineTo(x + nx * jag, y + ny * jag)
+                lineTo(x + tx * jag * 0.6f, y + ty * jag * 0.6f)
+                lineTo(x + nx * jag * 1.8f, y + ny * jag * 1.8f)
+            }
+        }
+    }
+
     override fun draw(canvas: Canvas) {
         val b = bounds
         if (b.isEmpty) return
@@ -192,6 +255,7 @@ class FrameOverlayDrawable(
             FrameStyle.GEARS -> drawClockwork(canvas)
             FrameStyle.STEAM -> drawSteam(canvas, b)
             FrameStyle.PULSE -> drawPulse(canvas)
+            FrameStyle.SCARRED -> drawScarred(canvas)
         }
     }
 
@@ -243,6 +307,34 @@ class FrameOverlayDrawable(
         pulsePaint.alpha =
             (PULSE_MIN_ALPHA + (PULSE_MAX_ALPHA - PULSE_MIN_ALPHA) * wave).toInt().coerceIn(0, 255)
         canvas.drawPath(borderPath, pulsePaint)
+    }
+
+    /**
+     * A handful of cracks along the border, breathing light rather than
+     * marching or drifting - damage on a frame this hard-earned should read
+     * as old and still faintly hot, not as machinery still running.
+     *
+     * The same two-pass halo-then-core trick [drawPulse] uses, and the same
+     * sine easing, just slower ([CRACK_CYCLES] against [PULSE_CYCLES]) and
+     * never fully dark - even at the dim end of the breath a scar stays
+     * visible, which is the difference between damage and a light switching
+     * off.
+     */
+    private fun drawScarred(canvas: Canvas) {
+        val wave = (sin((FrameClock.phase() * CRACK_CYCLES * 2f * Math.PI).toFloat()) + 1f) / 2f
+        val color = ColorUtils.blendARGB(accentAlt, accent, wave)
+
+        for (crack in crackPaths) {
+            pulsePaint.color = color
+            pulsePaint.strokeWidth = dp(CRACK_HALO_WIDTH_DP)
+            pulsePaint.alpha = (CRACK_HALO_ALPHA * wave).toInt().coerceIn(0, 255)
+            canvas.drawPath(crack, pulsePaint)
+
+            pulsePaint.strokeWidth = dp(CRACK_WIDTH_DP)
+            pulsePaint.alpha =
+                (CRACK_MIN_ALPHA + (CRACK_MAX_ALPHA - CRACK_MIN_ALPHA) * wave).toInt().coerceIn(0, 255)
+            canvas.drawPath(crack, pulsePaint)
+        }
     }
 
     /**

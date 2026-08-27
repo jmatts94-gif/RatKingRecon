@@ -74,7 +74,25 @@ class BattleActivity : AppCompatActivity() {
         btnLeave = findViewById(R.id.btnLeave)
 
         btnLeave.setOnClickListener { finish() }
+        wireActions()
 
+        loadFight()
+    }
+
+    /**
+     * Loads whichever encounter is pending and drops the screen into it.
+     *
+     * Called once from [onCreate] for an ordinary fight, and again in place -
+     * no Activity relaunch - when an Arena run's breather popup continues to
+     * the next one. [BattleActivity] is `singleTop`, so `startActivity`ing
+     * itself from its own Continue button would not create a second instance
+     * at all: it would hand the intent to `onNewIntent` on the very instance
+     * already on top, which this class does not override, and the `finish()`
+     * that used to follow it would tear down the only instance there was -
+     * dropping the player onto whatever sat beneath it in the back stack
+     * instead of the next fight. Reloading in place sidesteps that entirely.
+     */
+    private fun loadFight() {
         lifecycleScope.launch {
             val loaded = withContext(Dispatchers.IO) {
                 Encounter.loadFightable(
@@ -125,6 +143,12 @@ class BattleActivity : AppCompatActivity() {
             val startingHp = if (ArenaRun.isActive(prefs)) ArenaRun.carriedHpFor(prefs) else null
             battle = encounter.toBattle(rat, ShopEffects.loadoutFor(prefs), startingHp)
 
+            // Cleared rather than left standing - reloaded in place, this is
+            // still the same Activity instance the last fight's log was
+            // written into, and that log has no business floating above this
+            // fight's own opening line.
+            lines.clear()
+
             // Opens the log, so the card has something in it before round one
             // and the fight starts by saying what turned up rather than by
             // counting. Fixed for this encounter, not rolled per draw - see
@@ -134,7 +158,6 @@ class BattleActivity : AppCompatActivity() {
             lines += opening
 
             bindStaticViews()
-            wireActions()
             render()
 
             // The intro replaces the normal drop straight into combat, and only
@@ -473,8 +496,7 @@ class BattleActivity : AppCompatActivity() {
             text = getString(R.string.btn_arena_continue, outcome.fightCleared + 1)
             setOnClickListener {
                 dialog.dismiss()
-                startActivity(Intent(this@BattleActivity, BattleActivity::class.java))
-                finish()
+                loadFight()
             }
         }
         dialog.show()
@@ -560,11 +582,8 @@ class BattleActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun arenaMilestoneNameRes(fight: Int): Int = when (fight) {
-        5 -> R.string.arena_milestone_5_name
-        10 -> R.string.arena_milestone_10_name
-        else -> R.string.arena_milestone_15_name
-    }
+    private fun arenaMilestoneNameRes(fight: Int): Int =
+        ArenaRun.MILESTONES.firstOrNull { it.fight == fight }?.nameRes ?: R.string.arena_milestone_15_name
 
     /** Pops every Arena screen off the stack and returns to the Workshop. */
     private fun returnToWorkshop() {

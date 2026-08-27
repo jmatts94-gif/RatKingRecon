@@ -241,11 +241,13 @@ object Shop {
     )
 
     /**
-     * Every frame in [Frames], in catalogue order.
-     *
-     * Built from the catalogue rather than listed again here, so a frame added
-     * there goes on sale at the price it declares. The plain frames stay at 200;
-     * the animated pair is dearer, which is the whole distinction between them.
+     * Every frame in [Frames], in catalogue order - [Frames.all] rather than
+     * [Frames.sellable], because a frame that cannot be bought still belongs
+     * on the shelf to be seen and wanted, not hidden from it. What
+     * [CardFrame.sellable] actually gates is the price button itself - see
+     * [ShopActivity.labelForUnlocked], which swaps it for "Arena Reward Only"
+     * on a frame this is false for - so nothing here goes on sale merely for
+     * existing in the catalogue.
      */
     private val cosmetic = ShopCategory(
         titleRes = R.string.shop_cat_cosmetic,
@@ -261,6 +263,7 @@ object Shop {
                     FrameStyle.STEAM -> R.drawable.ic_flask
                     FrameStyle.PULSE -> R.drawable.ic_sparkle
                     FrameStyle.STATIC -> R.drawable.ic_star
+                    FrameStyle.SCARRED -> R.drawable.ic_power
                 }
             )
         }

@@ -6,12 +6,11 @@ import android.content.SharedPreferences
  * The Battle Arena's entry flow: what it costs, and how its first fight gets
  * raised.
  *
- * Deliberately small. This only clears the way into a run - the run itself
- * (fight 2 onward, HP carried in with no full heal, Scrap-revive disabled,
- * the Arena's own escalating difficulty and reward curve) is separate work
- * this does not attempt, per the investigation it shipped from. Fight one
- * plays as an ordinary Rustbot encounter in every way except which rat meets
- * it: the player's own choice, not [BattleRat.fighterFor]'s pick.
+ * Fight one is built by [ArenaRun.rustbotFor], the same fight-indexed curve
+ * every later fight uses - see there for why it ignores player level
+ * entirely rather than reusing [RustbotFactory]'s own level ramp. Only the
+ * choice of rat differs from an ordinary encounter: the player's own pick,
+ * not [BattleRat.fighterFor]'s.
  */
 object Arena {
 
@@ -29,7 +28,7 @@ object Arena {
         if (Encounter.isPending(prefs)) return null
         val fighter = dao.byId(ratId) ?: return null
 
-        val bot = RustbotFactory.forEncounter(playerLevel, fighter)
+        val bot = ArenaRun.rustbotFor(1, fighter)
         val encounter = Encounter(
             ratId = fighter.id,
             botName = bot.name,

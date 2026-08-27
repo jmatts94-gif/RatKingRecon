@@ -67,18 +67,36 @@ class FramesTest {
     /**
      * No longer one tight band: Riveted Copper sits below Clockwork and
      * Boiler as a mid tier, Aether Coil above them as the new top. What still
-     * has to hold is that every non-tradeable frame is priced like the
+     * has to hold is that every non-tradeable *Shop* frame is priced like the
      * premium item it is, not like something that slipped back into base
-     * tier range.
+     * tier range. Scoped to [CardFrame.sellable] on purpose - Arena Champion
+     * is non-tradeable too, but it is not part of this Shop-priced tier at
+     * all, and its own price sits above this band deliberately (see the next
+     * test).
      */
     @Test
-    fun `non-tradeable frames are priced above the base tier, across a widening range`() {
-        val premium = Frames.all.filterNot { it.tradeable }
+    fun `non-tradeable Shop frames are priced above the base tier, across a widening range`() {
+        val premium = Frames.all.filterNot { it.tradeable }.filter { it.sellable }
 
-        assertTrue("expected four non-tradeable frames", premium.size == 4)
+        assertTrue("expected four non-tradeable Shop frames", premium.size == 4)
         for (frame in premium) {
             assertTrue("${frame.id} priced ${frame.price}", frame.price in 250..700)
         }
+    }
+
+    /**
+     * Not sold, not traded, and priced above even Aether Coil - the flagship
+     * a run this long is meant to feel like it earned, not a seventh Shop
+     * entry with the "for sale" sign taken down.
+     */
+    @Test
+    fun `the Arena-exclusive frame is neither tradeable nor sellable`() {
+        assertFalse(Frames.ARENA_CHAMPION.tradeable)
+        assertFalse(Frames.ARENA_CHAMPION.sellable)
+        assertTrue(
+            "expected Arena Champion priced above every Shop frame",
+            Frames.ARENA_CHAMPION.price > Frames.all.filter { it.sellable }.maxOf { it.price }
+        )
     }
 
     @Test
@@ -118,13 +136,17 @@ class FramesTest {
         }
     }
 
-    /** A two-colour style needs two colours; a one-colour style must not break. */
+    /**
+     * A two-colour style needs two colours; a one-colour style must not break.
+     * SCARRED joins PULSE here - its cracks blend between two colours the same
+     * way a pulse does, just slower and never fully dark.
+     */
     @Test
-    fun `only the pulsing frame carries a second accent`() {
+    fun `only a two-colour style carries a second accent`() {
         for (frame in Frames.all) {
-            if (frame.style == FrameStyle.PULSE) {
+            if (frame.style == FrameStyle.PULSE || frame.style == FrameStyle.SCARRED) {
                 assertTrue(
-                    "${frame.id} pulses between one colour and itself",
+                    "${frame.id} blends between one colour and itself",
                     frame.accentColorRes != frame.accentAltColorRes
                 )
             } else {
@@ -195,8 +217,13 @@ class FramesTest {
 
     // ---- the Shop shelf ------------------------------------------------------
 
+    /**
+     * Every frame is on the shelf to be seen, sellable or not - see
+     * Shop.cosmetic's own doc comment. What [CardFrame.sellable] gates is
+     * the price button, not the listing.
+     */
     @Test
-    fun `every frame is on sale at the price it declares`() {
+    fun `every frame is on the shelf at the price it declares`() {
         val cosmeticRows = Shop.categories
             .flatMap { it.items }
             .mapNotNull { item ->
@@ -208,6 +235,17 @@ class FramesTest {
         for (frame in Frames.all) {
             assertEquals("${frame.id} on the shelf", frame.price, cosmeticRows[frame.id])
         }
+    }
+
+    /** Listed, but never a buyable row - ShopActivity swaps its price for "Arena Reward Only". */
+    @Test
+    fun `the Arena-exclusive frame is on the shelf but not sellable`() {
+        val cosmeticIds = Shop.categories
+            .flatMap { it.items }
+            .mapNotNull { (it.effect as? ShopEffect.Cosmetic)?.id }
+
+        assertTrue(Frames.ARENA_CHAMPION.id in cosmeticIds)
+        assertFalse(Frames.ARENA_CHAMPION.sellable)
     }
 
     @Test

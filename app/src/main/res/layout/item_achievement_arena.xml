@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Arena Badges variant of item_achievement.xml - identical row shape and
+  the same lock/earn treatment (bg_card_white vs bg_card_earned, the
+  checkmark), the plain achievementIcon swapped for the animated medallion
+  from view_arena_badge_medallion.xml. See AchievementsActivity.arenaRow()
+  and ArenaBadgeMedallion.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card_white"
+    android:elevation="4dp"
+    android:outlineAmbientShadowColor="@color/shadow_warm"
+    android:outlineSpotShadowColor="@color/shadow_warm"
+    tools:targetApi="28"
+    android:gravity="center_vertical"
+    android:layout_marginBottom="8dp"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <include
+        android:id="@+id/achievementMedallion"
+        layout="@layout/view_arena_badge_medallion" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/achievementName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/achievementDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <!-- Shown only once earned - see AchievementsActivity.arenaRow(). -->
+    <ImageView
+        android:id="@+id/achievementCheck"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/ic_check"
+        android:contentDescription="@null"
+        android:visibility="gone" />
+
+</LinearLayout>

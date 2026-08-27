@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One Arena badge medallion - glow behind, gear icon in front, nothing else.
+  No disc or other backing shape behind the icon on purpose: it is meant to
+  read as the gear itself sitting on whatever screen it is on, not as an icon
+  inside a badge-shaped container. Authored at the Achievements row's own
+  36dp icon slot size; the home tile uses its own smaller twin,
+  view_arena_badge_medallion_small.xml, rather than this one scaled down -
+  see that layout's doc comment for why. See ArenaBadgeMedallion for the
+  binding and animation both share.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="36dp"
+    android:layout_height="36dp"
+    android:clipChildren="false">
+
+    <!--
+      clipChildren off, the same reason the streak tile's own glow already
+      turns it off: fight 15's glow scales up past this box (see
+      ArenaMilestone.glowScale) to read as bigger, not just brighter, and a
+      clipped ancestor would square its corners off.
+    -->
+    <View
+        android:id="@+id/medallionGlow"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_lantern_glow"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/medallionIcon"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_gravity="center"
+        android:scaleType="fitCenter"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/ic_settings" />
+
+</FrameLayout>

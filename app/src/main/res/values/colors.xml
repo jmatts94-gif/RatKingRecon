@@ -101,4 +101,14 @@
     -->
     <color name="arena_bg_deep">#1C130A</color>
     <color name="arena_text_muted">#B7A489</color>
+
+    <!--
+      Champion's Banner (Frames.ARENA_CHAMPION) - the one FrameStyle.SCARRED
+      frame. A near-black warm brown rather than a true cold grey - every
+      other "metal" already in this app (pewter, copper) stays inside the
+      warm family, and a grey stroke here would be the one frame that broke
+      it. The cracks pulse between brass_bright and copper, the same pair
+      arena_bg_deep's own comment already ties to the Arena's screens.
+    -->
+    <color name="scarred_iron">#3A2E22</color>
 </resources>

@@ -1,5 +1,6 @@
 package io.github.jmatts94.ratkingrecon
 
+import android.animation.ObjectAnimator
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -54,6 +55,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val ticker = Handler(Looper.getMainLooper())
+
+    /** The Arena tile's three medallions' own spin/glow animators - see [updateArenaTile]. */
+    private val arenaTileAnimators = mutableListOf<ObjectAnimator>()
 
     /**
      * Keeps the Scrap Run countdown honest while the screen is open.
@@ -320,6 +324,15 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.streakTile).setOnClickListener { showDailyQuest() }
 
+        // Opens straight to what the tile is already showing, rather than the
+        // Combat Badges section every other entry into Achievements lands on.
+        findViewById<View>(R.id.arenaTile).setOnClickListener {
+            startActivity(
+                android.content.Intent(this, AchievementsActivity::class.java)
+                    .putExtra(AchievementsActivity.EXTRA_SCROLL_TO_ARENA, true)
+            )
+        }
+
         // The tile is the only surviving way to collect a finished Scrap Run
         // now that the old status bar under Shop is gone - checkExpedition()
         // already handles "nothing out" and "still running" gracefully, so
@@ -408,6 +421,7 @@ class MainActivity : AppCompatActivity() {
         updateStepDisplays()
         updateExpeditionTile()
         updateStreakTile()
+        updateArenaTile()
 
         // 1. Update the Visual Bar
         val expBar = findViewById<ProgressBar>(R.id.expProgressBar)
@@ -469,6 +483,40 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.streakCount).text = Streak.count(sharedPreferences).toString()
 
         applyGlow(findViewById(R.id.streakGlow), DailyQuest.percent(sharedPreferences))
+    }
+
+    /**
+     * The Arena tile: how far the deepest run has ever reached, and the same
+     * three medallions the Achievements screen's Arena Badges section shows -
+     * see [ArenaBadgeMedallion]. A read of [ArenaRun]'s existing milestone
+     * latches, nothing new is tracked to drive this.
+     *
+     * Animators are stopped and rebuilt every call rather than reused, since
+     * this can run more than once per resume (a step update, a hatch) and
+     * three medallions restarting their phase occasionally is not something
+     * a player watching this tile would notice.
+     */
+    private fun updateArenaTile() {
+        ArenaBadgeMedallion.stop(arenaTileAnimators)
+        arenaTileAnimators.clear()
+
+        val bestFight = ArenaRun.MILESTONES
+            .filter { ArenaRun.isMilestoneEarned(sharedPreferences, it.fight) }
+            .maxOfOrNull { it.fight }
+
+        findViewById<TextView>(R.id.arenaTileStatus).text = if (bestFight != null) {
+            getString(R.string.arena_tile_status, bestFight)
+        } else {
+            getString(R.string.arena_tile_status_none)
+        }
+
+        val badgeIds = listOf(R.id.arenaTileBadge5, R.id.arenaTileBadge10, R.id.arenaTileBadge15)
+        ArenaRun.MILESTONES.forEachIndexed { index, milestone ->
+            val medallion = findViewById<View>(badgeIds[index])
+            val earned = ArenaRun.isMilestoneEarned(sharedPreferences, milestone.fight)
+            ArenaBadgeMedallion.bind(medallion, milestone, earned)
+            if (earned) arenaTileAnimators += ArenaBadgeMedallion.start(medallion, milestone)
+        }
     }
 
     /**
@@ -817,6 +865,8 @@ class MainActivity : AppCompatActivity() {
         ticker.removeCallbacks(tick)
         ticker.removeCallbacks(tipTick)
         unregisterReceiver(stateReceiver)
+        ArenaBadgeMedallion.stop(arenaTileAnimators)
+        arenaTileAnimators.clear()
     }
 
     /** Fired by [StepTrackerService] whenever steps changed the save. */
