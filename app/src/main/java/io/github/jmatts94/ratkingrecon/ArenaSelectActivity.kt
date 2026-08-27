@@ -36,9 +36,21 @@ class ArenaSelectActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_arena_select)
 
         prefs = RatRepository.prefs(this)
+
+        // A run already has its champion locked in - reaching this screen
+        // mid-run (the back button, a recreated task) must never re-offer a
+        // choice that would let it be swapped. Straight back into the fight
+        // already in progress instead, the same recovery ArenaPrepActivity's
+        // own busy case takes.
+        if (ArenaRun.isActive(prefs)) {
+            startActivity(Intent(this, BattleActivity::class.java))
+            finish()
+            return
+        }
+
+        setContentView(R.layout.activity_arena_select)
 
         adapter = RatCardAdapter(
             prefs = prefs,

@@ -140,6 +140,31 @@ object ArenaRun {
         return fight
     }
 
+    // ---- the Arena Cleared cosmetic -------------------------------------------
+
+    /**
+     * The frame Arena Cleared grants, or null once every frame is owned.
+     *
+     * Drawn from every frame, not just [RelicTrader.availableFrames] - the
+     * Trader keeps the animated pair out because three relics is a far
+     * cheaper route to one than its own Scrap price, which has nothing to do
+     * with a reward for finishing all 15 fights. Weighted by [CardFrame.price]
+     * instead of picked uniformly, so the frames priced highest - the premium
+     * pair this is meant to feel like a real payoff for reaching - come up
+     * markedly more often than Brass or Ember, without making them a lock.
+     */
+    private fun weightedClearedFrame(prefs: SharedPreferences): CardFrame? {
+        val candidates = Frames.all.filterNot { ShopEffects.ownsCosmetic(prefs, it.id) }
+        if (candidates.isEmpty()) return null
+
+        var roll = (0 until candidates.sumOf { it.price }).random()
+        for (frame in candidates) {
+            roll -= frame.price
+            if (roll < 0) return frame
+        }
+        return candidates.last()
+    }
+
     // ---- settling a win --------------------------------------------------------
 
     /**
@@ -181,9 +206,9 @@ object ArenaRun {
         var cosmeticScrapFallback = 0
 
         if (cleared) {
-            val frameId = RelicTrader.availableFrames(prefs).firstOrNull()
-            if (frameId != null) {
-                cosmeticFrame = Frames.byId(frameId)
+            val frame = weightedClearedFrame(prefs)
+            if (frame != null) {
+                cosmeticFrame = frame
             } else {
                 cosmeticScrapFallback = RelicTrader.SCRAP_PAYOUT.random()
                 editor.putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + cosmeticScrapFallback)

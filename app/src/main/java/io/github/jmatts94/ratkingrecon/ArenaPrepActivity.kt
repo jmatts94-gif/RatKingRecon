@@ -122,13 +122,28 @@ class ArenaPrepActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
+            // A fight already pending is never overwritten - Arena.raiseFirstFight
+            // takes the same caution Bosses.startBanked does - but a plain toast
+            // and nothing else stranded the player with no way back to it: unlike
+            // an ordinary walking encounter, an Arena fight never raises a
+            // notification to reopen BattleActivity from, and unlike a boss,
+            // MainActivity never resumes it either. Send them straight back into
+            // the fight already raised instead - the same one this same button
+            // would otherwise refuse to replace - at no extra Scrap cost.
+            if (Encounter.isPending(prefs)) {
+                Toast.makeText(this@ArenaPrepActivity, R.string.arena_prep_busy, Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this@ArenaPrepActivity, BattleActivity::class.java))
+                finish()
+                return@launch
+            }
+
             val dao = RatRepository.dao(this@ArenaPrepActivity)
             val encounter = withContext(Dispatchers.IO) {
                 Arena.raiseFirstFight(dao, prefs, GameEngine.levelOf(prefs), ratId)
             }
 
             if (encounter == null) {
-                Toast.makeText(this@ArenaPrepActivity, R.string.arena_prep_busy, Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@ArenaPrepActivity, R.string.arena_prep_rat_gone, Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
