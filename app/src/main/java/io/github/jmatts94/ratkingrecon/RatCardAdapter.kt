@@ -105,7 +105,21 @@ class RatCardAdapter(
                 holder.overlay.background = FrameOverlayDrawable(
                     frame.style,
                     ContextCompat.getColor(context, frame.accentColorRes),
-                    ContextCompat.getColor(context, frame.accentAltColorRes)
+                    ContextCompat.getColor(context, frame.accentAltColorRes),
+                    // SCARRED's own second wave of marks - see
+                    // FrameOverlayDrawable.secondaryAccent - reads in the same
+                    // aether blue AETHER_COIL pulses between, regardless of
+                    // this particular frame's own warm accent pair.
+                    secondaryAccent = if (frame.style == FrameStyle.SCARRED) {
+                        ContextCompat.getColor(context, R.color.aether_deep)
+                    } else {
+                        null
+                    },
+                    secondaryAccentAlt = if (frame.style == FrameStyle.SCARRED) {
+                        ContextCompat.getColor(context, R.color.aether_glow)
+                    } else {
+                        null
+                    }
                 ).apply { setDensity(context.resources.displayMetrics.density) }
             }
         }

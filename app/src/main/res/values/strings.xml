@@ -336,15 +336,18 @@ RARE DROP: %2$s</string>
       Items panel on the Battle screen. Unlike Power Surge/Golden Wrench they
       are not armed ahead of a fight; they are used mid-fight, in any combat.
     -->
-    <string name="shop_name_hp_tonic">HP Tonic</string>
-    <!-- restore percent, derived from Battle.HP_TONIC_FRACTION -->
-    <string name="shop_desc_hp_tonic">Restores %1$d%% of max HP, mid-fight.</string>
+    <!-- Display name only - the resource id and the SharedPreferences key
+         behind it (ShopEffects.KEY_HP_TONIC) are unchanged, see BattleItem. -->
+    <string name="shop_name_hp_tonic">Regenerative Tonic</string>
+    <!-- instant heal percent, then ongoing regen percent per round after -->
+    <string name="shop_desc_hp_tonic">Restores %1$d%% of max HP instantly, then %2$d%% more at the start of every round for the rest of the fight.</string>
     <string name="shop_name_corrosive_charge">Corrosive Charge</string>
-    <!-- damage percent of the rat's own Power per round, duration in rounds -->
-    <string name="shop_desc_corrosive_charge">Corrodes the enemy for %1$d%% of your rat\'s Power a round, for %2$d rounds. Stacks with itself.</string>
-    <string name="shop_name_reinforced_plating">Reinforced Plating</string>
-    <!-- reduction percent, duration in rounds -->
-    <string name="shop_desc_reinforced_plating">Cuts incoming damage by %1$d%% for %2$d rounds.</string>
+    <!-- damage percent of the rat's own Power per round, duration in rounds, attack-triggered stack percent -->
+    <string name="shop_desc_corrosive_charge">Corrodes the enemy for %1$d%% of your rat\'s Power a round, for %2$d rounds. Stacks with itself, and while any charge is active, Attack also piles on a lighter %3$d%% stack of its own.</string>
+    <!-- Display name only - see shop_name_hp_tonic above; the resource id and
+         ShopEffects.KEY_REINFORCED_PLATING are unchanged. -->
+    <string name="shop_name_reinforced_plating">Protective Bubble</string>
+    <string name="shop_desc_reinforced_plating">Negates the next hit you take completely, then pops.</string>
     <string name="shop_name_cleanse">Cleanse</string>
     <string name="shop_desc_cleanse">Clears any corrosion currently on your rat.</string>
     <string name="shop_item_max_held">Max Held</string>
@@ -357,12 +360,14 @@ RARE DROP: %2$s</string>
     <!-- item name, number held -->
     <string name="battle_item_row">%1$s (%2$d held)</string>
     <string name="battle_item_none_held">None held — buy more from the Shop.</string>
-    <string name="battle_used_hp_tonic">%1$s drinks an HP Tonic and recovers HP</string>
+    <string name="battle_used_hp_tonic">%1$s drinks a Regenerative Tonic and recovers HP</string>
     <string name="battle_used_corrosive_charge">%1$s hurls a Corrosive Charge at %2$s</string>
-    <string name="battle_used_reinforced_plating">%1$s bolts on Reinforced Plating</string>
+    <string name="battle_used_reinforced_plating">%1$s raises a Protective Bubble</string>
     <string name="battle_used_cleanse">%1$s cleanses the corrosion away</string>
     <!-- damage dealt this round from every active Corrosive Charge stack -->
     <string name="battle_enemy_dot_tick">Corrosion burns %1$s for %2$d more.</string>
+    <!-- the boss's name, on its telegraph turn -->
+    <string name="battle_bot_charging">%1$s winds up for something big.</string>
 
     <!-- The Battle Arena's entry flow: a landing screen, a champion picker, then prep -->
     <string name="btn_battle_arena">Battle Arena</string>
@@ -543,6 +548,11 @@ RARE DROP: %2$s</string>
     <!-- appended to a hit that landed on a faction weakness, either direction -->
     <string name="battle_weak_point">(exploits a weak point!)</string>
 
+    <!-- Status icon badges next to a name row - see Battle.botDotActive /
+         ratDotActive / botCharging and BattleActivity's status row binding. -->
+    <string name="battle_status_dot">Corroding</string>
+    <string name="battle_status_charging">Charging</string>
+
     <!-- Encounter notification -->
     <string name="channel_encounter_name">Rustbot Encounters</string>
     <string name="channel_encounter_desc">Tells you when a Rustbot blocks your path.</string>
@@ -577,7 +587,7 @@ RARE DROP: %2$s</string>
     <!-- Arena-exclusive - see Frames.ARENA_CHAMPION. Not sold in the Shop or
          tradeable at the Relic Trader; only clearing all 15 Arena fights grants it. -->
     <string name="shop_name_frame_arena_champion">Champion\'s Banner</string>
-    <string name="shop_desc_frame_arena_champion">A battle-scarred border, cracks glowing brass-and-copper. Earned only by clearing every fight of the Battle Arena. Animated.</string>
+    <string name="shop_desc_frame_arena_champion">A battle-scarred border, cracks glowing brass-and-copper alongside newer marks in aether blue. Earned only by clearing every fight of the Battle Arena. Animated.</string>
 
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
     <string name="relic_rusted_gear">⚙️ Rusted Gear</string>
@@ -607,26 +617,24 @@ RARE DROP: %2$s</string>
     <string name="trade_gear_title">Scrap Buyout</string>
     <!-- lowest and highest payout, from RelicTrader.SCRAP_PAYOUT -->
     <string name="trade_gear_body">A fair price for a bag of gears. Pays %1$d–%2$d Scrap.</string>
-    <string name="trade_vial_title">Binder Frame</string>
-    <string name="trade_vial_body">Your pick of a card frame for the Binder.</string>
-    <string name="trade_blueprint_title">Combat Requisition</string>
-    <string name="trade_blueprint_body">Your pick of a Power Surge or a Golden Wrench.</string>
-    <string name="trade_wrench_title">Hatchery Voucher</string>
-    <string name="trade_wrench_body">100 Scrap off your next Masterwork Hatchery pull. Stacks.</string>
+    <string name="trade_vial_title">Revive Token</string>
+    <string name="trade_vial_body">One Revive Token, added to the stack the Shop sells - skip a knockout\'s wait next time your rat falls.</string>
+    <string name="trade_blueprint_title">Battle Item Voucher</string>
+    <string name="trade_blueprint_body">Your pick of one combat item, added to your held inventory.</string>
+    <string name="trade_wrench_title">Arena Free Entry</string>
+    <string name="trade_wrench_body">Waives the Scrap cost of your next Battle Arena entry.</string>
 
     <!-- needed, relic name, held -->
     <string name="trade_cost">Costs %1$d × %2$s   ·   you hold %3$d</string>
     <string name="trade_action">Trade</string>
     <string name="trade_unavailable">Unavailable</string>
-    <string name="trade_pick_frame">Pick a frame</string>
-    <string name="trade_pick_buff">Pick an item</string>
+    <string name="trade_pick_item">Pick an item</string>
     <string name="trade_cancel">Cancel</string>
     <!-- what was traded for -->
     <string name="trade_done">Traded for: %1$s</string>
     <!-- needed, relic name, held -->
     <string name="trade_not_enough">Needs %1$d × %2$s. You hold %3$d.</string>
-    <string name="trade_owns_every_frame">You already own every frame.</string>
-    <string name="trade_buff_armed">You already have a combat item armed. Use it first.</string>
+    <string name="trade_items_all_full">You already hold the most of every combat item.</string>
 
     <!--
       Combat flavour. One line opens each fight. Every string takes the

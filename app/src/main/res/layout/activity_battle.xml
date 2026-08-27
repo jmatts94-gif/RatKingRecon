@@ -41,16 +41,51 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:clipChildren="false"
                 android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/botName"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Rustbot"
-                    android:textColor="@color/text_primary"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/botName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Rustbot"
+                        android:textColor="@color/text_primary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <!--
+                      Status icons - see Battle.botDotActive / botCharging and
+                      BattleActivity.renderStatusIcons. Both gone by default;
+                      at most one is ever visible at once (a charging boss has
+                      no reply of its own to have applied a DOT with yet).
+                    -->
+                    <ImageView
+                        android:id="@+id/botDotIcon"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="6dp"
+                        android:src="@drawable/ic_settings"
+                        android:visibility="gone"
+                        android:contentDescription="@string/battle_status_dot"
+                        tools:visibility="visible" />
+
+                    <ImageView
+                        android:id="@+id/botChargingIcon"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="6dp"
+                        android:src="@drawable/ic_sparkle"
+                        android:visibility="gone"
+                        android:contentDescription="@string/battle_status_charging"
+                        tools:visibility="visible" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/botStats"
@@ -101,13 +136,33 @@
                     android:layout_weight="1"
                     android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/ratName"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/ratName"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <!-- See Battle.ratDotActive - a boss's own corrosion
+                             (e.g. Old Ironclaw's Rusty Rake) ticking on the rat. -->
+                        <ImageView
+                            android:id="@+id/ratDotIcon"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginStart="6dp"
+                            android:src="@drawable/ic_settings"
+                            android:visibility="gone"
+                            android:contentDescription="@string/battle_status_dot"
+                            tools:visibility="visible" />
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/ratStats"

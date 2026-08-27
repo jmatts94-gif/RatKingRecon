@@ -63,9 +63,22 @@ object EncounterResolver {
     /**
      * Banks the result and clears the pending encounter.
      *
+     * [isArenaFight] gates the permanent boss badge: an Arena milestone fight
+     * (5/10/15) now carries a [Encounter.bossId] too, purely so its Special
+     * borrows the named boss kit inside [Battle] - see [ArenaRun.rustbotFor].
+     * Without this flag, clearing fight 5 would silently award the same wall
+     * badge the real, level-gated boss ladder is meant to be the only way to
+     * earn.
+     *
      * Blocking, so call it off the main thread.
      */
-    fun apply(context: Context, encounter: Encounter, rat: RatEntity, battle: Battle): Resolution {
+    fun apply(
+        context: Context,
+        encounter: Encounter,
+        rat: RatEntity,
+        battle: Battle,
+        isArenaFight: Boolean = false
+    ): Resolution {
         val app = context.applicationContext
         val dao = RatRepository.dao(app)
         val prefs = RatRepository.prefs(app)
@@ -85,7 +98,9 @@ object EncounterResolver {
             // The badge is the first win only; the Scrap is paid every time, at
             // the reduced rate Bosses.rewardFor already worked into the amount
             // banked above when the encounter was built.
-            encounter.bossId?.let { badgeEarned = Bosses.markDefeated(prefs, it) }
+            if (!isArenaFight) {
+                encounter.bossId?.let { badgeEarned = Bosses.markDefeated(prefs, it) }
+            }
 
             // The single point every win passes through, hand-played or
             // auto-resolved, which is why the quest is told about it here

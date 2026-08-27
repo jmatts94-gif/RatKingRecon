@@ -54,7 +54,16 @@ object FrameClock {
 class FrameOverlayDrawable(
     private val style: FrameStyle,
     private val accent: Int,
-    private val accentAlt: Int = accent
+    private val accentAlt: Int = accent,
+    /**
+     * SCARRED's second wave of damage - the new gear-tooth and sword-nick
+     * marks (see GEAR_MOTIF_POSITIONS/SWORD_MOTIF_POSITIONS) breathe between
+     * this pair rather than [accent]/[accentAlt], so what the frame already
+     * had and what was added since read as two distinct tones. Null for
+     * every other style, where there is nothing that reads them.
+     */
+    private val secondaryAccent: Int? = null,
+    private val secondaryAccentAlt: Int? = secondaryAccent
 ) : Drawable() {
 
     private companion object {
@@ -106,7 +115,18 @@ class FrameOverlayDrawable(
         const val CRACK_CYCLES = 1f
 
         /** Each crack sits this far around the perimeter from the last, 0..1 of the total path length. */
-        val CRACK_POSITIONS = floatArrayOf(0.08f, 0.38f, 0.62f, 0.88f)
+        val CRACK_POSITIONS = floatArrayOf(0.04f, 0.22f, 0.40f, 0.58f, 0.76f, 0.92f)
+
+        // --- the new gear-tooth and sword-nick marks, in aether blue ---
+        //
+        // A second wave of damage on top of the original cracks above, sized
+        // and jagged the same amount but built from different silhouettes -
+        // a squared-off notch for a gear tooth, a single clean diagonal for a
+        // sword nick - so the two motifs read as distinct marks rather than
+        // more of the same crack repeated. Interleaved between CRACK_POSITIONS
+        // rather than sharing a fraction with any of them.
+        val GEAR_MOTIF_POSITIONS = floatArrayOf(0.13f, 0.67f)
+        val SWORD_MOTIF_POSITIONS = floatArrayOf(0.31f, 0.85f)
     }
 
     private var density = 1f
@@ -136,6 +156,7 @@ class FrameOverlayDrawable(
 
     private var dashEffects: Array<DashPathEffect>? = null
     private var crackPaths: List<Path> = emptyList()
+    private var blueMotifPaths: List<Path> = emptyList()
     private var built = false
 
     /** Set by the view before this is attached, so dp can become px. */
@@ -205,7 +226,7 @@ class FrameOverlayDrawable(
     }
 
     /**
-     * Four short jagged lines, anchored at fixed points around [borderPath]'s
+     * Six short jagged lines, anchored at fixed points around [borderPath]'s
      * own perimeter via [PathMeasure] rather than at coordinates worked out by
      * hand - the border's rounded corners already vary with [TRACK_CORNER_DP]
      * and density, and walking the path itself is what keeps a crack sitting
@@ -222,26 +243,56 @@ class FrameOverlayDrawable(
         if (total <= 0f) return
 
         val jag = dp(CRACK_JAG_DP)
+
+        crackPaths = CRACK_POSITIONS.map { fraction -> crackAt(measure, total, fraction, jag) }
+        blueMotifPaths = GEAR_MOTIF_POSITIONS.map { fraction -> gearToothAt(measure, total, fraction, jag) } +
+            SWORD_MOTIF_POSITIONS.map { fraction -> swordNickAt(measure, total, fraction, jag) }
+    }
+
+    /** The border's position and inward-pointing normal at [fraction] of its length. */
+    private class BorderPoint(val x: Float, val y: Float, val tx: Float, val ty: Float, val nx: Float, val ny: Float)
+
+    private fun pointAt(measure: PathMeasure, total: Float, fraction: Float): BorderPoint {
         val pos = FloatArray(2)
         val tan = FloatArray(2)
+        measure.getPosTan(total * fraction, pos, tan)
+        // The inward normal - rotate the tangent 90°. borderPath winds
+        // clockwise, so this points into the card rather than out past it.
+        return BorderPoint(pos[0], pos[1], tan[0], tan[1], -tan[1], tan[0])
+    }
 
-        crackPaths = CRACK_POSITIONS.map { fraction ->
-            measure.getPosTan(total * fraction, pos, tan)
-            val x = pos[0]
-            val y = pos[1]
-            val tx = tan[0]
-            val ty = tan[1]
-            // The inward normal - rotate the tangent 90°. borderPath winds
-            // clockwise, so this points into the card rather than out past it.
-            val nx = -ty
-            val ny = tx
+    /** The original jagged zigzag - four points, unchanged shape. */
+    private fun crackAt(measure: PathMeasure, total: Float, fraction: Float, jag: Float): Path {
+        val p = pointAt(measure, total, fraction)
+        return Path().apply {
+            moveTo(p.x - p.tx * jag, p.y - p.ty * jag)
+            lineTo(p.x + p.nx * jag, p.y + p.ny * jag)
+            lineTo(p.x + p.tx * jag * 0.6f, p.y + p.ty * jag * 0.6f)
+            lineTo(p.x + p.nx * jag * 1.8f, p.y + p.ny * jag * 1.8f)
+        }
+    }
 
-            Path().apply {
-                moveTo(x - tx * jag, y - ty * jag)
-                lineTo(x + nx * jag, y + ny * jag)
-                lineTo(x + tx * jag * 0.6f, y + ty * jag * 0.6f)
-                lineTo(x + nx * jag * 1.8f, y + ny * jag * 1.8f)
-            }
+    /**
+     * A single squared-off notch - a gear tooth's silhouette rather than the
+     * crack's own zigzag, so the two new-colour marks are told apart by shape
+     * as well as position.
+     */
+    private fun gearToothAt(measure: PathMeasure, total: Float, fraction: Float, jag: Float): Path {
+        val p = pointAt(measure, total, fraction)
+        return Path().apply {
+            moveTo(p.x - p.tx * jag, p.y - p.ty * jag)
+            lineTo(p.x - p.tx * jag + p.nx * jag * 1.4f, p.y - p.ty * jag + p.ny * jag * 1.4f)
+            lineTo(p.x + p.tx * jag + p.nx * jag * 1.4f, p.y + p.ty * jag + p.ny * jag * 1.4f)
+            lineTo(p.x + p.tx * jag, p.y + p.ty * jag)
+        }
+    }
+
+    /** A single clean diagonal - a blade's nick, plainer than either of the above. */
+    private fun swordNickAt(measure: PathMeasure, total: Float, fraction: Float, jag: Float): Path {
+        val p = pointAt(measure, total, fraction)
+        return Path().apply {
+            moveTo(p.x - p.tx * jag * 1.2f, p.y - p.ty * jag * 1.2f)
+            lineTo(p.x + p.nx * jag * 1.6f, p.y + p.ny * jag * 1.6f)
         }
     }
 
@@ -334,6 +385,25 @@ class FrameOverlayDrawable(
             pulsePaint.alpha =
                 (CRACK_MIN_ALPHA + (CRACK_MAX_ALPHA - CRACK_MIN_ALPHA) * wave).toInt().coerceIn(0, 255)
             canvas.drawPath(crack, pulsePaint)
+        }
+
+        // The second wave, breathing in lockstep with the cracks above but in
+        // its own colour - see secondaryAccent. Skipped entirely when none was
+        // supplied, which every style but SCARRED leaves null.
+        val blueAccent = secondaryAccent ?: return
+        val blueAccentAlt = secondaryAccentAlt ?: blueAccent
+        val blueColor = ColorUtils.blendARGB(blueAccentAlt, blueAccent, wave)
+
+        for (motif in blueMotifPaths) {
+            pulsePaint.color = blueColor
+            pulsePaint.strokeWidth = dp(CRACK_HALO_WIDTH_DP)
+            pulsePaint.alpha = (CRACK_HALO_ALPHA * wave).toInt().coerceIn(0, 255)
+            canvas.drawPath(motif, pulsePaint)
+
+            pulsePaint.strokeWidth = dp(CRACK_WIDTH_DP)
+            pulsePaint.alpha =
+                (CRACK_MIN_ALPHA + (CRACK_MAX_ALPHA - CRACK_MIN_ALPHA) * wave).toInt().coerceIn(0, 255)
+            canvas.drawPath(motif, pulsePaint)
         }
     }
 

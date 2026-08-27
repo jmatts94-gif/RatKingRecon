@@ -574,13 +574,16 @@ class BattleTest {
         val r2 = b.advance(BattleAction.USE_ITEM, BattleItem.CORROSIVE_CHARGE)
         assertEquals("a second stack adds to the first rather than replacing it", 4, r2.enemyDotDamage)
 
-        val r3 = b.advance(BattleAction.ATTACK)
+        // DEFEND rather than ATTACK for the remaining rounds - isolates pure
+        // stack decay from the attack-triggered stacking covered separately
+        // below, so this stays a test of one thing.
+        val r3 = b.advance(BattleAction.DEFEND)
         assertEquals("both stacks are still on their third and final round each", 4, r3.enemyDotDamage)
 
-        val r4 = b.advance(BattleAction.ATTACK)
+        val r4 = b.advance(BattleAction.DEFEND)
         assertEquals("the first stack has expired; only the second remains", 2, r4.enemyDotDamage)
 
-        val r5 = b.advance(BattleAction.ATTACK)
+        val r5 = b.advance(BattleAction.DEFEND)
         assertEquals("both stacks have now expired", 0, r5.enemyDotDamage)
     }
 
@@ -596,23 +599,111 @@ class BattleTest {
     }
 
     @Test
-    fun `reinforced plating cuts incoming damage for three rounds including the one it is used on`() {
+    fun `protective bubble negates the next hit completely, then is consumed`() {
         val b = Battle("Rat", 1, 5000, "Bot", 10, 5000)
 
         val r1 = b.advance(BattleAction.USE_ITEM, BattleItem.REINFORCED_PLATING)
-        assertEquals("30% off a plain 10, applied the same round it activates", 7, r1.damageTaken)
+        assertEquals("the very hit it was raised against is fully blocked", 0, r1.damageTaken)
 
         val r2 = b.advance(BattleAction.ATTACK)
-        assertEquals("still active on its second round", 7, r2.damageTaken)
+        assertEquals("consumed - the next hit lands at full force", 10, r2.damageTaken)
+    }
 
-        // Round three is also the bot's own Special (every three rounds), so
-        // the reduction here is checked against that base instead of a plain hit.
+    @Test
+    fun `a bubble raised during a boss's charge round survives to block the special it warned of`() {
+        val b = Battle(
+            "Rat", 1, 5000, "Old Ironclaw", 20, 5000,
+            bossId = "old_ironclaw", ratFaction = Roster.FOUNDRY_BORN
+        )
+        b.advance(BattleAction.ATTACK) // round 1: plain swing
+        val charge = b.advance(BattleAction.USE_ITEM, BattleItem.REINFORCED_PLATING) // round 2: charging
+        assertEquals("a charging boss deals nothing to block anyway", 0, charge.damageTaken)
+
+        val special = b.advance(BattleAction.ATTACK) // round 3: the special the charge warned of
+        assertTrue(special.botUsedSpecial)
+        assertEquals("the bubble, not the special, decided this round", 0, special.damageTaken)
+    }
+
+    // --- the boss telegraph --------------------------------------------------
+
+    @Test
+    fun `a boss telegraphs the round before its special, dealing no damage`() {
+        val b = Battle(
+            "Rat", 1, 5000, "Old Ironclaw", 20, 5000,
+            bossId = "old_ironclaw", ratFaction = Roster.FOUNDRY_BORN
+        )
+        assertFalse("round 1 is a plain swing", b.botCharging)
+        val r1 = b.advance(BattleAction.ATTACK)
+        assertEquals(20, r1.damageTaken)
+
+        assertTrue("round 2 telegraphs round 3's special", b.botCharging)
+        val r2 = b.advance(BattleAction.ATTACK)
+        assertEquals("a charging boss deals no damage", 0, r2.damageTaken)
+        assertTrue(r2.botCharged)
+
         val r3 = b.advance(BattleAction.ATTACK)
-        assertTrue(r3.botUsedSpecial)
-        assertEquals("30% off a 15 Special - its third and last protected round", 11, r3.damageTaken)
+        assertTrue("the special still lands exactly on schedule", r3.botUsedSpecial)
+    }
 
-        val r4 = b.advance(BattleAction.ATTACK)
-        assertEquals("worn off by the fourth round", 10, r4.damageTaken)
+    @Test
+    fun `attacking freely on the telegraph round still deals damage`() {
+        val b = Battle(
+            "Rat", 4, 5000, "Old Ironclaw", 20, 5000,
+            bossId = "old_ironclaw", ratFaction = Roster.FOUNDRY_BORN
+        )
+        b.advance(BattleAction.ATTACK)
+        val r2 = b.advance(BattleAction.ATTACK)
+        assertEquals("a charging boss can't hit back, so this attack is free", 4, r2.damageDealt)
+    }
+
+    @Test
+    fun `an ordinary rustbot never charges - it has no special worth telegraphing`() {
+        val b = battle(botPower = 4)
+        for (round in 1..6) {
+            assertFalse("ordinary rustbots have no bossId and so never charge", b.botCharging)
+            b.advance(BattleAction.ATTACK)
+        }
+    }
+
+    // --- corrosive charge's attack-triggered stacking -------------------------
+
+    @Test
+    fun `attacking while a corrosive charge is active piles on a lighter stack`() {
+        val b = Battle("Rat", 10, 5000, "Bot", 1, 5000)
+
+        val r1 = b.advance(BattleAction.USE_ITEM, BattleItem.CORROSIVE_CHARGE)
+        assertEquals("20% of 10 Power", 2, r1.enemyDotDamage)
+
+        val r2 = b.advance(BattleAction.ATTACK)
+        assertEquals(
+            "attack piles on a lighter stack (10% of 10 = 1) on top of the item's own 2",
+            3,
+            r2.enemyDotDamage
+        )
+    }
+
+    @Test
+    fun `attacking with no corrosive charge active adds nothing`() {
+        val b = Battle("Rat", 10, 5000, "Bot", 1, 5000)
+        val r = b.advance(BattleAction.ATTACK)
+        assertEquals(0, r.enemyDotDamage)
+    }
+
+    // --- regenerative tonic ----------------------------------------------------
+
+    @Test
+    fun `regenerative tonic heals instantly, then regenerates from the following round on`() {
+        val b = Battle("Rat", 1, 1000, "Bot", 1, 5000, startingRatHp = 100)
+
+        val used = b.advance(BattleAction.USE_ITEM, BattleItem.HP_TONIC)
+        // Instant heal only this round - 70% of 1000 = 700, so 100 + 700 = 800,
+        // then this round's own reply (1) comes off. No regen yet.
+        assertEquals(799, used.ratHp)
+
+        val next = b.advance(BattleAction.ATTACK)
+        // From here on, 12% of 1000 = 120 regenerates at the start of every
+        // round, on top of whatever else happens that round.
+        assertEquals(918, next.ratHp)
     }
 
     @Test

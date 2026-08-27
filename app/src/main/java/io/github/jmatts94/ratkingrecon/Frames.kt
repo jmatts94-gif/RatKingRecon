@@ -17,7 +17,12 @@ enum class FrameStyle {
     /** A border glow breathing between two colours. */
     PULSE,
 
-    /** A dark, battle-worn border with a few glowing cracks breathing through it. */
+    /**
+     * A dark, battle-worn border: glowing cracks breathing through it in the
+     * frame's own warm accent, plus a second wave of gear-tooth and
+     * sword-nick marks breathing in aether blue - see
+     * [FrameOverlayDrawable.secondaryAccent].
+     */
     SCARRED
 }
 
@@ -51,13 +56,16 @@ data class CardFrame(
     val style: FrameStyle,
     val price: Int,
     /**
-     * Whether the Relic Trader may hand this over.
+     * Whether this frame belongs to the original 150-200 price band Brass and
+     * Ember shipped in, rather than the premium tier above it.
      *
-     * False for the animated pair on purpose. The Vial exchange costs three
-     * relics, and letting it produce a 500-Scrap frame would make it the cheap
-     * way to get one, which is the opposite of what the higher tier is for.
+     * The Relic Trader used to deal in frames along exactly this line - the
+     * base pair cheap enough that three relics undercut nothing, the premium
+     * tier held back so relics couldn't buy around its own Scrap price - but
+     * it no longer deals in frames at all. This is now purely the price-tier
+     * marker the pricing tests in FramesTest hold the catalogue to.
      */
-    val tradeable: Boolean,
+    val baseTier: Boolean,
     /**
      * Whether the Shop lists this frame at all.
      *
@@ -74,11 +82,9 @@ data class CardFrame(
 /**
  * Every frame, and the only place any of them is described.
  *
- * These used to be spread across four files that each knew part of the answer:
- * the ids in [Shop], the stroke colour in [GalleryActivity], the display name in
- * [RelicTraderActivity] and a hardcoded pair in [RelicTrader]. Adding a frame
- * meant editing all four, and forgetting the last one would have quietly kept
- * new frames out of the Trader with nothing to show for it.
+ * These used to be spread across three files that each knew part of the
+ * answer: the ids in [Shop], the stroke colour in [GalleryActivity], the
+ * display name in [ShopActivity]. Adding a frame meant editing all three.
  */
 object Frames {
 
@@ -90,17 +96,14 @@ object Frames {
         accentColorRes = R.color.amber_dark,
         style = FrameStyle.STATIC,
         price = 200,
-        tradeable = true
+        baseTier = true
     )
 
     /**
      * The one base-tier frame that moves.
      *
      * Brass and Ember were both a single warm border and read as nearly the
-     * same frame, so this one breathes instead. Deliberately left at 200 and
-     * still tradeable: it is a colour that moves, not the machinery the premium
-     * pair carries, and repricing something players already own to enforce a
-     * tidy rule would be a worse trade than bending the rule.
+     * same frame, so this one breathes instead.
      */
     val EMBER = CardFrame(
         id = "ember",
@@ -111,7 +114,7 @@ object Frames {
         accentAltColorRes = R.color.ember_deep,
         style = FrameStyle.PULSE,
         price = 200,
-        tradeable = true
+        baseTier = true
     )
 
     val CLOCKWORK = CardFrame(
@@ -124,7 +127,7 @@ object Frames {
         accentColorRes = R.color.brass_bright,
         style = FrameStyle.GEARS,
         price = 350,
-        tradeable = false
+        baseTier = false
     )
 
     val BOILER = CardFrame(
@@ -137,7 +140,7 @@ object Frames {
         accentColorRes = R.color.boiler_glow,
         style = FrameStyle.STEAM,
         price = 500,
-        tradeable = false
+        baseTier = false
     )
 
     /**
@@ -157,7 +160,7 @@ object Frames {
         accentColorRes = R.color.copper,
         style = FrameStyle.STATIC,
         price = 275,
-        tradeable = false
+        baseTier = false
     )
 
     /**
@@ -174,18 +177,22 @@ object Frames {
         accentAltColorRes = R.color.aether_deep,
         style = FrameStyle.PULSE,
         price = 650,
-        tradeable = false
+        baseTier = false
     )
 
     /**
      * The one frame nothing sells or trades for - guaranteed on the first
      * time a run clears all fifteen Arena fights, see
      * [ArenaRun.weightedClearedFrame]. The only [FrameStyle.SCARRED] frame:
-     * a dark, battle-worn border with a few cracks breathing between the
-     * same two colours the Arena's own screens are built from -
-     * [R.color.brass_bright] lights its "Enter" button, [R.color.copper]
-     * borders every panel - so it reads as carried out of that mode, not as
-     * a seventh entry in the same warm-and-still family the base six share.
+     * a dark, battle-worn border with cracks breathing between the same two
+     * colours the Arena's own screens are built from - [R.color.brass_bright]
+     * lights its "Enter" button, [R.color.copper] borders every panel - so it
+     * reads as carried out of that mode, not as a seventh entry in the same
+     * warm-and-still family the base six share. A second wave of gear-tooth
+     * and sword-nick marks breathes in [R.color.aether_glow]/[R.color.aether_deep]
+     * on top of that - the same pair [AETHER_COIL] pulses between - so the
+     * damage this frame has taken and whatever has marked it since read as
+     * two distinct tones rather than more of the same crack.
      */
     val ARENA_CHAMPION = CardFrame(
         id = "arena_champion",
@@ -196,7 +203,7 @@ object Frames {
         accentAltColorRes = R.color.copper,
         style = FrameStyle.SCARRED,
         price = 750,
-        tradeable = false,
+        baseTier = false,
         sellable = false
     )
 
@@ -205,8 +212,8 @@ object Frames {
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }
 
-    /** The frames the Relic Trader is allowed to deal in. */
-    val tradeable: List<CardFrame> = all.filter { it.tradeable }
+    /** The two original frames, in their original 150-200 price band. */
+    val baseTier: List<CardFrame> = all.filter { it.baseTier }
 
     /** The frames the Shop lists for sale. */
     val sellable: List<CardFrame> = all.filter { it.sellable }

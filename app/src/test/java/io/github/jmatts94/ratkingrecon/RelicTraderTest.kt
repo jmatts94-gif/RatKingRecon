@@ -11,16 +11,16 @@ import org.junit.Test
  *
  * One thing matters more than the rest: an exchange that cannot deliver must not
  * take the relics. That is the same promise the Shop makes about Scrap, and it
- * is easier to break here, because two of the four rewards can be unavailable
- * for reasons that have nothing to do with what the player is holding - every
- * frame already owned, or a combat buff already armed.
+ * is easier to break here, because the item voucher can be unavailable for a
+ * reason that has nothing to do with what the player is holding - every combat
+ * item already at the Shop's own cap.
  */
 class RelicTraderTest {
 
     private val gearTrade = RelicTrader.exchanges[0]
-    private val frameTrade = RelicTrader.exchanges[1]
-    private val buffTrade = RelicTrader.exchanges[2]
-    private val voucherTrade = RelicTrader.exchanges[3]
+    private val reviveTrade = RelicTrader.exchanges[1]
+    private val itemTrade = RelicTrader.exchanges[2]
+    private val entryTrade = RelicTrader.exchanges[3]
 
     private fun prefsHolding(exchange: RelicExchange, amount: Int): FakePrefs {
         val prefs = FakePrefs()
@@ -71,107 +71,88 @@ class RelicTraderTest {
     }
 
     @Test
-    fun `the frame trade grants the frame that was chosen`() {
-        val prefs = prefsHolding(frameTrade, 3)
+    fun `the vial trade grants a revive token`() {
+        val prefs = prefsHolding(reviveTrade, 3)
 
-        assertNull(RelicTrader.trade(prefs, frameTrade, Shop.FRAME_EMBER))
+        assertEquals(0, ShopEffects.charges(prefs, ShopEffects.KEY_REVIVE_TOKENS))
+        assertNull(RelicTrader.trade(prefs, reviveTrade))
 
-        assertTrue(ShopEffects.ownsCosmetic(prefs, Shop.FRAME_EMBER))
-        assertFalse(ShopEffects.ownsCosmetic(prefs, Shop.FRAME_BRASS))
-        assertEquals(0, Relics.countOf(prefs, frameTrade.relic))
+        assertEquals(1, ShopEffects.charges(prefs, ShopEffects.KEY_REVIVE_TOKENS))
+        assertEquals(0, Relics.countOf(prefs, reviveTrade.relic))
     }
 
     @Test
-    fun `a frame already owned is never handed over twice`() {
-        val prefs = prefsHolding(frameTrade, 3)
-        ShopEffects.grantCosmetic(prefs, Shop.FRAME_BRASS)
+    fun `the blueprint trade grants whichever item was chosen`() {
+        val prefs = prefsHolding(itemTrade, 3)
 
-        // Asking for the one already owned falls through to the one that is not.
-        assertNull(RelicTrader.trade(prefs, frameTrade, Shop.FRAME_BRASS))
+        assertNull(RelicTrader.trade(prefs, itemTrade, BattleItem.CLEANSE.name))
 
-        assertTrue(ShopEffects.ownsCosmetic(prefs, Shop.FRAME_EMBER))
+        assertEquals(1, ShopEffects.charges(prefs, ShopEffects.KEY_CLEANSE))
+        assertEquals(0, ShopEffects.charges(prefs, ShopEffects.KEY_HP_TONIC))
+        assertEquals(0, Relics.countOf(prefs, itemTrade.relic))
     }
 
     @Test
-    fun `owning every frame refuses the trade and keeps the relics`() {
-        val prefs = prefsHolding(frameTrade, 3)
-        ShopEffects.grantCosmetic(prefs, Shop.FRAME_BRASS)
-        ShopEffects.grantCosmetic(prefs, Shop.FRAME_EMBER)
+    fun `an item already at the shop's own cap is not offered, and falls back to one that isn't`() {
+        val prefs = prefsHolding(itemTrade, 3)
+        repeat(ShopEffects.ITEM_CHARGE_CAP) { ShopEffects.addCharge(prefs, ShopEffects.KEY_CLEANSE) }
 
-        val refusal = RelicTrader.trade(prefs, frameTrade, Shop.FRAME_BRASS)
+        assertFalse(BattleItem.CLEANSE in RelicTrader.availableItemChoices(prefs))
 
-        assertEquals(RelicRefusal.OwnsEveryFrame, refusal)
-        assertEquals("the relics must survive a refusal", 3, Relics.countOf(prefs, frameTrade.relic))
-        assertFalse(RelicTrader.canTrade(prefs, frameTrade))
-    }
-
-    @Test
-    fun `the blueprint trade arms whichever buff was chosen`() {
-        val surge = prefsHolding(buffTrade, 3)
-        assertNull(RelicTrader.trade(surge, buffTrade, ShopEffects.KEY_POWER_SURGE))
-        assertTrue(ShopEffects.powerSurgeArmed(surge))
-        assertFalse(ShopEffects.wrenchArmed(surge))
-
-        val wrench = prefsHolding(buffTrade, 3)
-        assertNull(RelicTrader.trade(wrench, buffTrade, ShopEffects.KEY_GOLDEN_WRENCH))
-        assertTrue(ShopEffects.wrenchArmed(wrench))
-        assertFalse(ShopEffects.powerSurgeArmed(wrench))
-    }
-
-    /**
-     * The Shop already refuses to sell a second buff, because only one can ride
-     * a fight. Trading for one has to refuse for the same reason, or the relics
-     * buy something that is immediately thrown away.
-     */
-    @Test
-    fun `a buff already armed refuses the trade and keeps the relics`() {
-        val prefs = prefsHolding(buffTrade, 3)
-        prefs.edit().putBoolean(ShopEffects.KEY_GOLDEN_WRENCH, true).apply()
-
-        val refusal = RelicTrader.trade(prefs, buffTrade, ShopEffects.KEY_POWER_SURGE)
-
-        assertEquals(RelicRefusal.BuffAlreadyArmed, refusal)
-        assertEquals(3, Relics.countOf(prefs, buffTrade.relic))
-        assertFalse("the wrong buff must not have been armed", ShopEffects.powerSurgeArmed(prefs))
-    }
-
-    @Test
-    fun `the wrench trade banks a voucher that discounts the hatchery`() {
-        val prefs = prefsHolding(voucherTrade, 3)
-
-        assertEquals(Masterwork.PRICE, ShopEffects.masterworkPrice(prefs))
-        assertNull(RelicTrader.trade(prefs, voucherTrade))
-
+        // Asking for the one already at cap falls through to one that is not.
+        assertNull(RelicTrader.trade(prefs, itemTrade, BattleItem.CLEANSE.name))
         assertEquals(
-            Masterwork.PRICE - ShopEffects.MASTERWORK_VOUCHER_VALUE,
-            ShopEffects.masterworkPrice(prefs)
+            "the capped item must not have gone over",
+            ShopEffects.ITEM_CHARGE_CAP,
+            ShopEffects.charges(prefs, ShopEffects.KEY_CLEANSE)
         )
-        assertEquals(0, Relics.countOf(prefs, voucherTrade.relic))
     }
 
     @Test
-    fun `vouchers stack but only one comes off a purchase`() {
-        val prefs = prefsHolding(voucherTrade, 6)
+    fun `every item at cap refuses the trade and keeps the relics`() {
+        val prefs = prefsHolding(itemTrade, 3)
+        for (item in BattleItem.entries) {
+            val key = when (item) {
+                BattleItem.HP_TONIC -> ShopEffects.KEY_HP_TONIC
+                BattleItem.CORROSIVE_CHARGE -> ShopEffects.KEY_CORROSIVE_CHARGE
+                BattleItem.REINFORCED_PLATING -> ShopEffects.KEY_REINFORCED_PLATING
+                BattleItem.CLEANSE -> ShopEffects.KEY_CLEANSE
+            }
+            repeat(ShopEffects.ITEM_CHARGE_CAP) { ShopEffects.addCharge(prefs, key) }
+        }
 
-        RelicTrader.trade(prefs, voucherTrade)
-        RelicTrader.trade(prefs, voucherTrade)
+        val refusal = RelicTrader.trade(prefs, itemTrade, BattleItem.CLEANSE.name)
 
-        assertEquals(2, ShopEffects.charges(prefs, ShopEffects.KEY_MASTERWORK_VOUCHER))
-        assertEquals(
-            "two vouchers must not stack into one purchase",
-            Masterwork.PRICE - ShopEffects.MASTERWORK_VOUCHER_VALUE,
-            ShopEffects.masterworkPrice(prefs)
-        )
+        assertEquals(RelicRefusal.EveryItemFull, refusal)
+        assertEquals(3, Relics.countOf(prefs, itemTrade.relic))
+    }
 
-        // Spending one leaves the next purchase still discounted.
-        ShopEffects.spendCharge(prefs, ShopEffects.KEY_MASTERWORK_VOUCHER)
-        assertEquals(
-            Masterwork.PRICE - ShopEffects.MASTERWORK_VOUCHER_VALUE,
-            ShopEffects.masterworkPrice(prefs)
-        )
+    @Test
+    fun `the wrench trade banks a voucher that waives the next arena entry`() {
+        val prefs = prefsHolding(entryTrade, 3)
 
-        ShopEffects.spendCharge(prefs, ShopEffects.KEY_MASTERWORK_VOUCHER)
-        assertEquals(Masterwork.PRICE, ShopEffects.masterworkPrice(prefs))
+        assertEquals(Arena.ENTRY_COST, ShopEffects.arenaEntryCost(prefs))
+        assertNull(RelicTrader.trade(prefs, entryTrade))
+
+        assertEquals(0, ShopEffects.arenaEntryCost(prefs))
+        assertEquals(0, Relics.countOf(prefs, entryTrade.relic))
+    }
+
+    @Test
+    fun `entry vouchers stack but only one comes off an entry`() {
+        val prefs = prefsHolding(entryTrade, 6)
+
+        RelicTrader.trade(prefs, entryTrade)
+        RelicTrader.trade(prefs, entryTrade)
+
+        assertEquals(2, ShopEffects.charges(prefs, ShopEffects.KEY_ARENA_ENTRY_VOUCHER))
+        assertEquals(0, ShopEffects.arenaEntryCost(prefs))
+
+        ShopEffects.spendCharge(prefs, ShopEffects.KEY_ARENA_ENTRY_VOUCHER)
+        assertEquals("one voucher left, still waived", 0, ShopEffects.arenaEntryCost(prefs))
+
+        ShopEffects.spendCharge(prefs, ShopEffects.KEY_ARENA_ENTRY_VOUCHER)
+        assertEquals(Arena.ENTRY_COST, ShopEffects.arenaEntryCost(prefs))
     }
 
     // ---- migration reaches the trader ---------------------------------------

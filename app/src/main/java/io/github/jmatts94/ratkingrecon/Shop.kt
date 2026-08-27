@@ -192,18 +192,17 @@ object Shop {
                 nameRes = R.string.shop_name_hp_tonic,
                 bodyRes = R.string.shop_desc_hp_tonic,
                 iconRes = R.drawable.ic_flask,
-                bodyArgs = listOf((Battle.HP_TONIC_FRACTION * 100).roundToInt())
+                bodyArgs = listOf(
+                    (Battle.HP_TONIC_FRACTION * 100).roundToInt(),
+                    (Battle.TONIC_REGEN_FRACTION * 100).roundToInt()
+                )
             ),
             ShopItem(
                 price = 80,
                 effect = ShopEffect.Charge(ShopEffects.KEY_REINFORCED_PLATING, cap = ShopEffects.ITEM_CHARGE_CAP),
                 nameRes = R.string.shop_name_reinforced_plating,
                 bodyRes = R.string.shop_desc_reinforced_plating,
-                iconRes = R.drawable.ic_toughness,
-                bodyArgs = listOf(
-                    (Battle.PLATING_REDUCTION * 100).roundToInt(),
-                    Battle.PLATING_ROUNDS
-                )
+                iconRes = R.drawable.ic_toughness
             ),
             ShopItem(
                 price = 60,
@@ -213,7 +212,8 @@ object Shop {
                 iconRes = R.drawable.ic_settings,
                 bodyArgs = listOf(
                     (Battle.CORROSIVE_DOT_FRACTION * 100).roundToInt(),
-                    Battle.CORROSIVE_DOT_ROUNDS
+                    Battle.CORROSIVE_DOT_ROUNDS,
+                    (Battle.CORROSIVE_ATTACK_DOT_FRACTION * 100).roundToInt()
                 )
             ),
             ShopItem(

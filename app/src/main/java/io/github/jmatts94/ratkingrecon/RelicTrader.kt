@@ -6,23 +6,23 @@ import androidx.annotation.StringRes
 /**
  * What an exchange hands back.
  *
- * Two of the four cannot be settled by the trader alone - a frame and a combat
- * buff both come in two kinds and the player picks - so those carry no payload
- * here. The screen asks, then calls back in with the choice.
+ * [ItemVoucher] cannot be settled by the trader alone - it comes in more than
+ * one kind and the player picks - so it carries no payload here. The screen
+ * asks, then calls back in with the choice.
  */
 sealed interface RelicReward {
 
     /** A random payout inside [range]. */
     data class Scrap(val range: IntRange) : RelicReward
 
-    /** One Binder frame, chosen from whichever are not already owned. */
-    data object Frame : RelicReward
+    /** One Revive Token, added to the stack the Shop already sells. */
+    data object ReviveToken : RelicReward
 
-    /** A Power Surge or a Golden Wrench, chosen. */
-    data object CombatBuff : RelicReward
+    /** One combat item, chosen, added to the held count the Shop's own cap governs. */
+    data object ItemVoucher : RelicReward
 
-    /** Money off the next Masterwork Hatchery pull. */
-    data object MasterworkVoucher : RelicReward
+    /** Waives the Scrap cost of the player's next Arena entry. */
+    data object ArenaEntryVoucher : RelicReward
 }
 
 /**
@@ -34,11 +34,8 @@ sealed interface RelicReward {
 sealed interface RelicRefusal {
     data class NotEnough(val held: Int, val needed: Int) : RelicRefusal
 
-    /** Both frames already owned, so there is nothing left to hand over. */
-    data object OwnsEveryFrame : RelicRefusal
-
-    /** A Surge or Wrench is already armed, and only one can ride a fight. */
-    data object BuffAlreadyArmed : RelicRefusal
+    /** Every combat item is already at the Shop's own hold cap. */
+    data object EveryItemFull : RelicRefusal
 }
 
 data class RelicExchange(
@@ -65,8 +62,9 @@ data class RelicExchange(
  * one rule that matters can be tested: an exchange that cannot deliver must not
  * take the relics. That is the same guarantee the Shop already makes about
  * Scrap - nothing leaves until the effect has been accepted - and it is easy to
- * get wrong here, because two of the four rewards can be unavailable for
- * reasons that have nothing to do with what the player is holding.
+ * get wrong here, because the item voucher can be unavailable for a reason
+ * that has nothing to do with what the player is holding: every combat item
+ * already sitting at the Shop's own hold cap.
  */
 object RelicTrader {
 
@@ -86,42 +84,47 @@ object RelicTrader {
             bodyArgs = listOf(SCRAP_PAYOUT.first, SCRAP_PAYOUT.last)
         ),
         RelicExchange(
-            id = "vial_frame",
+            id = "vial_revive",
             relic = Relics.ALL[1],
             cost = COST,
-            reward = RelicReward.Frame,
+            reward = RelicReward.ReviveToken,
             titleRes = R.string.trade_vial_title,
             bodyRes = R.string.trade_vial_body
         ),
         RelicExchange(
-            id = "blueprint_buff",
+            id = "blueprint_item",
             relic = Relics.ALL[2],
             cost = COST,
-            reward = RelicReward.CombatBuff,
+            reward = RelicReward.ItemVoucher,
             titleRes = R.string.trade_blueprint_title,
             bodyRes = R.string.trade_blueprint_body
         ),
         RelicExchange(
-            id = "wrench_voucher",
+            id = "wrench_arena_entry",
             relic = Relics.ALL[3],
             cost = COST,
-            reward = RelicReward.MasterworkVoucher,
+            reward = RelicReward.ArenaEntryVoucher,
             titleRes = R.string.trade_wrench_title,
             bodyRes = R.string.trade_wrench_body
         )
     )
 
+    /** Which [ShopEffects] charge key holds a [BattleItem]'s count - see [Battle.applyItem]. */
+    private fun keyFor(item: BattleItem): String = when (item) {
+        BattleItem.HP_TONIC -> ShopEffects.KEY_HP_TONIC
+        BattleItem.CORROSIVE_CHARGE -> ShopEffects.KEY_CORROSIVE_CHARGE
+        BattleItem.REINFORCED_PLATING -> ShopEffects.KEY_REINFORCED_PLATING
+        BattleItem.CLEANSE -> ShopEffects.KEY_CLEANSE
+    }
+
     /**
-     * The frames the player could still be given, in catalogue order.
+     * The combat items the player could still be given a voucher for.
      *
-     * Only the tradeable ones. The animated frames are deliberately kept out:
-     * three relics is a far cheaper route than 350 to 500 Scrap, and letting
-     * this hand one over would undercut the tier they are priced into.
+     * Not every item - one already sitting at the Shop's own
+     * [ShopEffects.ITEM_CHARGE_CAP] has nowhere for a voucher to land.
      */
-    fun availableFrames(prefs: SharedPreferences): List<String> =
-        Frames.tradeable
-            .map { it.id }
-            .filterNot { ShopEffects.ownsCosmetic(prefs, it) }
+    fun availableItemChoices(prefs: SharedPreferences): List<BattleItem> =
+        BattleItem.entries.filterNot { ShopEffects.charges(prefs, keyFor(it)) >= ShopEffects.ITEM_CHARGE_CAP }
 
     /**
      * Why [exchange] cannot go ahead, or null when it can.
@@ -135,15 +138,8 @@ object RelicTrader {
         if (held < exchange.cost) return RelicRefusal.NotEnough(held, exchange.cost)
 
         return when (exchange.reward) {
-            is RelicReward.Frame ->
-                if (availableFrames(prefs).isEmpty()) RelicRefusal.OwnsEveryFrame else null
-
-            is RelicReward.CombatBuff ->
-                if (ShopEffects.powerSurgeArmed(prefs) || ShopEffects.wrenchArmed(prefs)) {
-                    RelicRefusal.BuffAlreadyArmed
-                } else {
-                    null
-                }
+            is RelicReward.ItemVoucher ->
+                if (availableItemChoices(prefs).isEmpty()) RelicRefusal.EveryItemFull else null
 
             else -> null
         }
@@ -155,8 +151,8 @@ object RelicTrader {
     /**
      * Settles an exchange, taking the relics only once the reward has landed.
      *
-     * [choiceId] carries the frame or buff the player picked, and is ignored by
-     * the two exchanges that do not ask. Returns the refusal that stopped it, or
+     * [choiceId] carries the item the player picked, and is ignored by the
+     * three exchanges that do not ask. Returns the refusal that stopped it, or
      * null when it went through.
      */
     fun trade(
@@ -175,26 +171,23 @@ object RelicTrader {
                     )
                     .apply()
 
-            is RelicReward.Frame -> {
-                // Falls back to the first frame still available rather than
-                // trusting the screen: a stale choice would otherwise re-grant
-                // something already owned and waste the relics.
-                val frame = choiceId?.takeIf { it in availableFrames(prefs) }
-                    ?: availableFrames(prefs).firstOrNull()
-                    ?: return RelicRefusal.OwnsEveryFrame
-                ShopEffects.grantCosmetic(prefs, frame)
+            is RelicReward.ReviveToken ->
+                ShopEffects.addCharge(prefs, ShopEffects.KEY_REVIVE_TOKENS)
+
+            is RelicReward.ItemVoucher -> {
+                // Falls back to the first item still short of the cap rather
+                // than trusting the screen: a stale or unrecognised choice
+                // would otherwise waste the relics on a refusal the screen
+                // already thought it had avoided.
+                val item = choiceId?.let { runCatching { BattleItem.valueOf(it) }.getOrNull() }
+                    ?.takeIf { it in availableItemChoices(prefs) }
+                    ?: availableItemChoices(prefs).firstOrNull()
+                    ?: return RelicRefusal.EveryItemFull
+                ShopEffects.addCharge(prefs, keyFor(item))
             }
 
-            is RelicReward.CombatBuff -> {
-                val key = when (choiceId) {
-                    ShopEffects.KEY_GOLDEN_WRENCH -> ShopEffects.KEY_GOLDEN_WRENCH
-                    else -> ShopEffects.KEY_POWER_SURGE
-                }
-                prefs.edit().putBoolean(key, true).apply()
-            }
-
-            is RelicReward.MasterworkVoucher ->
-                ShopEffects.addCharge(prefs, ShopEffects.KEY_MASTERWORK_VOUCHER)
+            is RelicReward.ArenaEntryVoucher ->
+                ShopEffects.addCharge(prefs, ShopEffects.KEY_ARENA_ENTRY_VOUCHER)
         }
 
         Relics.spend(prefs, exchange.relic, exchange.cost)

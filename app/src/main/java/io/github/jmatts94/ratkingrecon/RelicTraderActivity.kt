@@ -19,8 +19,8 @@ import com.google.android.material.button.MaterialButton
  * The Relic Trader.
  *
  * A screen of its own rather than four rows in the Shop, because the Shop is
- * denominated in Scrap from the affordability check to the button label, and two
- * of these exchanges have to ask the player which reward they want.
+ * denominated in Scrap from the affordability check to the button label, and one
+ * of these exchanges has to ask the player which reward they want.
  *
  * The rules live in [RelicTrader]; this draws them and collects the choices.
  */
@@ -113,35 +113,27 @@ class RelicTraderActivity : AppCompatActivity() {
         }
 
         when (exchange.reward) {
-            is RelicReward.Frame -> chooseFrame(exchange)
-            is RelicReward.CombatBuff -> chooseBuff(exchange)
+            is RelicReward.ItemVoucher -> chooseItemVoucher(exchange)
             else -> settle(exchange, choiceId = null)
         }
     }
 
-    private fun chooseFrame(exchange: RelicExchange) {
-        val frames = RelicTrader.availableFrames(prefs)
-        val labels = frames.map { getString(frameNameRes(it)) }.toTypedArray()
+    private fun chooseItemVoucher(exchange: RelicExchange) {
+        val items = RelicTrader.availableItemChoices(prefs)
+        val labels = items.map { getString(itemNameRes(it)) }.toTypedArray()
 
         AlertDialog.Builder(this)
-            .setTitle(R.string.trade_pick_frame)
-            .setItems(labels) { _, which -> settle(exchange, frames[which]) }
+            .setTitle(R.string.trade_pick_item)
+            .setItems(labels) { _, which -> settle(exchange, items[which].name) }
             .setNegativeButton(R.string.trade_cancel, null)
             .show()
     }
 
-    private fun chooseBuff(exchange: RelicExchange) {
-        val keys = listOf(ShopEffects.KEY_POWER_SURGE, ShopEffects.KEY_GOLDEN_WRENCH)
-        val labels = arrayOf(
-            getString(R.string.shop_name_surge),
-            getString(R.string.shop_name_wrench)
-        )
-
-        AlertDialog.Builder(this)
-            .setTitle(R.string.trade_pick_buff)
-            .setItems(labels) { _, which -> settle(exchange, keys[which]) }
-            .setNegativeButton(R.string.trade_cancel, null)
-            .show()
+    private fun itemNameRes(item: BattleItem): Int = when (item) {
+        BattleItem.HP_TONIC -> R.string.shop_name_hp_tonic
+        BattleItem.CORROSIVE_CHARGE -> R.string.shop_name_corrosive_charge
+        BattleItem.REINFORCED_PLATING -> R.string.shop_name_reinforced_plating
+        BattleItem.CLEANSE -> R.string.shop_name_cleanse
     }
 
     private fun settle(exchange: RelicExchange, choiceId: String?) {
@@ -164,12 +156,8 @@ class RelicTraderActivity : AppCompatActivity() {
             refusal.held
         )
 
-        RelicRefusal.OwnsEveryFrame -> getString(R.string.trade_owns_every_frame)
-        RelicRefusal.BuffAlreadyArmed -> getString(R.string.trade_buff_armed)
+        RelicRefusal.EveryItemFull -> getString(R.string.trade_items_all_full)
     }
-
-    private fun frameNameRes(id: String): Int =
-        Frames.byId(id)?.nameRes ?: R.string.shop_name_frame_brass
 
     // ---- drawing -------------------------------------------------------------
 

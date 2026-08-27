@@ -6,7 +6,15 @@ import kotlin.math.roundToInt
 
 enum class BattleAction { ATTACK, DEFEND, SPECIAL, USE_ITEM }
 
-/** The four Shop-bought consumables usable mid-fight - see [Battle.applyItem]. */
+/**
+ * The four Shop-bought consumables usable mid-fight - see [Battle.applyItem].
+ *
+ * Names are unchanged since they reach the save as SharedPreferences keys
+ * (ShopEffects.KEY_HP_TONIC, KEY_REINFORCED_PLATING) - renaming an entry here
+ * would not itself break anything stored, but the display names shown for
+ * HP_TONIC ("Regenerative Tonic") and REINFORCED_PLATING ("Protective
+ * Bubble") have moved on from what these constants still spell out.
+ */
 enum class BattleItem { HP_TONIC, CORROSIVE_CHARGE, REINFORCED_PLATING, CLEANSE }
 
 enum class BattleOutcome { ONGOING, PLAYER_WON, PLAYER_LOST }
@@ -60,6 +68,8 @@ data class RoundResult(
     val outcome: BattleOutcome,
     /** Whether the Rustbot's reply this round was its Special. */
     val botUsedSpecial: Boolean = false,
+    /** Whether this round was a boss's telegraph turn - see [Battle.botCharging]. */
+    val botCharged: Boolean = false,
     /** Which named boss move [damageTaken] came from, if this round's reply used one. */
     val bossMoveNameRes: Int? = null,
     /** Corrosion from a lingering Rusty Rake, applied this round on top of [damageTaken]. */
@@ -141,8 +151,17 @@ class Battle(
 
         // --- the four Shop-bought combat items ---------------------------------
 
-        /** HP Tonic: restores this share of max HP, capped at max. */
+        /** HP Tonic: restores this share of max HP instantly, capped at max. */
         const val HP_TONIC_FRACTION = 0.70
+
+        /**
+         * HP Tonic's ongoing half: this share of max HP regenerated at the
+         * start of every round *after* the one it was drunk in, for the rest of
+         * the fight. A [Battle] is scoped to one fight already, so "the rest of
+         * the fight" needs nothing more than never clearing the flag that turns
+         * this on.
+         */
+        const val TONIC_REGEN_FRACTION = 0.12
 
         /**
          * Corrosive Charge: each use adds its own stack at this share of the
@@ -154,13 +173,15 @@ class Battle(
         const val CORROSIVE_DOT_ROUNDS = 3
 
         /**
-         * Reinforced Plating: cuts incoming damage by this share for this many
-         * rounds, its own round included - the same "round it lands on counts"
-         * rule Rusty Rake's corrosion already uses, so a Plating used on round 5
-         * protects rounds 5 through 7.
+         * Corrosive Charge's passive half: while any stack from the item is
+         * still ticking, a plain Attack piles on a stack of its own at half the
+         * item's own rate - free (no charge spent, no turn given up otherwise),
+         * so it is priced lower than a deliberate use. Self-limiting without a
+         * separate cap: a stack only lives [CORROSIVE_DOT_ROUNDS] rounds, so
+         * attacking every round can never hold more than that many
+         * attack-triggered stacks alive at once.
          */
-        const val PLATING_REDUCTION = 0.30
-        const val PLATING_ROUNDS = 3
+        const val CORROSIVE_ATTACK_DOT_FRACTION = CORROSIVE_DOT_FRACTION / 2
     }
 
     var ratHp = startingRatHp
@@ -193,8 +214,11 @@ class Battle(
     /** Every Corrosive Charge stack still ticking against the bot; see [DotEffect]. */
     private var botDots: List<DotEffect> = emptyList()
 
-    /** Rounds of Reinforced Plating left, its own round included. 0 means none active. */
-    private var plateRoundsRemaining = 0
+    /** Whether a Protective Bubble is up, waiting to negate the next hit taken. */
+    private var bubbleActive = false
+
+    /** Whether a Regenerative Tonic has been drunk this fight. Once true, stays true. */
+    private var tonicActive = false
 
     val log = mutableListOf<RoundResult>()
 
@@ -233,6 +257,20 @@ class Battle(
     val botSpecialReady: Boolean
         get() = (round + 1) - botLastSpecialRound >= BOT_SPECIAL_COOLDOWN
 
+    /**
+     * Whether the Rustbot's reply next round will be its telegraph turn rather
+     * than a swing - see the `isChargeRound` branch in [advance]. Only ever
+     * true for a boss: an ordinary Rustbot has no [bossId] and so no Special
+     * worth warning about, and its cadence is untouched by any of this.
+     *
+     * Read the same way [botSpecialReady] already is - before the round plays,
+     * so a screen can offer the telegraph turn's choice (attack freely, or
+     * block the Special it warns of) ahead of the round that decides it.
+     */
+    val botCharging: Boolean
+        get() = outcome == BattleOutcome.ONGOING && bossId != null &&
+            (round + 1) - botLastSpecialRound == BOT_SPECIAL_COOLDOWN - 1
+
     fun botSpecialDamage(): Int = (botPower * SPECIAL_MULTIPLIER).roundToInt()
 
     /**
@@ -240,9 +278,20 @@ class Battle(
      *
      * Public so the auto-resolver can decide whether blocking is worth it
      * against the hit actually coming, rather than against a plain swing - a
-     * block chosen against the wrong number is a wasted round.
+     * block chosen against the wrong number is a wasted round. A charging
+     * round is worth nothing to block: it deals no damage at all.
      */
-    fun botNextDamage(): Int = if (botSpecialReady) botSpecialDamage() else botPower
+    fun botNextDamage(): Int = when {
+        botCharging -> 0
+        botSpecialReady -> botSpecialDamage()
+        else -> botPower
+    }
+
+    /** Whether any Corrosive Charge stack is still ticking against the bot. */
+    val botDotActive: Boolean get() = botDots.isNotEmpty()
+
+    /** Whether a boss's own corrosion (Rusty Rake) is still ticking against the rat. */
+    val ratDotActive: Boolean get() = dotRoundsRemaining > 0
 
     /**
      * Applies one item's effect. Called from [advance] the round [BattleItem.USE_ITEM]
@@ -252,18 +301,20 @@ class Battle(
      */
     private fun applyItem(item: BattleItem) {
         when (item) {
-            BattleItem.HP_TONIC ->
+            BattleItem.HP_TONIC -> {
                 ratHp = min(ratMaxHp, ratHp + (ratMaxHp * HP_TONIC_FRACTION).roundToInt())
+                // Never cleared once set - see TONIC_REGEN_FRACTION.
+                tonicActive = true
+            }
 
             BattleItem.CORROSIVE_CHARGE -> botDots = botDots + DotEffect(
                 roundsRemaining = CORROSIVE_DOT_ROUNDS,
                 perRound = max(1, (ratPower * CORROSIVE_DOT_FRACTION).roundToInt())
             )
 
-            // Set, not added to - a second Plating while one is already up
-            // refreshes its duration rather than doubling the reduction, the
-            // same as re-arming a Shop buff does for an ordinary fight.
-            BattleItem.REINFORCED_PLATING -> plateRoundsRemaining = PLATING_ROUNDS
+            // A second Bubble while one is already up is simply wasted - there
+            // is nothing to refresh, since it only ever guards a single hit.
+            BattleItem.REINFORCED_PLATING -> bubbleActive = true
 
             BattleItem.CLEANSE -> dotRoundsRemaining = 0
         }
@@ -277,8 +328,8 @@ class Battle(
      * USE_ITEM with no [item] named does the same, for the same reason.
      *
      * An item spends the round exactly like DEFEND does - zero damage dealt -
-     * but without DEFEND's own halving of the reply coming back, Reinforced
-     * Plating aside. Letting an item also blunt the same round's hit for free
+     * but without DEFEND's own halving of the reply coming back, a Protective
+     * Bubble aside. Letting an item also blunt the same round's hit for free
      * would make it strictly better than defending outright, which is the one
      * choice this is meant to cost something.
      */
@@ -292,6 +343,14 @@ class Battle(
         }
 
         round += 1
+
+        // Regenerative Tonic's ongoing half, at the start of every round after
+        // the one it was drunk in. tonicActive only flips true down in
+        // applyItem below, so the round the Tonic is actually used never
+        // double-dips with the instant heal it already gave.
+        if (tonicActive) {
+            ratHp = min(ratMaxHp, ratHp + (ratMaxHp * TONIC_REGEN_FRACTION).roundToInt())
+        }
 
         val ratBonusHit = action == BattleAction.SPECIAL && ratSpecialBonusApplies()
         val dealt = when (action) {
@@ -307,6 +366,19 @@ class Battle(
             }
         }
         botHp = max(0, botHp - dealt)
+
+        // Corrosive Charge's passive half: attacking while any stack is still
+        // ticking piles on a lighter one of its own - see
+        // CORROSIVE_ATTACK_DOT_FRACTION. Checked against the stacks as they
+        // stood before this round's own tick below, so a stack about to expire
+        // this same round still counts as "active" for the purpose of this
+        // Attack triggering another.
+        if (action == BattleAction.ATTACK && botDots.isNotEmpty() && botHp > 0) {
+            botDots = botDots + DotEffect(
+                roundsRemaining = CORROSIVE_DOT_ROUNDS,
+                perRound = max(1, (ratPower * CORROSIVE_ATTACK_DOT_FRACTION).roundToInt())
+            )
+        }
 
         // Every Corrosive Charge stack ticks against the bot each round it is
         // still standing, independent of whatever action was taken this round -
@@ -325,46 +397,72 @@ class Battle(
         // The Rustbot only swings if it survived the round.
         var taken = 0
         var botSpecial = false
+        var botCharged = false
         var move: BossMove? = null
         var dotTick = 0
         var botBonusHit = false
         if (botHp > 0) {
-            botSpecial = round - botLastSpecialRound >= BOT_SPECIAL_COOLDOWN
+            // A boss telegraphs its Special one round early: the round right
+            // before the cooldown threshold is reached, it charges instead of
+            // swinging - dealing no damage, but leaving the Special due to
+            // still fire on schedule the round after, exactly as if this round
+            // had never been inserted. Ordinary Rustbots have no bossId and so
+            // never charge; their Special still lands with no warning, exactly
+            // as it always has - see botCharging for the same check, read one
+            // round ahead of play.
+            val isChargeRound = bossId != null &&
+                round - botLastSpecialRound == BOT_SPECIAL_COOLDOWN - 1
+            botSpecial = !isChargeRound && round - botLastSpecialRound >= BOT_SPECIAL_COOLDOWN
+            botCharged = isChargeRound
+
             if (botSpecial) {
                 botLastSpecialRound = round
                 botSpecialUses += 1
                 move = bossId?.let { BossMoves.forBoss(it, botSpecialUses) }
             }
 
-            val base = if (botSpecial) botSpecialDamage() else botPower
-            botBonusHit = move != null && BossMoves.bonusApplies(move, ratFaction)
-            val bonused = if (botBonusHit) (base * BossMoves.BONUS_MULTIPLIER).roundToInt() else base
-            // Reinforced Plating, if it is up - including the very round it was
-            // just used, the same way DEFEND immediately halves this same hit.
-            val plated = if (plateRoundsRemaining > 0) {
-                (bonused * (1 - PLATING_REDUCTION)).roundToInt()
-            } else {
-                bonused
-            }
-            taken = if (action == BattleAction.DEFEND) plated / 2 else plated
-            ratHp = max(0, ratHp - taken)
+            if (!isChargeRound) {
+                val base = if (botSpecial) botSpecialDamage() else botPower
+                botBonusHit = move != null && BossMoves.bonusApplies(move, ratFaction)
+                val bonused = if (botBonusHit) (base * BossMoves.BONUS_MULTIPLIER).roundToInt() else base
 
-            if (move?.appliesDot == true) {
-                dotRoundsRemaining = BossMoves.DOT_ROUNDS
-                dotPerRound = max(1, (botPower * BossMoves.DOT_FRACTION).roundToInt())
+                // A Protective Bubble negates this hit outright, whatever it
+                // was going to be - DEFEND's own halving never gets a chance
+                // to run against it, the same way an item's own round already
+                // skips DEFEND's block. Raised during a charge round, the flag
+                // is untouched by that round (see the taken-stays-0 branch
+                // below) and survives intact into the Special round it was
+                // meant for; raised any other round, it guards the very next
+                // hit instead.
+                taken = if (bubbleActive) {
+                    bubbleActive = false
+                    0
+                } else if (action == BattleAction.DEFEND) {
+                    bonused / 2
+                } else {
+                    bonused
+                }
+                ratHp = max(0, ratHp - taken)
+
+                if (move?.appliesDot == true) {
+                    dotRoundsRemaining = BossMoves.DOT_ROUNDS
+                    dotPerRound = max(1, (botPower * BossMoves.DOT_FRACTION).roundToInt())
+                }
             }
+            // A charge round deals no damage at all - taken stays 0, and there
+            // is nothing this round to block or brace against, so a Bubble
+            // raised here is saved whole for the Special it is warning of.
 
             // Corrosion is not a swing DEFEND can brace against - it ticks
-            // whether or not the round's hit was blocked. Cleanse pre-empts
-            // this: it zeroes dotRoundsRemaining above, in applyItem, before
-            // this check ever runs.
+            // whether or not the round's hit was blocked, and whether or not
+            // the boss even swung this round. Cleanse pre-empts this: it
+            // zeroes dotRoundsRemaining above, in applyItem, before this check
+            // ever runs.
             if (dotRoundsRemaining > 0 && ratHp > 0) {
                 dotTick = dotPerRound
                 ratHp = max(0, ratHp - dotTick)
                 dotRoundsRemaining -= 1
             }
-
-            if (plateRoundsRemaining > 0) plateRoundsRemaining -= 1
         }
 
         outcome = when {
@@ -383,6 +481,7 @@ class Battle(
             botHp = botHp,
             outcome = outcome,
             botUsedSpecial = botSpecial,
+            botCharged = botCharged,
             bossMoveNameRes = move?.nameRes,
             dotDamage = dotTick,
             bossMoveBonusApplied = botBonusHit,

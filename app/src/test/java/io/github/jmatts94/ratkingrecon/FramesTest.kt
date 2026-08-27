@@ -10,11 +10,10 @@ import org.junit.Test
 /**
  * The frame catalogue, and the two things that depend on getting it right.
  *
- * Frames used to be described in four places at once - the ids in the Shop, the
- * colour in the Binder, the name in the Trader and a hardcoded pair in the
- * exchange rules - so these check that the single catalogue really is driving
- * all of them, and that pricing and tradeability line up the way the tiers
- * intend.
+ * Frames used to be described in three places at once - the ids in the Shop,
+ * the colour in the Binder, the display name in ShopActivity - so these check
+ * that the single catalogue really is driving all of them, and that pricing
+ * lines up the way the tiers intend.
  */
 class FramesTest {
 
@@ -45,8 +44,7 @@ class FramesTest {
     // ---- pricing tiers -------------------------------------------------------
 
     /**
-     * The tiers are drawn by price and tradeability, not by whether a frame
-     * moves.
+     * The tiers are drawn by price, not by whether a frame moves.
      *
      * Ember animates and still sits in the base tier: it pulses between two
      * colours because it was otherwise indistinguishable from Brass, which is a
@@ -56,7 +54,7 @@ class FramesTest {
      */
     @Test
     fun `base tier frames stay in the original price band`() {
-        val base = Frames.all.filter { it.tradeable }
+        val base = Frames.all.filter { it.baseTier }
 
         assertTrue("expected the two original frames", base.size == 2)
         for (frame in base) {
@@ -67,31 +65,31 @@ class FramesTest {
     /**
      * No longer one tight band: Riveted Copper sits below Clockwork and
      * Boiler as a mid tier, Aether Coil above them as the new top. What still
-     * has to hold is that every non-tradeable *Shop* frame is priced like the
+     * has to hold is that every premium *Shop* frame is priced like the
      * premium item it is, not like something that slipped back into base
      * tier range. Scoped to [CardFrame.sellable] on purpose - Arena Champion
-     * is non-tradeable too, but it is not part of this Shop-priced tier at
-     * all, and its own price sits above this band deliberately (see the next
+     * is premium too, but it is not part of this Shop-priced tier at all,
+     * and its own price sits above this band deliberately (see the next
      * test).
      */
     @Test
-    fun `non-tradeable Shop frames are priced above the base tier, across a widening range`() {
-        val premium = Frames.all.filterNot { it.tradeable }.filter { it.sellable }
+    fun `premium Shop frames are priced above the base tier, across a widening range`() {
+        val premium = Frames.all.filterNot { it.baseTier }.filter { it.sellable }
 
-        assertTrue("expected four non-tradeable Shop frames", premium.size == 4)
+        assertTrue("expected four premium Shop frames", premium.size == 4)
         for (frame in premium) {
             assertTrue("${frame.id} priced ${frame.price}", frame.price in 250..700)
         }
     }
 
     /**
-     * Not sold, not traded, and priced above even Aether Coil - the flagship
-     * a run this long is meant to feel like it earned, not a seventh Shop
-     * entry with the "for sale" sign taken down.
+     * Not sold, not base tier, and priced above even Aether Coil - the
+     * flagship a run this long is meant to feel like it earned, not a
+     * seventh Shop entry with the "for sale" sign taken down.
      */
     @Test
-    fun `the Arena-exclusive frame is neither tradeable nor sellable`() {
-        assertFalse(Frames.ARENA_CHAMPION.tradeable)
+    fun `the Arena-exclusive frame is neither base tier nor sellable`() {
+        assertFalse(Frames.ARENA_CHAMPION.baseTier)
         assertFalse(Frames.ARENA_CHAMPION.sellable)
         assertTrue(
             "expected Arena Champion priced above every Shop frame",
@@ -101,8 +99,8 @@ class FramesTest {
 
     @Test
     fun `every premium frame costs more than every base one`() {
-        val dearestBase = Frames.all.filter { it.tradeable }.maxOf { it.price }
-        val cheapestPremium = Frames.all.filterNot { it.tradeable }.minOf { it.price }
+        val dearestBase = Frames.all.filter { it.baseTier }.maxOf { it.price }
+        val cheapestPremium = Frames.all.filterNot { it.baseTier }.minOf { it.price }
 
         assertTrue(
             "a premium frame must never be the cheaper option",
@@ -170,49 +168,15 @@ class FramesTest {
         }
     }
 
-    // ---- what the Trader may deal in ----------------------------------------
-
     @Test
-    fun `only the base tier frames are tradeable`() {
+    fun `only the two original frames are base tier`() {
         assertEquals(
             listOf(Frames.BRASS.id, Frames.EMBER.id),
-            Frames.tradeable.map { it.id }
+            Frames.baseTier.map { it.id }
         )
         for (frame in listOf(Frames.CLOCKWORK, Frames.BOILER, Frames.RIVETED_COPPER, Frames.AETHER_COIL)) {
-            assertFalse("${frame.id} must not be tradeable", frame.tradeable)
+            assertFalse("${frame.id} must not be base tier", frame.baseTier)
         }
-    }
-
-    /**
-     * The point of the rule: three relics is a much cheaper route than 350 to
-     * 500 Scrap, so the Trader handing over a premium frame would undercut the
-     * tier they are priced into.
-     *
-     * Phrased against price rather than against whether a frame animates, since
-     * Ember animates and is deliberately still base tier.
-     */
-    @Test
-    fun `the trader never offers a premium frame`() {
-        val prefs = FakePrefs()
-        val cheapestPremium = Frames.all.filterNot { it.tradeable }.minOf { it.price }
-
-        val offered = RelicTrader.availableFrames(prefs).mapNotNull { Frames.byId(it) }
-
-        assertTrue(offered.isNotEmpty())
-        assertTrue(
-            "the Trader offered a premium frame",
-            offered.all { it.price < cheapestPremium }
-        )
-    }
-
-    @Test
-    fun `owning the plain frames empties the trader's pool even with animated ones unowned`() {
-        val prefs = FakePrefs()
-        ShopEffects.grantCosmetic(prefs, Frames.BRASS.id)
-        ShopEffects.grantCosmetic(prefs, Frames.EMBER.id)
-
-        assertTrue(RelicTrader.availableFrames(prefs).isEmpty())
-        assertFalse(ShopEffects.ownsCosmetic(prefs, Frames.CLOCKWORK.id))
     }
 
     // ---- the Shop shelf ------------------------------------------------------

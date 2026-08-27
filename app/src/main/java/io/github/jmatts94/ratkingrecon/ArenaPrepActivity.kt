@@ -109,14 +109,15 @@ class ArenaPrepActivity : AppCompatActivity() {
 
     private fun bindCost() {
         findViewById<TextView>(R.id.arenaPrepCostText).text =
-            getString(R.string.arena_prep_cost, Arena.ENTRY_COST)
+            getString(R.string.arena_prep_cost, ShopEffects.arenaEntryCost(prefs))
         findViewById<TextView>(R.id.arenaPrepBalanceText).text =
             getString(R.string.arena_prep_balance, GameEngine.scrapOf(prefs))
     }
 
     private fun enter() {
+        val cost = ShopEffects.arenaEntryCost(prefs)
         val scrap = GameEngine.scrapOf(prefs)
-        if (scrap < Arena.ENTRY_COST) {
+        if (scrap < cost) {
             Toast.makeText(this, R.string.shop_too_poor, Toast.LENGTH_SHORT).show()
             return
         }
@@ -147,7 +148,13 @@ class ArenaPrepActivity : AppCompatActivity() {
                 return@launch
             }
 
-            prefs.edit().putInt(GameEngine.KEY_SCRAP, scrap - Arena.ENTRY_COST).apply()
+            // The voucher is spent here, not merely priced in bindCost - a
+            // fight that never got raised (the rat vanished between opening
+            // this screen and tapping Enter, above) must not burn it for
+            // nothing. Guarded on the cost it already produced, the same way
+            // the Shop's own Masterwork discount spends its voucher.
+            if (cost == 0) ShopEffects.spendCharge(prefs, ShopEffects.KEY_ARENA_ENTRY_VOUCHER)
+            prefs.edit().putInt(GameEngine.KEY_SCRAP, scrap - cost).apply()
             ArenaRun.begin(prefs, ratId)
             startActivity(Intent(this@ArenaPrepActivity, BattleActivity::class.java))
             finish()

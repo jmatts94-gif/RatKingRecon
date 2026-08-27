@@ -5,6 +5,7 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -137,6 +138,16 @@ object ArenaRun {
         START_RATIO + (MAX_RATIO - START_RATIO) * (fight - 1).toDouble() / (TOTAL_FIGHTS - 1)
 
     /**
+     * Share of the rat's own max HP topped up after every third fight cleared
+     * (3, 6, 9, 12) - not a full heal, which would flatten the "no safety net"
+     * carried-HP design this run is built around, just enough to keep a long
+     * run from being pure attrition against a curve that only ever climbs.
+     * Never applies after fight 15 - the run is already over by then, settled
+     * through the `cleared` branch [recordWin] takes instead of this one.
+     */
+    const val ARENA_RELIEF_FRACTION = 0.30
+
+    /**
      * The Rustbot for [fight], scaled by [ratioFor] alone.
      *
      * Uncapped on both Power and HP - the same treatment [Bosses.rustbotFor]
@@ -151,6 +162,31 @@ object ArenaRun {
             power = max(1, (rat.power * ratio).roundToInt()),
             maxHp = max(1, (rat.maxHp * ratio).roundToInt())
         )
+    }
+
+    /**
+     * Which of the five boss kits a milestone fight (5/10/15) borrows its
+     * Special from - the named move, the faction weakness, the DOT - by
+     * carrying its id on the [Encounter] the same way a real boss fight does.
+     * Everything about the fight's own stats stays exactly [ratioFor]'s doing;
+     * only the reply kit is borrowed, never [BossSpec.powerMult]/[hpMult] -
+     * those are tuned against a player level this run deliberately ignores
+     * (see [ratioFor]'s own doc comment), so mixing them in here would reopen
+     * the very thing this curve exists to avoid.
+     *
+     * Three milestones, five kits: not every boss is used. Junk Golem, Boiler
+     * Baron and Rustbringer were picked for the same low/mid/high escalation
+     * their own [BossSpec.minLevel] order already gives, spread across this
+     * run's own depth instead - and leaving Old Ironclaw and Circuit Reaper
+     * out keeps something exclusive to the level-gated ladder too.
+     *
+     * Null for every other fight, same as before this existed.
+     */
+    fun bossIdFor(fight: Int): String? = when (fight) {
+        5 -> "junk_golem"
+        10 -> "boiler_baron"
+        15 -> "rustbringer"
+        else -> null
     }
 
     // ---- run state ---------------------------------------------------------
@@ -236,11 +272,8 @@ object ArenaRun {
      * way every other frame already does, and a repeat clear falls back to
      * the ordinary pool.
      *
-     * That pool is drawn from every remaining frame, not just
-     * [RelicTrader.availableFrames] - the Trader keeps the animated pair out
-     * because three relics is a far cheaper route to one than its own Scrap
-     * price, which has nothing to do with a reward for finishing all 15
-     * fights. Weighted by [CardFrame.price] instead of picked uniformly, so
+     * That pool is drawn from every remaining frame in [Frames.all]. Weighted
+     * by [CardFrame.price] instead of picked uniformly, so
      * the frames priced highest - the premium pair this is meant to feel like
      * a real payoff for reaching - come up markedly more often than Brass or
      * Ember, without making them a lock.
@@ -281,6 +314,11 @@ object ArenaRun {
         val relic = Relics.rollFor(relicChanceFor(fightJustCleared))
         val editor = prefs.edit()
 
+        // Fetched once, up front, rather than only where the next fight is
+        // raised below - the fight-3/6/9/12 HP relief needs it just as much,
+        // to know the rat's own true max rather than guessing at one.
+        val fighter = dao.byId(ratId(prefs))
+
         val scrapTotal = scrapRunTotal(prefs) + scrapEarnedThisFight
         editor.putInt(KEY_SCRAP_EARNED, scrapTotal)
 
@@ -308,7 +346,19 @@ object ArenaRun {
                 editor.putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + cosmeticScrapFallback)
             }
         } else {
-            editor.putInt(KEY_CARRIED_HP, ratHpAfterFight)
+            // Every third fight cleared, the rat gets a breather: 30% of its
+            // own max HP topped up before the next fight starts, on top of
+            // whatever it carried out of this one. Capped at the rat's own
+            // true max - not the next fight's, which a Loadout could inflate -
+            // so this reads as a partial heal, not a licence to overheal
+            // through a Golden Wrench.
+            val carried = if (fightJustCleared % 3 == 0 && fighter != null) {
+                val relief = (fighter.effectiveMaxHp * ARENA_RELIEF_FRACTION).roundToInt()
+                min(fighter.effectiveMaxHp, ratHpAfterFight + relief)
+            } else {
+                ratHpAfterFight
+            }
+            editor.putInt(KEY_CARRIED_HP, carried)
             editor.putInt(KEY_FIGHT, fightJustCleared + 1)
         }
 
@@ -322,7 +372,6 @@ object ArenaRun {
         if (cleared) {
             end(prefs)
         } else {
-            val fighter = dao.byId(ratId(prefs))
             if (fighter != null) {
                 val nextFight = fightJustCleared + 1
                 val bot = rustbotFor(nextFight, fighter)
@@ -337,7 +386,8 @@ object ArenaRun {
                         botName = bot.name,
                         botPower = bot.power,
                         botMaxHp = bot.maxHp,
-                        reward = reward
+                        reward = reward,
+                        bossId = bossIdFor(nextFight)
                     )
                 )
             }

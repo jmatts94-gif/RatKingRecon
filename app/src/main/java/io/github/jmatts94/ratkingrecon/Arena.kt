@@ -34,7 +34,11 @@ object Arena {
             botName = bot.name,
             botPower = bot.power,
             botMaxHp = bot.maxHp,
-            reward = RustbotFactory.rewardFor(playerLevel)
+            reward = RustbotFactory.rewardFor(playerLevel),
+            // Always null today - fight 1 is never a milestone - but reads
+            // straight from ArenaRun.bossIdFor the same way every later fight
+            // does, rather than baking in "fight 1 has no boss" a second time.
+            bossId = ArenaRun.bossIdFor(1)
         )
 
         Encounter.save(prefs, encounter)

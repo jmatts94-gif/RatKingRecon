@@ -33,9 +33,12 @@ class BattleActivity : AppCompatActivity() {
     private lateinit var botName: TextView
     private lateinit var botStats: TextView
     private lateinit var botHpBar: ProgressBar
+    private lateinit var botDotIcon: ImageView
+    private lateinit var botChargingIcon: ImageView
     private lateinit var ratName: TextView
     private lateinit var ratStats: TextView
     private lateinit var ratHpBar: ProgressBar
+    private lateinit var ratDotIcon: ImageView
     private lateinit var ratImage: ImageView
     private lateinit var activeBuffBadge: View
     private lateinit var activeBuffIcon: ImageView
@@ -59,9 +62,12 @@ class BattleActivity : AppCompatActivity() {
         botName = findViewById(R.id.botName)
         botStats = findViewById(R.id.botStats)
         botHpBar = findViewById(R.id.botHpBar)
+        botDotIcon = findViewById(R.id.botDotIcon)
+        botChargingIcon = findViewById(R.id.botChargingIcon)
         ratName = findViewById(R.id.ratName)
         ratStats = findViewById(R.id.ratStats)
         ratHpBar = findViewById(R.id.ratHpBar)
+        ratDotIcon = findViewById(R.id.ratDotIcon)
         ratImage = findViewById(R.id.ratImage)
         activeBuffBadge = findViewById(R.id.activeBuffBadge)
         activeBuffIcon = findViewById(R.id.activeBuffIcon)
@@ -162,9 +168,16 @@ class BattleActivity : AppCompatActivity() {
 
             // The intro replaces the normal drop straight into combat, and only
             // for a boss - an ordinary Rustbot falls straight through to the
-            // screen already rendered above, exactly as it always has.
-            encounter.bossId?.let { Bosses.byId(it) }?.let { spec ->
-                showBossIntro(spec, opening)
+            // screen already rendered above, exactly as it always has. Also
+            // skipped for an Arena milestone fight even though those now carry
+            // a bossId too (see ArenaRun.rustbotFor) - that id exists only to
+            // drive the named Special/DOT/weakness kit inside Battle, not to
+            // make an Arena fight look and behave like the ceremonial boss
+            // ladder it deliberately stays separate from.
+            if (!ArenaRun.isActive(prefs)) {
+                encounter.bossId?.let { Bosses.byId(it) }?.let { spec ->
+                    showBossIntro(spec, opening)
+                }
             }
         }
     }
@@ -207,6 +220,16 @@ class BattleActivity : AppCompatActivity() {
         ratImage.setImageResource(rat.imageRes)
         botHpBar.max = battle.botMaxHp
         ratHpBar.max = battle.ratMaxHp
+
+        // ic_settings and ic_sparkle both mean other things elsewhere on this
+        // screen (Corrosive Charge's own Items-panel icon, the Special
+        // button), so a status badge's colour has to be a tint on these
+        // ImageViews rather than baked into the drawables - the same reason
+        // activeBuffIcon's tint is set here rather than on the vector itself.
+        val dotTint = ContextCompat.getColorStateList(this, R.color.ember_deep)
+        botDotIcon.imageTintList = dotTint
+        ratDotIcon.imageTintList = dotTint
+        botChargingIcon.imageTintList = ContextCompat.getColorStateList(this, R.color.brass_bright)
 
         val buff = armedBuff
         if (buff == null) {
@@ -322,8 +345,11 @@ class BattleActivity : AppCompatActivity() {
         // Names the Rustbot's Special rather than letting a hit half again as
         // big as usual look like an unexplained spike - a boss's own named
         // move takes priority over the generic "overloads" every Rustbot's
-        // Special otherwise gets.
+        // Special otherwise gets. A charge round takes priority over the
+        // plain "damageTaken <= 0" case below it, or the telegraph would read
+        // as the boss simply doing nothing rather than winding up.
         val reply = when {
+            r.botCharged -> " — ${getString(R.string.battle_bot_charging, battle.botName)}"
             r.damageTaken <= 0 -> ""
             r.bossMoveNameRes != null ->
                 " — ${battle.botName} unleashes ${getString(r.bossMoveNameRes)} for ${r.damageTaken}" +
@@ -361,6 +387,17 @@ class BattleActivity : AppCompatActivity() {
         ratStats.text = getString(R.string.battle_stats, battle.attackDamage(), battle.ratHp, battle.ratMaxHp)
         botHpBar.progress = battle.botHp
         ratHpBar.progress = battle.ratHp
+
+        // Status icons - see Battle.botDotActive/ratDotActive/botCharging.
+        // Charging takes priority over the DOT badge on the bot's own row: the
+        // two can never actually coincide (a charging boss dealt no damage
+        // last round to have applied anything with), but reads clearer with an
+        // explicit order than relying on that never changing.
+        botChargingIcon.visibility = if (battle.botCharging) View.VISIBLE else View.GONE
+        botDotIcon.visibility =
+            if (!battle.botCharging && battle.botDotActive) View.VISIBLE else View.GONE
+        ratDotIcon.visibility = if (battle.ratDotActive) View.VISIBLE else View.GONE
+
         // Stays hidden until there is something to read, so the screen never
         // shows an empty card. Driven by the text actually about to be drawn
         // rather than by the line count: a blank or whitespace-only entry would
@@ -392,7 +429,10 @@ class BattleActivity : AppCompatActivity() {
             val arenaFightNumber = if (ArenaRun.isActive(prefs)) ArenaRun.currentFight(prefs) else null
 
             val resolution = withContext(Dispatchers.IO) {
-                EncounterResolver.apply(this@BattleActivity, encounter, rat, battle)
+                EncounterResolver.apply(
+                    this@BattleActivity, encounter, rat, battle,
+                    isArenaFight = arenaFightNumber != null
+                )
             }
 
             // Everything below is the fight settling exactly as it always has -

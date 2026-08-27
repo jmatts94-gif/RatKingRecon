@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/bg_app_gradient">
+    android:background="@drawable/bg_app_gradient"
+    android:fitsSystemWindows="true">
 
     <!-- Header: title on the left, total relics held on the right. -->
     <LinearLayout

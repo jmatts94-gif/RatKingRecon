@@ -124,6 +124,15 @@ object ShopEffects {
     const val MASTERWORK_VOUCHER_VALUE = 100
 
     /**
+     * Arena free-entry vouchers held, traded for at the Relic Trader.
+     *
+     * The same shape as [KEY_MASTERWORK_VOUCHER]: a charge rather than a flag
+     * so they stack, but only one is ever spent on an entry - see
+     * [arenaEntryCost].
+     */
+    const val KEY_ARENA_ENTRY_VOUCHER = "ARENA_ENTRY_VOUCHER"
+
+    /**
      * The four combat items - see [Battle.applyItem] for what each does and
      * [BattleActivity]'s Items panel for where they are spent. Usable in any
      * fight, unlike Power Surge/Golden Wrench, which is why they are held as
@@ -150,6 +159,10 @@ object ShopEffects {
         } else {
             Masterwork.PRICE
         }
+
+    /** What the Arena's entry costs right now - waived entirely if a voucher is held. */
+    fun arenaEntryCost(prefs: SharedPreferences): Int =
+        if (charges(prefs, KEY_ARENA_ENTRY_VOUCHER) > 0) 0 else Arena.ENTRY_COST
 
     fun charges(prefs: SharedPreferences, key: String): Int = prefs.getInt(key, 0)
 
