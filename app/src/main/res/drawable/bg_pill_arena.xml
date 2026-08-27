@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  The Arena home-tile's own pill, sized and shaped like bg_pill_tan so the two
-  tiles in that row still read as a matched pair - the palette is still the
-  Arena's own, but shadow_warm rather than arena_bg_deep: that colour is
-  already doing surface duty on the Arena's own screens (see bg_card_arena),
-  and it is lighter - bronze and silver medallions read clearly against it,
-  where arena_bg_deep left everything but the gold one hard to pick out.
+  The Arena home-tile's own pill.
+
+  Two darker attempts (arena_bg_deep, then shadow_warm) both left at least
+  one medallion hard to pick out - the badges are copper, pewter and
+  brass_bright, three medium-saturation metal tones, and there is no dark
+  fill that reads as clearly distinct from all three at once. This uses
+  bg_pill_tan's own light cream gradient instead - what every other tile on
+  this screen already sits on, and metal reads against cream at a glance -
+  with a copper stroke kept as the one thing still marking this tile as the
+  Arena's, since the fill alone no longer does.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <gradient
         android:angle="270"
-        android:startColor="#5C3D14"
-        android:endColor="@color/shadow_warm"
+        android:startColor="@color/card_white"
+        android:endColor="#F8F0E1"
         android:type="linear" />
     <stroke
         android:width="1dp"

@@ -510,7 +510,7 @@
                         android:includeFontPadding="false"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:textColor="@color/cream"
+                        android:textColor="@color/text_primary"
                         android:textSize="10sp"
                         android:textStyle="bold"
                         tools:text="Fight 10 cleared" />

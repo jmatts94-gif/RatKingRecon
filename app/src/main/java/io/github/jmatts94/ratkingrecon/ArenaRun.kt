@@ -76,7 +76,7 @@ object ArenaRun {
         ArenaMilestone(5, R.string.arena_milestone_5_name, R.drawable.ic_settings, R.color.copper, glowAlpha = 0),
         ArenaMilestone(10, R.string.arena_milestone_10_name, R.drawable.ic_gear_double, R.color.pewter, glowAlpha = 90),
         ArenaMilestone(
-            15, R.string.arena_milestone_15_name, R.drawable.ic_gear_blade, R.color.brass_bright,
+            15, R.string.arena_milestone_15_name, R.drawable.ic_gear_triple, R.color.brass_bright,
             glowAlpha = 225, glowScale = 1.4f
         )
     )
