@@ -79,9 +79,18 @@ class ArenaSelectActivity : AppCompatActivity() {
             // Strongest first, the same ordering the Ledger's own "Sort Power"
             // already gives - a run's champion is a stat choice, not a
             // collection to browse newest-first the way the plain roster is.
+            //
+            // byPowerDesc() orders by the stored power column, but the card
+            // grid shows effectivePower (stored + rarity bonus) - see
+            // RatCardAdapter.onBindViewHolder. A Rare/Legendary rat's stored
+            // power can trail a Common's while its displayed number leads it,
+            // so the DB order alone can put a bigger on-screen number behind
+            // a smaller one. Re-sorting here by the same value the cards show
+            // keeps the two in sync; sortedByDescending is stable, so ties
+            // keep the query's own id-ascending order.
             val loadedRoster = withContext(Dispatchers.IO) {
                 RatRepository.dao(this@ArenaSelectActivity).byPowerDesc()
-            }
+            }.sortedByDescending { it.effectivePower }
             roster = loadedRoster
             excludedIds = loadedRoster.filter { it.isRecovering(now) }.map { it.id }.toSet()
             adapter.submitList(roster)
