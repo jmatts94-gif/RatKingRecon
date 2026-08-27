@@ -76,8 +76,11 @@ class ArenaSelectActivity : AppCompatActivity() {
     private fun load() {
         lifecycleScope.launch {
             val now = System.currentTimeMillis()
+            // Strongest first, the same ordering the Ledger's own "Sort Power"
+            // already gives - a run's champion is a stat choice, not a
+            // collection to browse newest-first the way the plain roster is.
             val loadedRoster = withContext(Dispatchers.IO) {
-                RatRepository.dao(this@ArenaSelectActivity).all()
+                RatRepository.dao(this@ArenaSelectActivity).byPowerDesc()
             }
             roster = loadedRoster
             excludedIds = loadedRoster.filter { it.isRecovering(now) }.map { it.id }.toSet()
