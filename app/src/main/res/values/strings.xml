@@ -27,7 +27,7 @@
     <!-- What each faction is worth to a Scrap Run or Ledger Task, shown beside
          the faction line above and in the Ledger Task rat picker. See TaskBonuses. -->
     <string name="task_bonus_smugglers">+15% Scrap on completion</string>
-    <string name="task_bonus_scavengers">10% shorter</string>
+    <string name="task_bonus_scavengers">10% shorter jobs</string>
     <string name="task_bonus_tinkerers">+8% relic chance</string>
     <string name="task_bonus_brawlers">small chance to finish instantly</string>
     <string name="task_bonus_foundry_born">a little bonus EXP</string>
