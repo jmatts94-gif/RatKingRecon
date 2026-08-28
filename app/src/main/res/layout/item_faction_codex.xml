@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One faction's card on the Faction Codex screen - see FactionCodexActivity.
+  The four label rows are static text baked into this layout since every
+  card shares the same four labels; only the value beside each one is bound
+  per faction.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card_white"
+    android:elevation="4dp"
+    android:outlineAmbientShadowColor="@color/shadow_warm"
+    android:outlineSpotShadowColor="@color/shadow_warm"
+    tools:targetApi="28"
+    android:padding="16dp"
+    android:layout_marginBottom="14dp">
+
+    <TextView
+        android:id="@+id/codexFactionName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_primary"
+        android:textSize="19sp"
+        android:textStyle="bold"
+        tools:text="Smugglers" />
+
+    <TextView
+        android:id="@+id/codexFactionFlavor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="12dp"
+        android:textColor="@color/text_muted"
+        android:textStyle="italic"
+        android:textSize="13sp"
+        tools:text="Fast hands, faster exits." />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/codex_label_task"
+        android:textColor="@color/copper"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/codexTaskLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="10dp"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        tools:text="+15% Scrap on completion" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/codex_label_boss"
+        android:textColor="@color/copper"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/codexBossLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="10dp"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        tools:text="Deals bonus Special damage against Old Ironclaw. Takes bonus damage from The Junk Golem." />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/codex_label_special"
+        android:textColor="@color/copper"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/codexSpecialLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp"
+        tools:text="1.5× Power, plus 4% of the damage dealt healed straight back." />
+
+</LinearLayout>

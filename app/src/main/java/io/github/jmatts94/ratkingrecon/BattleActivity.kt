@@ -367,7 +367,21 @@ class BattleActivity : AppCompatActivity() {
         } else {
             ""
         }
-        return "Round ${r.round}: $subject$reply$dot$enemyDot"
+        // A faction Special's own secondary effect, its own line for the same
+        // reason the corrosion lines above are - a separate visible event,
+        // not a footnote on the swing that triggered it. At most one of
+        // these is ever set on a single RoundResult, the same mutual
+        // exclusion Battle.advance's own roll already guarantees.
+        val factionSpecial = when {
+            r.specialLifesteal > 0 ->
+                "\n" + getString(R.string.battle_special_lifesteal, battle.ratName, r.specialLifesteal)
+            r.specialAppliedDot ->
+                "\n" + getString(R.string.battle_special_dot_applied, battle.botName)
+            r.specialArmedBlock -> "\n" + getString(R.string.battle_special_block_armed)
+            r.specialRefundedCooldown -> "\n" + getString(R.string.battle_special_cooldown_refunded)
+            else -> ""
+        }
+        return "Round ${r.round}: $subject$reply$dot$enemyDot$factionSpecial"
     }
 
     /** The whole clause for whichever item this round spent - see [BattleActivity.play]. */

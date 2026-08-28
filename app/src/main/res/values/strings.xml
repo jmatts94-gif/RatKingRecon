@@ -6,6 +6,7 @@
     <string name="btn_power">Sort Power</string>
     <string name="btn_shiny">Shiny Only</string>
     <string name="btn_rarity">Sort Rarity</string>
+    <string name="btn_faction_codex">Faction Codex</string>
 
     <!-- The Rat Ledger (the collection screen) -->
     <string name="workshop_title">The Rat Ledger</string>
@@ -369,6 +370,14 @@ RARE DROP: %2$s</string>
     <!-- the boss's name, on its telegraph turn -->
     <string name="battle_bot_charging">%1$s winds up for something big.</string>
 
+    <!-- Faction Specials' own secondary effects - see FactionSpecials. -->
+    <!-- rat name, HP healed -->
+    <string name="battle_special_lifesteal">%1$s siphons %2$d HP back.</string>
+    <!-- the bot's name -->
+    <string name="battle_special_dot_applied">The blow leaves %1$s corroding.</string>
+    <string name="battle_special_block_armed">The follow-through leaves an opening — the next hit will not land.</string>
+    <string name="battle_special_cooldown_refunded">That barely cost a beat — Special is ready again sooner.</string>
+
     <!-- The Battle Arena's entry flow: a landing screen, a champion picker, then prep -->
     <string name="btn_battle_arena">Battle Arena</string>
     <string name="arena_landing_title">The Battle Arena</string>
@@ -500,6 +509,8 @@ RARE DROP: %2$s</string>
     <!-- Long-press explainers -->
     <string name="tooltip_lifetime_title">Steps Walked</string>
     <string name="tooltip_lifetime_body">Every step counted since you started playing. It never resets — today\'s walking is the tile beside the egg.</string>
+    <string name="tooltip_scrap_title">Scrap</string>
+    <string name="tooltip_scrap_body">Spent in the Shop, the Relic Trader, and Battle Arena entry. Earned from winning fights, Ledger Tasks, and the Scrap Run.</string>
     <string name="tooltip_expedition_title">Scrap Run</string>
     <string name="tooltip_expedition_body">Shows whether a rat is out scavenging and how long is left of it. Open the Scrap Run screen for who you sent and what they are bringing back.</string>
     <string name="tooltip_steps_title">Today\'s Walking</string>
@@ -722,4 +733,40 @@ RARE DROP: %2$s</string>
     <string name="header_level_default">Lvl 1</string>
     <string name="header_steps_default">0</string>
     <string name="header_scrap_default">0</string>
+
+    <!--
+      The Faction Codex - see FactionCodexActivity. Every number quoted here
+      is filled in from the real constant it describes (SpliceEffects,
+      TaskBonuses, BossMoves, FactionSpecials), never typed twice, so this
+      screen cannot drift from what a faction actually does.
+    -->
+    <string name="faction_codex_title">Faction Codex</string>
+    <string name="faction_codex_subtitle">What each faction actually does, gathered in one place - the splice, the Ledger Task, the boss matchup, and the Special.</string>
+
+    <string name="codex_flavor_smugglers">Fast hands, faster exits.</string>
+    <string name="codex_flavor_scavengers">Nothing goes to waste — least of all time.</string>
+    <string name="codex_flavor_tinkerers">Precision over power, every time it can be.</string>
+    <string name="codex_flavor_brawlers">A bigger hit is usually the answer.</string>
+    <string name="codex_flavor_foundry_born">Built tough enough to shrug off wounds that would fell anyone else.</string>
+
+    <string name="codex_label_task">Ledger Task Bonus</string>
+    <string name="codex_label_boss">Boss Matchup</string>
+    <string name="codex_label_special">Special Attack</string>
+
+    <!-- the boss weak to this faction, the boss this faction is weak to -->
+    <string name="codex_boss_matchup">Deals bonus Special damage against %1$s. Takes bonus damage from %2$s.</string>
+    <string name="codex_boss_matchup_foundry_born">Never favoured and never targeted by any boss but the Rustbringer, which shows no faction any mercy at all.</string>
+
+    <!-- the multiplier, as a formatted number like "1.8" -->
+    <string name="codex_special_brawler">%1$s× Power — the biggest multiplier of the five, with nothing riding on it.</string>
+    <!-- multiplier, DOT percent per round, DOT rounds -->
+    <string name="codex_special_foundry_born">%1$s× Power, plus a DOT worth %2$d%% of Power a round for %3$d rounds.</string>
+    <!-- multiplier, block chance percent -->
+    <string name="codex_special_tinkerer">%1$s× Power, plus a %2$d%% chance to fully block the enemy\'s next hit.</string>
+    <!-- multiplier, refund chance percent -->
+    <string name="codex_special_scavenger">%1$s× Power, plus a %2$d%% chance its own cooldown lands a round short.</string>
+    <!-- multiplier, lifesteal percent of the rat's own max HP -->
+    <string name="codex_special_smuggler">%1$s× Power, plus %2$d%% of the rat\'s own max HP healed straight back.</string>
+
+    <string name="btn_back_to_ledger">Back to the Ledger</string>
 </resources>

@@ -160,7 +160,17 @@ class BattleTest {
         assertFalse(last.botUsedSpecial)
     }
 
-    /** The bot having a Special is what makes an even fight actually even. */
+    /**
+     * The bot having a Special is what makes an even fight actually even.
+     *
+     * Built as a plain [Battle] rather than through [Encounter.toBattle], so
+     * this stays a test of the general balance point rather than of any one
+     * faction's own Special quirk - see [FactionSpecials]. This matchup was
+     * hand-tuned to sit right at the losable/winnable line, so even a small
+     * per-faction addition (a DOT, a lifesteal trickle) is enough to tip it,
+     * which would make this a test of whichever faction the fixture rat
+     * happened to be instead of the thing it is actually meant to guard.
+     */
     @Test
     fun `an ordinary encounter is now losable`() {
         val rat = RatEntity(artKey = "bolt_pic", name = "R", power = 5, toughness = 5, shiny = false)
@@ -172,26 +182,31 @@ class BattleTest {
         assertTrue("but it does outlast it", bot.maxHp > rat.maxHp)
 
         val result = AutoResolver.resolve(
-            Encounter(1, bot.name, bot.power, bot.maxHp, 0).toBattle(rat)
+            Battle(rat.name, rat.power, rat.maxHp, bot.name, bot.power, bot.maxHp)
         )
         assertEquals(BattleOutcome.PLAYER_LOST, result.outcome)
     }
 
-    /** And the Shop is what turns it back around. */
+    /** And the Shop is what turns it back around. Same plain-Battle reasoning as above. */
     @Test
     fun `a combat item turns a losing encounter into a win`() {
         val rat = RatEntity(artKey = "bolt_pic", name = "R", power = 5, toughness = 5, shiny = false)
         val bot = RustbotFactory.forEncounter(20, rat)
-        val encounter = Encounter(1, bot.name, bot.power, bot.maxHp, 0)
 
         assertEquals(
             BattleOutcome.PLAYER_LOST,
-            AutoResolver.resolve(encounter.toBattle(rat)).outcome
+            AutoResolver.resolve(
+                Battle(rat.name, rat.power, rat.maxHp, bot.name, bot.power, bot.maxHp)
+            ).outcome
         )
+        val surge = Loadout(ShopEffects.SURGE_MULTIPLIER)
         assertEquals(
             BattleOutcome.PLAYER_WON,
             AutoResolver.resolve(
-                encounter.toBattle(rat, Loadout(ShopEffects.SURGE_MULTIPLIER))
+                Battle(
+                    rat.name, surge.powerFor(rat.power), surge.maxHpFor(rat.maxHp),
+                    bot.name, bot.power, bot.maxHp
+                )
             ).outcome
         )
     }
@@ -397,7 +412,9 @@ class BattleTest {
 
         val special = b.advance(BattleAction.SPECIAL)
         assertTrue(special.ratWeaknessBonusApplied)
-        assertEquals("30 base Special, +10% for the boss's weak faction", 33, special.damageDealt)
+        // Brawler's own 1.8x, not the plain 1.5x every other faction gets -
+        // see FactionSpecials.
+        assertEquals("36 base Special, +10% for the boss's weak faction", 40, special.damageDealt)
     }
 
     @Test
@@ -733,5 +750,124 @@ class BattleTest {
                 assertTrue("$reward too high for L$level", reward <= (base * 1.15).toInt() + 1)
             }
         }
+    }
+
+    // --- faction Specials ----------------------------------------------------
+
+    @Test
+    fun `brawler special deals 1_8x power and carries no secondary effect`() {
+        val b = Battle("Rat", 10, 5000, "Bot", 1, 5000, ratFaction = Roster.BRAWLERS)
+        val r = b.advance(BattleAction.SPECIAL)
+
+        assertEquals(18, r.damageDealt)
+        assertEquals(0, r.specialLifesteal)
+        assertFalse(r.specialAppliedDot)
+        assertFalse(r.specialArmedBlock)
+        assertFalse(r.specialRefundedCooldown)
+    }
+
+    @Test
+    fun `an unrecognised or missing faction gets the plain 1_5x special with no secondary effect`() {
+        val b = Battle("Rat", 10, 5000, "Bot", 1, 5000, ratFaction = null)
+        val r = b.advance(BattleAction.SPECIAL)
+
+        assertEquals(15, r.damageDealt)
+        assertEquals(0, r.specialLifesteal)
+        assertFalse(r.specialAppliedDot)
+        assertFalse(r.specialArmedBlock)
+        assertFalse(r.specialRefundedCooldown)
+    }
+
+    @Test
+    fun `foundry-born special applies a two-round dot on top of its own damage`() {
+        val b = Battle("Rat", 10, 5000, "Bot", 1, 5000, ratFaction = Roster.FOUNDRY_BORN)
+
+        val r1 = b.advance(BattleAction.SPECIAL)
+        assertEquals(15, r1.damageDealt)
+        assertTrue(r1.specialAppliedDot)
+        assertEquals("15% of 10 Power, rounded, ticking the round it lands", 2, r1.enemyDotDamage)
+
+        val r2 = b.advance(BattleAction.ATTACK)
+        assertEquals("still on its second and final round", 2, r2.enemyDotDamage)
+
+        val r3 = b.advance(BattleAction.ATTACK)
+        assertEquals("expired after two rounds", 0, r3.enemyDotDamage)
+    }
+
+    @Test
+    fun `smuggler special heals back a share of the rat's own max hp, not of the damage it deals`() {
+        val b = Battle(
+            "Rat", 1, 5000, "Bot", 1, 5000,
+            ratFaction = Roster.SMUGGLERS, startingRatHp = 4000
+        )
+        val r = b.advance(BattleAction.SPECIAL)
+
+        // Power 1 makes the Special's own damage trivial - the heal has to
+        // stay real anyway, because it is a share of max HP, not of dealt.
+        assertEquals(2, r.damageDealt)
+        assertEquals("5% of 5000 max HP", 250, r.specialLifesteal)
+        assertEquals("healed 250, then the bot's own reply (1) comes off", 4249, r.ratHp)
+    }
+
+    @Test
+    fun `smuggler lifesteal cannot heal past max hp`() {
+        val b = Battle(
+            "Rat", 100, 5000, "Bot", 1, 5000,
+            ratFaction = Roster.SMUGGLERS, startingRatHp = 4998
+        )
+        val r = b.advance(BattleAction.SPECIAL)
+
+        assertEquals("capped at max, not the full 250", 2, r.specialLifesteal)
+        assertEquals(4999, r.ratHp)
+    }
+
+    @Test
+    fun `tinkerer special sometimes blocks the enemy's very next hit`() {
+        var blocked = false
+        var missed = false
+        repeat(200) {
+            val b = Battle("Rat", 10, 5000, "Bot", 50, 5000, ratFaction = Roster.TINKERERS)
+            val r = b.advance(BattleAction.SPECIAL)
+            if (r.specialArmedBlock) {
+                blocked = true
+                assertEquals("a rolled block negates the same round's reply", 0, r.damageTaken)
+            } else {
+                missed = true
+            }
+        }
+        assertTrue("expected at least one block over 200 trials", blocked)
+        assertTrue("expected at least one miss over 200 trials", missed)
+    }
+
+    @Test
+    fun `scavenger special sometimes shaves a round off its own cooldown`() {
+        var refunded = false
+        var notRefunded = false
+        repeat(200) {
+            val b = Battle("Rat", 10, 5000, "Bot", 1, 5000, ratFaction = Roster.SCAVENGERS)
+            val r = b.advance(BattleAction.SPECIAL)
+            if (r.specialRefundedCooldown) {
+                refunded = true
+                assertEquals(1, b.specialCooldownRemaining)
+            } else {
+                notRefunded = true
+                assertEquals(2, b.specialCooldownRemaining)
+            }
+        }
+        assertTrue("expected at least one refund over 200 trials", refunded)
+        assertTrue("expected at least one miss over 200 trials", notRefunded)
+    }
+
+    @Test
+    fun `a brawler's weak-point bonus stacks on top of its own bigger multiplier`() {
+        val b = Battle(
+            "Rat", 10, 5000, "The Junk Golem", 1, 5000,
+            bossId = "junk_golem", ratFaction = Roster.BRAWLERS
+        )
+        val r = b.advance(BattleAction.SPECIAL)
+
+        // 10 * 1.8 = 18 base, * 1.10 weak-point bonus = 19.8, rounds to 20.
+        assertTrue(r.ratWeaknessBonusApplied)
+        assertEquals(20, r.damageDealt)
     }
 }

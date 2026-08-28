@@ -121,6 +121,9 @@ class GalleryActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnPower).setOnClickListener { renderGrid("POWER") }
         findViewById<Button>(R.id.btnShiny).setOnClickListener { renderGrid("SHINY") }
         findViewById<Button>(R.id.btnRarity).setOnClickListener { renderGrid("RARITY") }
+        findViewById<Button>(R.id.btnFactionCodex).setOnClickListener {
+            startActivity(android.content.Intent(this, FactionCodexActivity::class.java))
+        }
 
         // Initial draw
         renderGrid("ALL")

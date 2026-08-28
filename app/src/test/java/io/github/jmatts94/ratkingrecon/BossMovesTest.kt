@@ -99,4 +99,35 @@ class BossMovesTest {
         )
         assertFalse(Roster.FOUNDRY_BORN in weaknesses)
     }
+
+    // --- the reverse lookups, for the Faction Codex ----------------------------
+
+    @Test
+    fun `bossThatTargets names the boss whose own move hits a faction`() {
+        assertEquals("junk_golem", BossMoves.bossThatTargets(Roster.SMUGGLERS))
+        assertEquals("old_ironclaw", BossMoves.bossThatTargets(Roster.TINKERERS))
+        assertEquals("boiler_baron", BossMoves.bossThatTargets(Roster.SCAVENGERS))
+        assertEquals("circuit_reaper", BossMoves.bossThatTargets(Roster.BRAWLERS))
+        assertNull("no named move ever targets Foundry-born", BossMoves.bossThatTargets(Roster.FOUNDRY_BORN))
+    }
+
+    @Test
+    fun `bossWeakTo names the boss a faction deals bonus Special damage against`() {
+        assertEquals("old_ironclaw", BossMoves.bossWeakTo(Roster.SMUGGLERS))
+        assertEquals("boiler_baron", BossMoves.bossWeakTo(Roster.TINKERERS))
+        assertEquals("circuit_reaper", BossMoves.bossWeakTo(Roster.SCAVENGERS))
+        assertEquals("junk_golem", BossMoves.bossWeakTo(Roster.BRAWLERS))
+        assertNull("Foundry-born sits outside the wheel entirely", BossMoves.bossWeakTo(Roster.FOUNDRY_BORN))
+    }
+
+    @Test
+    fun `the two reverse lookups agree with the forward ones they are derived from`() {
+        for (bossId in listOf("junk_golem", "old_ironclaw", "boiler_baron", "circuit_reaper")) {
+            val strongAgainst = BossMoves.forBoss(bossId, 1)!!.targetFaction!!
+            assertEquals(bossId, BossMoves.bossThatTargets(strongAgainst))
+
+            val weakAgainst = BossMoves.weakFactionFor(bossId)!!
+            assertEquals(bossId, BossMoves.bossWeakTo(weakAgainst))
+        }
+    }
 }

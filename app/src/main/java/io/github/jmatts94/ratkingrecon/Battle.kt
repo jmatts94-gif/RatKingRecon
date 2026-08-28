@@ -27,8 +27,16 @@ enum class BattleOutcome { ONGOING, PLAYER_WON, PLAYER_LOST }
  * stacking several - Rusty Rake's is a boss's free periodic hit and refires
  * on the same cadence, so it refreshes a single value instead. The two never
  * share a field, only the tick-and-decrement shape.
+ *
+ * [fromCorrosiveCharge] tells the two stacking sources that share this list
+ * apart. A Foundry-born's Special (see [FactionSpecials]) arms a stack here
+ * too, reusing the same tick-and-decrement machinery rather than a second
+ * copy of it - but it must not also count as "a Corrosive Charge is active"
+ * for the item's own attack-triggered stacking below, or a Foundry-born rat
+ * would be piling on free Corrosive stacks it never bought a charge for.
+ * Defaults true so every existing Corrosive Charge call site needs no change.
  */
-data class DotEffect(val roundsRemaining: Int, val perRound: Int)
+data class DotEffect(val roundsRemaining: Int, val perRound: Int, val fromCorrosiveCharge: Boolean = true)
 
 /**
  * What the Shop has armed for one fight.
@@ -81,7 +89,15 @@ data class RoundResult(
     /** Which item this round spent, if [action] was [BattleAction.USE_ITEM]. */
     val itemUsed: BattleItem? = null,
     /** Corrosive Charge damage the bot took this round, from every stack still active. */
-    val enemyDotDamage: Int = 0
+    val enemyDotDamage: Int = 0,
+    /** HP a Smuggler's Special healed back this round - see [FactionSpecials.SMUGGLER_LIFESTEAL_FRACTION]. */
+    val specialLifesteal: Int = 0,
+    /** Whether a Foundry-born's Special armed a fresh DOT stack on the bot this round. */
+    val specialAppliedDot: Boolean = false,
+    /** Whether a Tinkerer's Special rolled its block chance and armed one - see [Battle.bubbleActive]. */
+    val specialArmedBlock: Boolean = false,
+    /** Whether a Scavenger's Special rolled its refund chance and shaved a round off its own cooldown. */
+    val specialRefundedCooldown: Boolean = false
 )
 
 /**
@@ -125,7 +141,7 @@ class Battle(
         /** Rounds between uses of Special. */
         const val SPECIAL_COOLDOWN = 3
 
-        /** Special deals this multiple of Power. */
+        /** Special deals this multiple of Power, for every faction but Brawlers - see [FactionSpecials]. */
         const val SPECIAL_MULTIPLIER = 1.5
 
         /**
@@ -234,16 +250,17 @@ class Battle(
     fun attackDamage(): Int = ratPower
 
     /**
-     * The rat's own Special, carrying the same [BossMoves.BONUS_MULTIPLIER]
-     * bonus a boss's move does when the matchup runs the other way - a rat
-     * whose faction is this boss's weakness (see [BossMoves.weakFactionFor])
-     * hits harder on its Special, the one hit the boss's own bonus is scoped
-     * to as well. Scoped to Special rather than every plain Attack for the
-     * same reason: a bounded, periodic bonus rather than a flat rescale of
-     * the whole fight.
+     * The rat's own Special, at whatever multiplier [FactionSpecials] gives
+     * its faction, carrying the same [BossMoves.BONUS_MULTIPLIER] bonus a
+     * boss's move does when the matchup runs the other way - a rat whose
+     * faction is this boss's weakness (see [BossMoves.weakFactionFor]) hits
+     * harder still on its Special, the one hit the boss's own bonus is
+     * scoped to as well. Scoped to Special rather than every plain Attack for
+     * the same reason: a bounded, periodic bonus rather than a flat rescale
+     * of the whole fight.
      */
     fun specialDamage(): Int {
-        val base = (ratPower * SPECIAL_MULTIPLIER).roundToInt()
+        val base = (ratPower * FactionSpecials.multiplierFor(ratFaction)).roundToInt()
         return if (ratSpecialBonusApplies()) (base * BossMoves.BONUS_MULTIPLIER).roundToInt() else base
     }
 
@@ -367,13 +384,60 @@ class Battle(
         }
         botHp = max(0, botHp - dealt)
 
-        // Corrosive Charge's passive half: attacking while any stack is still
-        // ticking piles on a lighter one of its own - see
-        // CORROSIVE_ATTACK_DOT_FRACTION. Checked against the stacks as they
-        // stood before this round's own tick below, so a stack about to expire
-        // this same round still counts as "active" for the purpose of this
-        // Attack triggering another.
-        if (action == BattleAction.ATTACK && botDots.isNotEmpty() && botHp > 0) {
+        // Faction Specials' own secondary effects - see FactionSpecials. Only
+        // ever rolled on the round the rat actually used its Special; a
+        // requested SPECIAL that fell back to ATTACK above never reaches
+        // here. Mutually exclusive by construction - a rat has exactly one
+        // faction - so a plain `when` with no else needs nothing more: a
+        // faction that does not match, or a chance that does not land, just
+        // falls through to no effect at all.
+        var specialLifesteal = 0
+        var specialAppliedDot = false
+        var specialArmedBlock = false
+        var specialRefundedCooldown = false
+        if (action == BattleAction.SPECIAL) {
+            when {
+                FactionSpecials.isSmuggler(ratFaction) -> {
+                    val healedTo = min(ratMaxHp, ratHp + (ratMaxHp * FactionSpecials.SMUGGLER_LIFESTEAL_FRACTION).roundToInt())
+                    specialLifesteal = healedTo - ratHp
+                    ratHp = healedTo
+                }
+
+                // A dead bot needs no DOT, the same guard Corrosive Charge's
+                // own attack-trigger already uses below.
+                FactionSpecials.isFoundryBorn(ratFaction) && botHp > 0 -> {
+                    botDots = botDots + DotEffect(
+                        roundsRemaining = FactionSpecials.FOUNDRY_BORN_DOT_ROUNDS,
+                        perRound = max(1, (ratPower * FactionSpecials.FOUNDRY_BORN_DOT_FRACTION).roundToInt()),
+                        fromCorrosiveCharge = false
+                    )
+                    specialAppliedDot = true
+                }
+
+                FactionSpecials.isTinkerer(ratFaction) &&
+                    Math.random() < FactionSpecials.TINKERER_BLOCK_CHANCE -> {
+                    bubbleActive = true
+                    specialArmedBlock = true
+                }
+
+                FactionSpecials.isScavenger(ratFaction) &&
+                    Math.random() < FactionSpecials.SCAVENGER_REFUND_CHANCE -> {
+                    lastSpecialRound -= 1
+                    specialRefundedCooldown = true
+                }
+            }
+        }
+
+        // Corrosive Charge's passive half: attacking while any of *its own*
+        // stacks is still ticking piles on a lighter one of its own - see
+        // CORROSIVE_ATTACK_DOT_FRACTION. Scoped to fromCorrosiveCharge stacks
+        // specifically, or a Foundry-born's own DOT (see FactionSpecials,
+        // added to this same list) would silently also trigger this - free
+        // Corrosive stacking nobody bought a charge for. Checked against the
+        // stacks as they stood before this round's own tick below, so a
+        // stack about to expire this same round still counts as "active" for
+        // the purpose of this Attack triggering another.
+        if (action == BattleAction.ATTACK && botDots.any { it.fromCorrosiveCharge } && botHp > 0) {
             botDots = botDots + DotEffect(
                 roundsRemaining = CORROSIVE_DOT_ROUNDS,
                 perRound = max(1, (ratPower * CORROSIVE_ATTACK_DOT_FRACTION).roundToInt())
@@ -487,7 +551,11 @@ class Battle(
             bossMoveBonusApplied = botBonusHit,
             ratWeaknessBonusApplied = ratBonusHit,
             itemUsed = if (action == BattleAction.USE_ITEM) item else null,
-            enemyDotDamage = enemyDotTick
+            enemyDotDamage = enemyDotTick,
+            specialLifesteal = specialLifesteal,
+            specialAppliedDot = specialAppliedDot,
+            specialArmedBlock = specialArmedBlock,
+            specialRefundedCooldown = specialRefundedCooldown
         ).also { log += it }
     }
 

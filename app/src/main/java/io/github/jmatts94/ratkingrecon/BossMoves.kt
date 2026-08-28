@@ -107,4 +107,25 @@ object BossMoves {
 
     /** The faction a boss takes bonus damage from, or null for none (Rustbringer). */
     fun weakFactionFor(bossId: String): String? = WEAK_TO[bossId]
+
+    // ---- the reverse lookups, for a per-faction summary --------------------
+
+    /**
+     * The boss whose own Special deals bonus damage to [faction], or null -
+     * for [Roster.FOUNDRY_BORN], which no named move ever targets, and for
+     * an unrecognised faction. Read straight off [SINGLE], the same map
+     * [forBoss] itself resolves against, so a faction summary built from
+     * this can never drift from what a fight actually does.
+     */
+    fun bossThatTargets(faction: String): String? =
+        SINGLE.entries.firstOrNull { it.value.targetFaction.equals(faction, ignoreCase = true) }?.key
+
+    /**
+     * The boss [faction] itself deals bonus Special damage against, or null -
+     * for Foundry-born, which sits outside [FACTION_CYCLE] entirely, and for
+     * an unrecognised faction. Read straight off [WEAK_TO], the same map
+     * [weakFactionFor] itself resolves against.
+     */
+    fun bossWeakTo(faction: String): String? =
+        WEAK_TO.entries.firstOrNull { it.value.equals(faction, ignoreCase = true) }?.key
 }

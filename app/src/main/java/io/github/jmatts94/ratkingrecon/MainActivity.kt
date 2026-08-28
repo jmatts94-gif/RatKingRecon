@@ -351,6 +351,13 @@ class MainActivity : AppCompatActivity() {
             R.string.tooltip_lifetime_title,
             R.string.tooltip_lifetime_body
         )
+        // Same pattern as the header pill above it - a plain long-press
+        // explainer, no tap of its own to step on.
+        Tooltip.attachTo(
+            scrapText,
+            R.string.tooltip_scrap_title,
+            R.string.tooltip_scrap_body
+        )
         // Steps are the one tile with no tap of its own - the explainer is all
         // a press on it does, and setOnLongClickListener makes it long-clickable
         // by itself, which is why it carries no android:clickable in the layout
