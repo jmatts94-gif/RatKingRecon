@@ -23,9 +23,6 @@ interface RatDao {
     @Query("SELECT * FROM rats ORDER BY power DESC, id ASC")
     fun byPowerDesc(): List<RatEntity>
 
-    @Query("SELECT * FROM rats WHERE shiny = 1 ORDER BY caughtAt ASC, id ASC")
-    fun shinyOnly(): List<RatEntity>
-
     @Query("SELECT * FROM rats WHERE id = :id")
     fun byId(id: Long): RatEntity?
 
@@ -60,10 +57,6 @@ interface RatDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM rats WHERE shiny = 1)")
     fun ownsShiny(): Boolean
-
-    /** The weakest [limit] rats, which the Fusion Pot consumes. */
-    @Query("SELECT * FROM rats ORDER BY (power + toughness) ASC, id ASC LIMIT :limit")
-    fun weakest(limit: Int): List<RatEntity>
 
     /** The best rat that is not knocked out, used to pick a fighter. */
     @Query("""
@@ -112,11 +105,14 @@ interface RatDao {
      * Fuses two rats into one, atomically.
      *
      * A transaction so a crash mid-splice cannot eat the parents without
-     * producing the mutant.
+     * producing the mutant. Returns the mutant's real row id - [mutant] itself
+     * still carries the placeholder 0 [RatEntity.id] is given before an
+     * insert assigns one, and the caller needs the real id to show the result
+     * card for this exact rat.
      */
     @Transaction
-    fun splice(parents: List<RatEntity>, mutant: RatEntity) {
+    fun splice(parents: List<RatEntity>, mutant: RatEntity): Long {
         delete(parents)
-        insert(mutant)
+        return insert(mutant)
     }
 }

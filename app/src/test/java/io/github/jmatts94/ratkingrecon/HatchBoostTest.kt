@@ -182,7 +182,6 @@ internal class FakeRatDao : RatDao {
 
     override fun all(): List<RatEntity> = rows.toList()
     override fun byPowerDesc(): List<RatEntity> = rows.sortedByDescending { it.power }
-    override fun shinyOnly(): List<RatEntity> = rows.filter { it.shiny }
     override fun byId(id: Long): RatEntity? = rows.firstOrNull { it.id == id }
     override fun count(): Int = rows.size
     override fun distinctSpeciesFound(rosterKeys: List<String>): Int =
@@ -195,7 +194,6 @@ internal class FakeRatDao : RatDao {
     override fun ownsShiny(): Boolean = rows.any { it.shiny }
     override fun ownsShinyExcluding(excludedId: Long): Boolean =
         rows.any { it.shiny && it.id != excludedId }
-    override fun weakest(limit: Int): List<RatEntity> = rows.sortedBy { it.score }.take(limit)
     override fun strongestAvailable(now: Long): RatEntity? = null
 
     override fun recordWin(id: Long) = replace(id) { it.copy(wins = it.wins + 1) }

@@ -139,6 +139,20 @@
                 android:text="0" />
         </LinearLayout>
 
+        <!--
+          The faction effects a splice's parents rolled, if any - see
+          EnlargedRatDialog. Empty and gone for every ordinary rat; populated
+          and shown only for the one-time reveal right after a splice, since
+          nothing about which effects fired is saved on the rat itself.
+        -->
+        <LinearLayout
+            android:id="@+id/enlargedEffectsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/battleRatButton"
             android:layout_width="match_parent"

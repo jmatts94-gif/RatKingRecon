@@ -395,7 +395,6 @@ private class StubDao(
 
     override fun all(): List<RatEntity> = rats.toList()
     override fun byPowerDesc(): List<RatEntity> = rats.sortedByDescending { it.power }
-    override fun shinyOnly(): List<RatEntity> = rats.filter { it.shiny }
     override fun byId(id: Long): RatEntity? = rats.firstOrNull { it.id == id }
     override fun count(): Int = rats.size
 
@@ -409,8 +408,6 @@ private class StubDao(
     override fun ownsShiny(): Boolean = rats.any { it.shiny }
     override fun ownsShinyExcluding(excludedId: Long): Boolean =
         rats.any { it.shiny && it.id != excludedId }
-    override fun weakest(limit: Int): List<RatEntity> = rats.sortedBy { it.score }.take(limit)
-
     override fun strongestAvailable(now: Long): RatEntity? =
         if (allRecovering) null
         else rats.filter { !it.isRecovering(now) }.maxByOrNull { it.score }

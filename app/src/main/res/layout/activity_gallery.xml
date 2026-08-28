@@ -91,6 +91,28 @@
                 app:elevation="4dp"
                 android:layout_marginEnd="8dp" />
 
+            <!--
+              Second in the row rather than last, on purpose - the row scrolls
+              past the edge of the screen (see the comment on btnRarity below),
+              and a sort button is a familiar enough shape that a player will
+              still hunt for the one they want off the edge. A screen full of
+              faction lore is not, so it sits where it is seen without having
+              to know to look for it. Not a fifth sort itself, which is why it
+              is tinted amber rather than the plain card_white the four share.
+            -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFactionCodex"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_faction_codex"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@color/amber"
+                app:cornerRadius="16dp"
+                app:elevation="4dp"
+                android:layout_marginEnd="8dp" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPower"
                 android:layout_width="wrap_content"
@@ -107,10 +129,10 @@
                 android:layout_marginEnd="8dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnShiny"
+                android:id="@+id/btnFaction"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/btn_shiny"
+                android:text="@string/btn_faction"
                 android:textAllCaps="false"
                 android:textSize="13sp"
                 android:textColor="@color/text_primary"
@@ -122,10 +144,11 @@
                 android:layout_marginEnd="8dp" />
 
             <!--
-              A fourth filter fits the row without crowding it - this row was
+              A fourth sort fits the row without crowding it - this row was
               already a HorizontalScrollView, anticipating exactly this, so it
               scrolls rather than wraps or clips if a phone is narrow enough
-              that four buttons run past the edge.
+              that the row runs past the edge. Last now that the Faction Codex
+              button sits earlier - see the comment on it above.
             -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRarity"
@@ -138,26 +161,6 @@
                 app:backgroundTint="@color/card_white"
                 app:strokeColor="@color/card_border"
                 app:strokeWidth="1dp"
-                app:cornerRadius="16dp"
-                app:elevation="4dp"
-                android:layout_marginEnd="8dp" />
-
-            <!--
-              Not a fifth sort - it leaves the grid entirely, which is why it
-              is tinted amber rather than the plain card_white the four sorts
-              share. Same scrollable row regardless, since a player reaching
-              for "what does this faction actually do" is reaching from right
-              here, already thinking about faction.
-            -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnFactionCodex"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_faction_codex"
-                android:textAllCaps="false"
-                android:textSize="13sp"
-                android:textColor="@color/text_primary"
-                app:backgroundTint="@color/amber"
                 app:cornerRadius="16dp"
                 app:elevation="4dp" />
         </LinearLayout>

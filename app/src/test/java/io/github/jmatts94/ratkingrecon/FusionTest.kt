@@ -135,4 +135,35 @@ class FusionTest {
             assertTrue(Fusion.roll().artKey in known)
         }
     }
+
+    // --- the Tinkerer boost -----------------------------------------------
+
+    @Test
+    fun `a boosted roll stays inside the roster too`() {
+        val known = Roster.all.map { it.artKey }.toSet()
+        repeat(5_000) {
+            assertTrue(Fusion.roll(boosted = true).artKey in known)
+        }
+    }
+
+    @Test
+    fun `a boosted roll lands legendary or rare noticeably more often`() {
+        // Boosted keeps the lower of two d100s, and a lower roll is always a
+        // tier at least as good (see Fusion.roll's own doc comment) - so this
+        // should never do worse than a plain roll, and should do better
+        // often, since both tiers sit at the low end of the d100.
+        val betterTier = Roster.legendary.map { it.artKey }.toSet() + Roster.rare.map { it.artKey }
+
+        var plainHits = 0
+        var boostedHits = 0
+        repeat(20_000) {
+            if (Fusion.roll().artKey in betterTier) plainHits++
+            if (Fusion.roll(boosted = true).artKey in betterTier) boostedHits++
+        }
+
+        assertTrue(
+            "boosted should land the top two tiers more often ($boostedHits vs $plainHits of 20000)",
+            boostedHits > plainHits
+        )
+    }
 }

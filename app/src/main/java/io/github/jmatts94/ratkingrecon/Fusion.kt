@@ -40,5 +40,19 @@ object Fusion {
         return tier.randomOrNull() ?: Roster.all.random()
     }
 
-    fun roll(): Rat = speciesFor((1..100).random())
+    /**
+     * Rolls a splice's species, [boosted] by a Tinkerer's own effect roll -
+     * see [SpliceEffects].
+     *
+     * Rolls the d100 twice and keeps the lower, rather than reworking the
+     * tier thresholds for a second code path: a lower roll is always a tier
+     * at least as good, so a roll that already landed Legendary on its own
+     * cannot be improved on either way - the boost only ever helps, never
+     * hurts, without needing to special-case that outcome.
+     */
+    fun roll(boosted: Boolean = false): Rat {
+        val primary = (1..100).random()
+        val roll = if (boosted) minOf(primary, (1..100).random()) else primary
+        return speciesFor(roll)
+    }
 }

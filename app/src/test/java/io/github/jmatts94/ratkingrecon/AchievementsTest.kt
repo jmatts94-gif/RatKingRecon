@@ -372,7 +372,6 @@ private class AchStubDao : RatDao {
     override fun insertAll(rats: List<RatEntity>) { rats.forEach { insert(it) } }
     override fun all(): List<RatEntity> = rats.toList()
     override fun byPowerDesc(): List<RatEntity> = rats
-    override fun shinyOnly(): List<RatEntity> = rats.filter { it.shiny }
     override fun byId(id: Long): RatEntity? = rats.firstOrNull { it.id == id }
     override fun count(): Int = rats.size
     override fun distinctSpeciesFound(rosterKeys: List<String>): Int = 0
@@ -383,7 +382,6 @@ private class AchStubDao : RatDao {
     override fun ownsShiny(): Boolean = false
     override fun ownsShinyExcluding(excludedId: Long): Boolean =
         false
-    override fun weakest(limit: Int): List<RatEntity> = emptyList()
     override fun strongestAvailable(now: Long): RatEntity? = null
     override fun recordWin(id: Long) = Unit
     override fun recordLoss(id: Long, until: Long) = Unit

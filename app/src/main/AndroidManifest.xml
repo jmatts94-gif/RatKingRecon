@@ -35,6 +35,9 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
+            android:name=".SplicingActivity"
+            android:exported="false" />
+        <activity
             android:name=".ArenaLandingActivity"
             android:exported="false"
             android:theme="@style/Theme.RatKingRecon.Arena" />

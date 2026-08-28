@@ -4,7 +4,7 @@
     <!-- Binder sorting -->
     <string name="btn_all">All</string>
     <string name="btn_power">Sort Power</string>
-    <string name="btn_shiny">Shiny Only</string>
+    <string name="btn_faction">Sort Faction</string>
     <string name="btn_rarity">Sort Rarity</string>
     <string name="btn_faction_codex">Faction Codex</string>
 
@@ -15,7 +15,7 @@
     <!-- unique species found, total species in the roster -->
     <string name="collection_progress">Collection: %1$d / %2$d Rats Found</string>
     <string name="btn_back_to_workshop">Back to the Workshop</string>
-    <string name="fusion_pot_text">The Fusion Pot: Fuse 2 Weakest (Cost: 5 Scrap)</string>
+    <string name="fusion_pot_text">The Fusion Pot: Splice Two Rats (Cost: 25 Scrap)</string>
     <!-- species name, read from artKey rather than the rat's own name field -->
     <string name="enlarged_rat_species">Species: %1$s</string>
     <!-- faction, read from artKey the same way species is - also what a Scrap
@@ -245,9 +245,29 @@ RARE DROP: %2$s</string>
     <string name="toast_rat_already_out">You already have a rat in the Scrapyard!</string>
     <!-- rat name -->
     <string name="toast_rat_deployed">%1$s deployed! Check the Home Screen later.</string>
-    <!-- The 5 matches the Fusion Pot's Scrap cost in GalleryActivity. -->
-    <string name="toast_splice_requirements">Need 5 Scrap and at least 2 rats!</string>
-    <string name="toast_fusion_complete">Fusion Complete! Mutant Created.</string>
+    <!-- The 25 matches the Fusion Pot's Scrap cost in SplicingActivity. -->
+    <string name="toast_splice_requirements">Need 25 Scrap and at least 2 eligible rats!</string>
+    <!-- The Splicing screen, reached from the Fusion Pot button -->
+    <string name="splice_picker_title">Choose Two Rats to Splice</string>
+    <string name="splice_picker_hint">Their fusion is always a surprise.</string>
+    <string name="splice_pick_two_rats">Select two eligible rats to continue.</string>
+    <string name="toast_splice_max_selected">Deselect one first — only two rats at a time.</string>
+    <string name="btn_splice_confirm">Splice (25 Scrap)</string>
+    <!--
+      One line per triggered parent-faction effect, shown on the result card
+      below Power/Toughness - see EnlargedRatDialog and SplicingActivity.splice.
+      The "x2" variants are used instead of a separate multiplier suffix when
+      a same-faction pair rolls the same effect twice; the numbers passed in
+      are already the stacked totals.
+    -->
+    <string name="splice_effect_smuggler">💰 Smuggler\'s luck! +%1$d Power / +%2$d Toughness</string>
+    <string name="splice_effect_smuggler_x2">💰 Smuggler\'s luck ×2! +%1$d Power / +%2$d Toughness</string>
+    <string name="splice_effect_brawler">⚔️ Brawler surge! +%1$d Power / -%2$d Toughness</string>
+    <string name="splice_effect_brawler_x2">⚔️ Brawler surge ×2! +%1$d Power / -%2$d Toughness</string>
+    <string name="splice_effect_foundry_born">🛡️ Foundry temper! +%1$d Toughness / -%2$d Power</string>
+    <string name="splice_effect_foundry_born_x2">🛡️ Foundry temper ×2! +%1$d Toughness / -%2$d Power</string>
+    <string name="splice_effect_tinkerer">⚙️ Tinkerer\'s touch! Rarity boosted</string>
+    <string name="splice_effect_scavenger">♻️ Scavenger instinct! %1$d Scrap refunded</string>
     <!-- rat name -->
     <string name="toast_hatch_joined">%1$s hatched and joined the Ledger!</string>
     <string name="toast_game_reset">Game Reset</string>
@@ -678,8 +698,6 @@ RARE DROP: %2$s</string>
     <!-- Empty states, for a Ledger and a Trader that have not started yet -->
     <string name="ledger_empty_title">No rats yet — go for a walk!</string>
     <string name="ledger_empty_body">Every step fills the egg on the workshop bench. The first one to hatch is yours.</string>
-    <string name="ledger_empty_shiny_title">Nothing gleaming in here yet.</string>
-    <string name="ledger_empty_shiny_body">About one rat in ten hatches shiny. Keep walking.</string>
     <string name="trader_empty_title">The bench is bare.</string>
     <string name="trader_empty_body">Relics turn up when a Ledger Task is claimed — the longer the job, the better the odds.</string>
 

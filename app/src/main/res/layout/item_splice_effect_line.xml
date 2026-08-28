@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One fired-effect line on the post-splice result card - see EnlargedRatDialog. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="4dp"
+    android:textColor="@color/text_primary"
+    android:textSize="14sp"
+    tools:text="⚔️ Brawler surge! +2 Power / -1 Toughness" />
