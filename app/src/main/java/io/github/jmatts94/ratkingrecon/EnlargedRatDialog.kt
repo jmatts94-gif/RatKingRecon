@@ -76,14 +76,19 @@ object EnlargedRatDialog {
         } ?: factionLine
 
         // The star is part of the name text now, not a compound drawable -
-        // Battle Rat stays a drawable at the far end, unaffected.
+        // Battle Rat stays a drawable at the far end, unaffected. The
+        // faction glyph takes the opposite, otherwise-empty drawableStart
+        // slot, same as the grid card - see RatCardAdapter.
         val onDuty = BattleRat.isBattleRat(prefs, pet.id)
         nameText.text = if (pet.shiny) activity.getString(R.string.card_name_shiny, pet.name) else pet.name
         nameText.setTextColor(
             ContextCompat.getColor(activity, if (pet.shiny) R.color.shiny_gold else R.color.text_primary)
         )
         nameText.setCompoundDrawablesRelative(
-            null, null, if (onDuty) CardIcons.battle(activity, 22) else null, null
+            CardIcons.faction(activity, 24, pet.faction),
+            null,
+            if (onDuty) CardIcons.battle(activity, 22) else null,
+            null
         )
         nameText.compoundDrawablePadding = (6 * activity.resources.displayMetrics.density).toInt()
 

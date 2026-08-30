@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Faction glyph: Scavengers - a magnifying glass, for picking through the
+  wreckage. Hand-authored flat silhouette (not a Material Symbols
+  conversion) - viewBox kept at 24x24 so the shape stays easy to hand-edit.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/text_primary">
+    <path
+        android:fillColor="@color/text_primary"
+        android:fillType="evenOdd"
+        android:pathData="M10,3.8 A6.2,6.2 0,0,1 10,16.2 A6.2,6.2 0,0,1 10,3.8 Z M10,6.4 A3.6,3.6 0,0,1 10,13.6 A3.6,3.6 0,0,1 10,6.4 Z M13.587,15.213 L19.187,20.813 L20.813,19.187 L15.213,13.587 Z" />
+</vector>

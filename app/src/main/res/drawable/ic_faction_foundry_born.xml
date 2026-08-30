@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Faction glyph: Foundry-born - a flame, for rats forged rather than born.
+  Hand-authored flat silhouette (not a Material Symbols conversion) -
+  viewBox kept at 24x24 so the shape stays easy to hand-edit.
+
+  Redrawn wider and rounder than the first pass, which was too thin and
+  pointed to read as fire at 10-20dp - it came across as an unreadable
+  squiggle. This one fills most of the viewBox with a bold rounded-diamond
+  silhouette (wide "belly", tapered top, rounded bottom) that still reads
+  as a flame shape once it's small.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/text_primary">
+    <path
+        android:fillColor="@color/text_primary"
+        android:pathData="M12,2 Q18,7 17,13 Q16.5,17 12,21 Q7.5,17 7,13 Q6,7 12,2 Z" />
+</vector>

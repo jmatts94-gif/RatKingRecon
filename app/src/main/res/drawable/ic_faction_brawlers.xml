@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Faction glyph: Brawlers - a dumbbell. Hand-authored flat silhouette (not a
+  Material Symbols conversion) - viewBox kept at 24x24 so the shape stays
+  easy to hand-edit.
+
+  Replaces a fist-on-a-wrist first pass that read as a keyhole at small
+  size - a circle sitting on a trapezoid has no "fist" cues left once the
+  knuckle detail is gone. Two blocks and a bar keeps a silhouette that is
+  unambiguous even shrunk down.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/text_primary">
+    <path
+        android:fillColor="@color/text_primary"
+        android:pathData="M2,7 L6,7 L6,17 L2,17 Z M18,7 L22,7 L22,17 L18,17 Z M6,10.5 L18,10.5 L18,13.5 L6,13.5 Z" />
+</vector>

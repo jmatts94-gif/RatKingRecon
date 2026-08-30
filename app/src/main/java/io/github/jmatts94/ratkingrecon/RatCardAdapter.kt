@@ -28,6 +28,24 @@ object CardIcons {
     fun battle(context: Context, sizeDp: Int): Drawable? =
         sized(context, R.drawable.ic_power, sizeDp)
 
+    /**
+     * The faction glyph for [faction], or null for a rat whose species
+     * didn't resolve to one - see [RatEntity.faction]. Null omits the icon
+     * entirely rather than falling back to a placeholder, the same way
+     * [battle] omits itself for a rat that isn't on duty.
+     */
+    fun faction(context: Context, sizeDp: Int, faction: String?): Drawable? {
+        val resId = when (faction) {
+            Roster.SMUGGLERS -> R.drawable.ic_faction_smugglers
+            Roster.SCAVENGERS -> R.drawable.ic_faction_scavengers
+            Roster.TINKERERS -> R.drawable.ic_faction_tinkerers
+            Roster.BRAWLERS -> R.drawable.ic_faction_brawlers
+            Roster.FOUNDRY_BORN -> R.drawable.ic_faction_foundry_born
+            else -> return null
+        }
+        return sized(context, resId, sizeDp)
+    }
+
     private fun sized(context: Context, resId: Int, sizeDp: Int): Drawable? {
         val icon = ContextCompat.getDrawable(context, resId) ?: return null
         val size = (sizeDp * context.resources.displayMetrics.density).toInt()
@@ -139,10 +157,11 @@ class RatCardAdapter(
         holder.power.text = pet.effectivePower.toString()
         holder.toughness.text = pet.effectiveToughness.toString()
 
-        // The star is now part of the name text itself rather than a
-        // compound drawable, so it reads left-to-right as "Name ☆" - Battle
-        // Rat stays a drawable at the far end, the one marker that was never
-        // about the name.
+        // The star is part of the name text itself rather than a compound
+        // drawable, so it reads left-to-right as "Name ☆" - Battle Rat stays
+        // a drawable at the far end, the one marker that was never about the
+        // name. The faction glyph takes the opposite end (drawableStart),
+        // which was empty until now, so it never competes with either.
         holder.name.text = if (pet.shiny) {
             context.getString(R.string.card_name_shiny, pet.name)
         } else {
@@ -180,7 +199,10 @@ class RatCardAdapter(
 
         val onDuty = BattleRat.isBattleRat(prefs, pet.id)
         holder.name.setCompoundDrawablesRelative(
-            null, null, if (onDuty) CardIcons.battle(context, 14) else null, null
+            CardIcons.faction(context, 13, pet.faction),
+            null,
+            if (onDuty) CardIcons.battle(context, 14) else null,
+            null
         )
         holder.name.compoundDrawablePadding = (3 * density).toInt()
 
