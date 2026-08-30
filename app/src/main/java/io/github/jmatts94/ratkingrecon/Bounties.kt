@@ -36,9 +36,13 @@ data class BountyTier(
 /**
  * The contract pool.
  *
- * Rewards are deliberately small relative to the Scrap sinks they feed - the
- * Fusion Pot costs 5 and the Masterwork Hatchery 800 - so a single long contract
- * does not immediately pay for everything.
+ * Reward-per-step rises with tier on purpose, so committing to one long
+ * contract beats grinding the same distance out of repeated short ones -
+ * SHORT alone paid better per step than MEDIUM or LONG did, which made
+ * spamming the cheapest, fastest contract the strictly optimal play. LONG's
+ * range floor (300) still tops out below SHORT's ceiling run twenty times
+ * over (20 * 15 = 300), so the two are only ever a wash in that single most
+ * extreme case - LONG wins on any real roll, not just on average.
  */
 object Bounties {
 
@@ -58,7 +62,7 @@ object Bounties {
         ),
         steps = 250f,
         minutes = 10,
-        rewards = 25..40
+        rewards = 65..85
     )
 
     val LONG = BountyTier(
@@ -70,6 +74,6 @@ object Bounties {
         ),
         steps = 1000f,
         minutes = 30,
-        rewards = 70..100
+        rewards = 300..390
     )
 }
