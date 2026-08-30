@@ -84,6 +84,7 @@ class TasksActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tasks)
+        EdgeToEdge.apply(this)
 
         prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
 

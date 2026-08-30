@@ -46,6 +46,7 @@ class ShopActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_shop)
+        EdgeToEdge.apply(this)
 
         // Same store the rest of the app writes to; a purchase is useless if the
         // flag or charge it sets lands anywhere else.

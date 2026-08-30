@@ -234,6 +234,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        EdgeToEdge.apply(this)
 
         // 0. First launch: explain the game before the workshop appears. The
         //    flag lives in the save, so a reset brings the walkthrough back.

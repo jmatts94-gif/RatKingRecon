@@ -58,6 +58,7 @@ class BattleActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_battle)
+        EdgeToEdge.apply(this)
 
         botName = findViewById(R.id.botName)
         botStats = findViewById(R.id.botStats)

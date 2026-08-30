@@ -21,8 +21,7 @@
     android:orientation="vertical"
     android:background="@drawable/bg_app_gradient"
     android:clipChildren="false"
-    android:clipToPadding="false"
-    android:fitsSystemWindows="true">
+    android:clipToPadding="false">
 
     <!-- Purse. Prices are meaningless without it, so it stays on screen. -->
     <TextView

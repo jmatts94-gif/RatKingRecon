@@ -42,6 +42,7 @@ class RelicTraderActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_relic_trader)
+        EdgeToEdge.apply(this)
 
         prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
         totalText = findViewById(R.id.traderTotalText)

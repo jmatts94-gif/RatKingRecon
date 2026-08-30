@@ -62,6 +62,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        EdgeToEdge.apply(this)
 
         statusText = findViewById(R.id.saveStatusText)
 

@@ -22,6 +22,7 @@ class ArenaLandingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_arena_landing)
+        EdgeToEdge.apply(this)
 
         findViewById<MaterialButton>(R.id.arenaSelectChampionButton).setOnClickListener {
             startActivity(Intent(this, ArenaSelectActivity::class.java))

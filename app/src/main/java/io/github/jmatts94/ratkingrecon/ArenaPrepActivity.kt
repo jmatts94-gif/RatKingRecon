@@ -35,6 +35,7 @@ class ArenaPrepActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_arena_prep)
+        EdgeToEdge.apply(this)
 
         prefs = RatRepository.prefs(this)
         ratId = intent.getLongExtra(EXTRA_RAT_ID, -1L)

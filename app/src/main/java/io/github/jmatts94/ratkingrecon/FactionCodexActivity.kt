@@ -28,6 +28,7 @@ class FactionCodexActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_faction_codex)
+        EdgeToEdge.apply(this)
 
         findViewById<MaterialButton>(R.id.factionCodexBackButton).setOnClickListener { finish() }
 

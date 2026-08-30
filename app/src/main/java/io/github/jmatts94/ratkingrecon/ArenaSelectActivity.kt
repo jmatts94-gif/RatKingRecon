@@ -51,6 +51,7 @@ class ArenaSelectActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_arena_select)
+        EdgeToEdge.apply(this)
 
         adapter = RatCardAdapter(
             prefs = prefs,

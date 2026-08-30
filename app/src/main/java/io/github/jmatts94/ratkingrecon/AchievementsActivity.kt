@@ -60,6 +60,7 @@ class AchievementsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_achievements)
+        EdgeToEdge.apply(this)
 
         scrollView = findViewById(R.id.achievementsScroll)
         badgeList = findViewById(R.id.badgeList)

@@ -41,6 +41,7 @@ class SplicingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splicing)
+        EdgeToEdge.apply(this)
 
         prefs = RatRepository.prefs(this)
 
