@@ -100,7 +100,8 @@ class FactionCodexActivity : AppCompatActivity() {
             else -> getString(
                 R.string.codex_special_smuggler,
                 multiplier,
-                (FactionSpecials.SMUGGLER_LIFESTEAL_FRACTION * 100).roundToInt()
+                (FactionSpecials.SMUGGLER_WINDFALL_CHANCE * 100).roundToInt(),
+                (FactionSpecials.SMUGGLER_WINDFALL_BONUS * 100).roundToInt()
             )
         }
     }

@@ -392,7 +392,7 @@ RARE DROP: %2$s</string>
 
     <!-- Faction Specials' own secondary effects - see FactionSpecials. -->
     <!-- rat name, HP healed -->
-    <string name="battle_special_lifesteal">%1$s siphons %2$d HP back.</string>
+    <string name="battle_special_windfall">%1$s skims a windfall onto this fight\'s reward.</string>
     <string name="battle_buff_lifesteal">Rusted Fang siphons %2$d HP back for %1$s.</string>
     <!-- the bot's name -->
     <string name="battle_special_dot_applied">The blow leaves %1$s corroding.</string>
@@ -539,7 +539,7 @@ RARE DROP: %2$s</string>
     <string name="buff_steadfast_momentum_name">Steadfast Momentum</string>
     <string name="buff_steadfast_momentum_effect">+15% Scrap and EXP from walking</string>
     <string name="buff_rusted_fang_name">Rusted Fang</string>
-    <string name="buff_rusted_fang_effect">5% of damage dealt healed back in every fight</string>
+    <string name="buff_rusted_fang_effect">10% of damage dealt healed back in every fight</string>
     <string name="buff_iron_boots_name">Iron Boots</string>
     <string name="buff_iron_boots_effect">10% less damage taken in the Battle Arena</string>
     <!-- earned detail: what the buff does, prefixed with "Active" -->
@@ -803,8 +803,8 @@ RARE DROP: %2$s</string>
     <string name="codex_special_tinkerer">%1$s× Power, plus a %2$d%% chance to fully block the enemy\'s next hit.</string>
     <!-- multiplier, refund chance percent -->
     <string name="codex_special_scavenger">%1$s× Power, plus a %2$d%% chance its own cooldown lands a round short.</string>
-    <!-- multiplier, lifesteal percent of the rat's own max HP -->
-    <string name="codex_special_smuggler">%1$s× Power, plus %2$d%% of the rat\'s own max HP healed straight back.</string>
+    <!-- multiplier, windfall chance percent, windfall bonus percent -->
+    <string name="codex_special_smuggler">%1$s× Power, plus a %2$d%% chance to skim a %3$d%% windfall onto the fight\'s reward.</string>
 
     <string name="btn_back_to_ledger">Back to the Ledger</string>
 </resources>

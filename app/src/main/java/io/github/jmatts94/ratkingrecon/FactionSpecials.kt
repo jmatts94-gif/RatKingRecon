@@ -53,18 +53,28 @@ object FactionSpecials {
     const val SCAVENGER_REFUND_CHANCE = 0.40
 
     /**
-     * Smugglers: lifesteal off the rat's own max HP, not off the Special's
-     * damage.
+     * Smugglers: a chance for the Special to skim a windfall onto this
+     * fight's own Scrap reward - the same "extra Scrap" identity
+     * [TaskBonuses.SCRAP_MULTIPLIER] already gives Smugglers on a Ledger
+     * Task, carried into combat instead of lifesteal.
      *
-     * A share of damage dealt was the first cut of this, at 2-5%, but
-     * "damage dealt" is [Battle.SPECIAL_MULTIPLIER] times Power, and Power is
-     * a small number for most of the game - a percentage of it rounds to a
-     * 1-2 HP trickle that never reads as sustain at all. A share of the
-     * rat's own max HP scales with Toughness instead, which stays a real
-     * number even when Power does not, and reads as what lifesteal is
-     * supposed to feel like: a fight this rat can outlast, not just outhit.
+     * Lifesteal used to live here, but it was the only sustain any faction
+     * had, which made Smugglers close to mandatory for a fight with no
+     * margin for error (an Arena run's late fights, most of all) rather than
+     * one good option among five. [PermanentBuffs.RUSTED_FANG_LIFESTEAL_FRACTION]
+     * is where sustain lives now - earned once, available to every faction,
+     * not gated behind picking one of them.
+     *
+     * Rolled only once per fight - see the `windfallProcced` guard in
+     * [Battle.advance] - rather than every Special use like the other four
+     * factions' effects: a Special comes around every [Battle.SPECIAL_COOLDOWN]
+     * rounds, and an uncapped economy bonus would reward stalling a fight
+     * out for extra rolls instead of finishing it.
      */
-    const val SMUGGLER_LIFESTEAL_FRACTION = 0.05
+    const val SMUGGLER_WINDFALL_CHANCE = 0.35
+
+    /** What a successful windfall (see [SMUGGLER_WINDFALL_CHANCE]) adds to the fight's reward. */
+    const val SMUGGLER_WINDFALL_BONUS = 0.15
 
     private fun matches(faction: String?, target: String): Boolean =
         target.equals(faction, ignoreCase = true)

@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.content.Context
+import kotlin.math.roundToInt
 
 /**
  * Applies a finished battle to the save.
@@ -89,10 +90,20 @@ object EncounterResolver {
         var revivedByToken = false
         var badgeEarned = false
 
+        // A Smuggler's windfall (see FactionSpecials.SMUGGLER_WINDFALL_CHANCE)
+        // is rolled during the fight but only ever spent here, on the reward
+        // the fight was already going to pay - it has nothing to add to a
+        // loss, where there is no reward for it to add to.
+        val reward = if (won) {
+            (encounter.reward * (1.0 + battle.windfallBonusFraction)).roundToInt()
+        } else {
+            0
+        }
+
         if (won) {
             dao.recordWin(rat.id)
             prefs.edit()
-                .putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + encounter.reward)
+                .putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + reward)
                 .apply()
 
             // The badge is the first win only; the Scrap is paid every time, at
@@ -135,7 +146,7 @@ object EncounterResolver {
             won = won,
             ratName = rat.name,
             botName = encounter.botName,
-            reward = if (won) encounter.reward else 0,
+            reward = reward,
             ratHpLeft = battle.ratHp,
             recoveringUntil = recoveringUntil,
             revivedByToken = revivedByToken,

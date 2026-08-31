@@ -760,7 +760,7 @@ class BattleTest {
         val r = b.advance(BattleAction.SPECIAL)
 
         assertEquals(18, r.damageDealt)
-        assertEquals(0, r.specialLifesteal)
+        assertFalse(r.specialWindfall)
         assertFalse(r.specialAppliedDot)
         assertFalse(r.specialArmedBlock)
         assertFalse(r.specialRefundedCooldown)
@@ -772,7 +772,7 @@ class BattleTest {
         val r = b.advance(BattleAction.SPECIAL)
 
         assertEquals(15, r.damageDealt)
-        assertEquals(0, r.specialLifesteal)
+        assertFalse(r.specialWindfall)
         assertFalse(r.specialAppliedDot)
         assertFalse(r.specialArmedBlock)
         assertFalse(r.specialRefundedCooldown)
@@ -795,30 +795,46 @@ class BattleTest {
     }
 
     @Test
-    fun `smuggler special heals back a share of the rat's own max hp, not of the damage it deals`() {
-        val b = Battle(
-            "Rat", 1, 5000, "Bot", 1, 5000,
-            ratFaction = Roster.SMUGGLERS, startingRatHp = 4000
-        )
-        val r = b.advance(BattleAction.SPECIAL)
-
-        // Power 1 makes the Special's own damage trivial - the heal has to
-        // stay real anyway, because it is a share of max HP, not of dealt.
-        assertEquals(2, r.damageDealt)
-        assertEquals("5% of 5000 max HP", 250, r.specialLifesteal)
-        assertEquals("healed 250, then the bot's own reply (1) comes off", 4249, r.ratHp)
+    fun `smuggler special sometimes skims a windfall onto the fight's reward`() {
+        var procced = false
+        var missed = false
+        repeat(200) {
+            val b = Battle("Rat", 10, 5000, "Bot", 1, 5000, ratFaction = Roster.SMUGGLERS)
+            val r = b.advance(BattleAction.SPECIAL)
+            if (r.specialWindfall) {
+                procced = true
+                assertEquals(FactionSpecials.SMUGGLER_WINDFALL_BONUS, b.windfallBonusFraction, 0.0)
+            } else {
+                missed = true
+                assertEquals(0.0, b.windfallBonusFraction, 0.0)
+            }
+        }
+        assertTrue("expected at least one windfall over 200 trials", procced)
+        assertTrue("expected at least one miss over 200 trials", missed)
     }
 
     @Test
-    fun `smuggler lifesteal cannot heal past max hp`() {
-        val b = Battle(
-            "Rat", 100, 5000, "Bot", 1, 5000,
-            ratFaction = Roster.SMUGGLERS, startingRatHp = 4998
-        )
-        val r = b.advance(BattleAction.SPECIAL)
-
-        assertEquals("capped at max, not the full 250", 2, r.specialLifesteal)
-        assertEquals(4999, r.ratHp)
+    fun `smuggler windfall procs at most once per fight`() {
+        // A fresh Battle every trial, same as the other chance-based specials
+        // are checked, but here run out to several Special uses each so a
+        // fight that already procced gets more chances to prove it cannot
+        // proc twice.
+        repeat(50) {
+            val b = Battle("Rat", 10, 5000, "Bot", 1, 5000, ratFaction = Roster.SMUGGLERS)
+            var proccedOnce = false
+            repeat(12) { round ->
+                val r = b.advance(if (round % 3 == 0) BattleAction.SPECIAL else BattleAction.ATTACK)
+                if (r.specialWindfall) {
+                    assertFalse("a second proc in the same fight", proccedOnce)
+                    proccedOnce = true
+                }
+            }
+            assertEquals(
+                if (proccedOnce) FactionSpecials.SMUGGLER_WINDFALL_BONUS else 0.0,
+                b.windfallBonusFraction,
+                0.0
+            )
+        }
     }
 
     @Test

@@ -165,7 +165,7 @@ class PermanentBuffsTest {
         )
         b.advance(BattleAction.ATTACK).also {
             assertEquals(20, it.damageDealt)
-            assertEquals(1, it.buffLifesteal) // 5% of 20 = 1
+            assertEquals(2, it.buffLifesteal) // 10% of 20 = 2
         }
     }
 
@@ -183,9 +183,9 @@ class PermanentBuffsTest {
 
     @Test
     fun `rusted fang never heals past the rat's own max hp`() {
-        // 100 damage dealt would heal 5 (5%) - enough to overshoot max HP from
-        // a starting HP of 19 out of 20. The bot's own maxHp is 1, so it dies
-        // on this hit and never counter-attacks, isolating the heal.
+        // 100 damage dealt would heal 10 (10%) - enough to overshoot max HP
+        // from a starting HP of 19 out of 20. The bot's own maxHp is 1, so it
+        // dies on this hit and never counter-attacks, isolating the heal.
         val b = Battle(
             "Rat", 100, 20, "Rustbot", 1, 1,
             startingRatHp = 19,
@@ -193,7 +193,7 @@ class PermanentBuffsTest {
         )
         val r = b.advance(BattleAction.ATTACK)
         assertEquals(20, b.ratHp)
-        assertEquals("healed only the 1 point left before the cap, not the full 5%", 1, r.buffLifesteal)
+        assertEquals("healed only the 1 point left before the cap, not the full 10%", 1, r.buffLifesteal)
     }
 
     @Test
@@ -234,7 +234,7 @@ class PermanentBuffsTest {
             incomingDamageReduction = PermanentBuffs.IRON_BOOTS_DAMAGE_REDUCTION
         )
         val r = b.advance(BattleAction.ATTACK)
-        assertEquals(1, r.buffLifesteal) // 5% of 20 dealt
+        assertEquals(2, r.buffLifesteal) // 10% of 20 dealt
         assertEquals(90, r.damageTaken)  // 100 taken, 10% shaved off
     }
 }

@@ -90,8 +90,8 @@ data class RoundResult(
     val itemUsed: BattleItem? = null,
     /** Corrosive Charge damage the bot took this round, from every stack still active. */
     val enemyDotDamage: Int = 0,
-    /** HP a Smuggler's Special healed back this round - see [FactionSpecials.SMUGGLER_LIFESTEAL_FRACTION]. */
-    val specialLifesteal: Int = 0,
+    /** Whether a Smuggler's Special skimmed a windfall this round - see [FactionSpecials.SMUGGLER_WINDFALL_CHANCE]. */
+    val specialWindfall: Boolean = false,
     /** Whether a Foundry-born's Special armed a fresh DOT stack on the bot this round. */
     val specialAppliedDot: Boolean = false,
     /** Whether a Tinkerer's Special rolled its block chance and armed one - see [Battle.bubbleActive]. */
@@ -143,12 +143,9 @@ class Battle(
      * until earned. Account-wide once it is, so unlike [incomingDamageReduction]
      * this applies in every fight, not only an Arena one.
      *
-     * A separate mechanic from the Smuggler faction's own Special-only
-     * lifesteal below (see [FactionSpecials.SMUGGLER_LIFESTEAL_FRACTION]) -
-     * different field, different formula (a share of *damage dealt* here,
-     * against a share of *max HP* there, on Special rounds only) - so the two
-     * stack rather than collide for a Smuggler-faction rat that has also
-     * earned Rusted Fang.
+     * Sustain used to be a Smuggler-only Special effect; it lives here now,
+     * earned once and available to every faction - see [FactionSpecials]'s
+     * own doc comment on [FactionSpecials.SMUGGLER_WINDFALL_CHANCE] for why.
      */
     private val lifestealFraction: Double = 0.0,
     /**
@@ -251,6 +248,17 @@ class Battle(
     /** Rounds of Rusty Rake corrosion left, its own round included. 0 means none active. */
     private var dotRoundsRemaining = 0
     private var dotPerRound = 0
+
+    /** Guards [FactionSpecials.SMUGGLER_WINDFALL_CHANCE] to at most one proc per fight. */
+    private var windfallProcced = false
+
+    /**
+     * What a Smuggler's windfall (see [FactionSpecials.SMUGGLER_WINDFALL_CHANCE])
+     * adds to this fight's own reward - 0.0 until it procs, [FactionSpecials.SMUGGLER_WINDFALL_BONUS]
+     * from then on. Read once the fight ends - see [EncounterResolver.apply].
+     */
+    var windfallBonusFraction = 0.0
+        private set
 
     /** Every Corrosive Charge stack still ticking against the bot; see [DotEffect]. */
     private var botDots: List<DotEffect> = emptyList()
@@ -427,16 +435,17 @@ class Battle(
         // faction - so a plain `when` with no else needs nothing more: a
         // faction that does not match, or a chance that does not land, just
         // falls through to no effect at all.
-        var specialLifesteal = 0
+        var specialWindfall = false
         var specialAppliedDot = false
         var specialArmedBlock = false
         var specialRefundedCooldown = false
         if (action == BattleAction.SPECIAL) {
             when {
-                FactionSpecials.isSmuggler(ratFaction) -> {
-                    val healedTo = min(ratMaxHp, ratHp + (ratMaxHp * FactionSpecials.SMUGGLER_LIFESTEAL_FRACTION).roundToInt())
-                    specialLifesteal = healedTo - ratHp
-                    ratHp = healedTo
+                FactionSpecials.isSmuggler(ratFaction) && !windfallProcced &&
+                    Math.random() < FactionSpecials.SMUGGLER_WINDFALL_CHANCE -> {
+                    windfallProcced = true
+                    windfallBonusFraction = FactionSpecials.SMUGGLER_WINDFALL_BONUS
+                    specialWindfall = true
                 }
 
                 // A dead bot needs no DOT, the same guard Corrosive Charge's
@@ -595,7 +604,7 @@ class Battle(
             ratWeaknessBonusApplied = ratBonusHit,
             itemUsed = if (action == BattleAction.USE_ITEM) item else null,
             enemyDotDamage = enemyDotTick,
-            specialLifesteal = specialLifesteal,
+            specialWindfall = specialWindfall,
             specialAppliedDot = specialAppliedDot,
             specialArmedBlock = specialArmedBlock,
             specialRefundedCooldown = specialRefundedCooldown,

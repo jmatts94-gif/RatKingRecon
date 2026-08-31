@@ -383,8 +383,7 @@ class BattleActivity : AppCompatActivity() {
         // these is ever set on a single RoundResult, the same mutual
         // exclusion Battle.advance's own roll already guarantees.
         val factionSpecial = when {
-            r.specialLifesteal > 0 ->
-                "\n" + getString(R.string.battle_special_lifesteal, battle.ratName, r.specialLifesteal)
+            r.specialWindfall -> "\n" + getString(R.string.battle_special_windfall, battle.ratName)
             r.specialAppliedDot ->
                 "\n" + getString(R.string.battle_special_dot_applied, battle.botName)
             r.specialArmedBlock -> "\n" + getString(R.string.battle_special_block_armed)
@@ -392,8 +391,8 @@ class BattleActivity : AppCompatActivity() {
             else -> ""
         }
         // Its own line, not folded into factionSpecial above - Rusted Fang is
-        // account-wide and can land on the same round as a Smuggler's own
-        // Special lifesteal, so the two are never mutually exclusive.
+        // account-wide and can land on the same round as any faction's own
+        // Special effect, so the two are never mutually exclusive.
         val buffHeal = if (r.buffLifesteal > 0) {
             "\n" + getString(R.string.battle_buff_lifesteal, battle.ratName, r.buffLifesteal)
         } else {

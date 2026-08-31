@@ -58,8 +58,17 @@ object PermanentBuffs {
     /** Multiplies both the Contract Board's Scrap payout and steps' own EXP bank. */
     const val STEADFAST_MOMENTUM_MULTIPLIER = 1.15
 
-    /** Share of damage dealt healed back, on every hit that lands - see [Battle.advance]. */
-    const val RUSTED_FANG_LIFESTEAL_FRACTION = 0.05
+    /**
+     * Share of damage dealt healed back, on every hit that lands - see
+     * [Battle.advance].
+     *
+     * Doubled from the 5% this shipped with once the Smuggler faction's own
+     * Special-only lifesteal was retired (see [FactionSpecials]'s own doc
+     * comment on why) - this is the only source of combat sustain left in the
+     * game, so it needed to carry more of the load than it did when it was
+     * one of two.
+     */
+    const val RUSTED_FANG_LIFESTEAL_FRACTION = 0.10
 
     /** Share of incoming damage shaved off, Arena fights only - see [Battle.advance]. */
     const val IRON_BOOTS_DAMAGE_REDUCTION = 0.10
