@@ -47,6 +47,7 @@ class AchievementsActivity : AppCompatActivity() {
     private lateinit var stepsList: LinearLayout
     private lateinit var rosterList: LinearLayout
     private lateinit var hatchingList: LinearLayout
+    private lateinit var buffsList: LinearLayout
     private lateinit var summary: TextView
     private lateinit var stepsSubtitle: TextView
     private lateinit var rosterSubtitle: TextView
@@ -68,6 +69,7 @@ class AchievementsActivity : AppCompatActivity() {
         stepsList = findViewById(R.id.stepsList)
         rosterList = findViewById(R.id.rosterList)
         hatchingList = findViewById(R.id.hatchingList)
+        buffsList = findViewById(R.id.buffsList)
         summary = findViewById(R.id.achievementsSummary)
         stepsSubtitle = findViewById(R.id.stepsSubtitle)
         rosterSubtitle = findViewById(R.id.rosterSubtitle)
@@ -111,8 +113,9 @@ class AchievementsActivity : AppCompatActivity() {
 
         summary.text = getString(
             R.string.achievements_summary,
-            Bosses.defeatedCount(prefs) + Milestones.earnedCount(prefs) + ArenaRun.milestonesEarnedCount(prefs),
-            Bosses.all.size + Milestones.all.size + ArenaRun.MILESTONES.size
+            Bosses.defeatedCount(prefs) + Milestones.earnedCount(prefs) + ArenaRun.milestonesEarnedCount(prefs) +
+                PermanentBuffs.earnedCount(prefs),
+            Bosses.all.size + Milestones.all.size + ArenaRun.MILESTONES.size + PermanentBuffs.all.size
         )
 
         stepsSubtitle.text = getString(
@@ -132,6 +135,67 @@ class AchievementsActivity : AppCompatActivity() {
         renderMilestones(stepsList, Milestones.steps, prefs, progress)
         renderMilestones(rosterList, Milestones.roster, prefs, progress)
         renderMilestones(hatchingList, Milestones.hatching, prefs, progress)
+        renderBuffs(prefs)
+    }
+
+    /**
+     * The four permanent buffs - see [PermanentBuffs].
+     *
+     * Reuses [row] exactly as every other section does, but an earned row's
+     * detail line says what the buff now does rather than the plain "Earned."
+     * [Milestones.currentFor] gives every other section - these are always-on
+     * stat changes, worth the reminder every time this screen opens.
+     */
+    private fun renderBuffs(prefs: android.content.SharedPreferences) {
+        buffsList.removeAllViews()
+
+        val hatches = GameEngine.lifetimeHatchesOf(prefs)
+        val streak = Streak.count(prefs)
+        val steps = GameEngine.lifetimeStepsOf(prefs)
+
+        PermanentBuffs.all.forEach { buff ->
+            val earned = PermanentBuffs.isEarned(prefs, buff)
+
+            val detail: String
+            val percent: Int?
+            when {
+                earned -> {
+                    detail = getString(R.string.buff_active_detail, getString(buff.effectRes))
+                    percent = null
+                }
+                buff == PermanentBuffs.COLLECTORS_INSTINCT -> {
+                    val target = PermanentBuffs.COLLECTORS_INSTINCT_HATCH_TARGET
+                    detail = getString(R.string.milestone_progress, hatches.coerceAtMost(target), target)
+                    percent = ((hatches.toDouble() / target) * 100).toInt().coerceIn(0, 100)
+                }
+                buff == PermanentBuffs.STEADFAST_MOMENTUM -> {
+                    val target = PermanentBuffs.STEADFAST_MOMENTUM_STREAK_TARGET
+                    detail = getString(R.string.milestone_progress, streak.coerceAtMost(target), target)
+                    percent = ((streak.toDouble() / target) * 100).toInt().coerceIn(0, 100)
+                }
+                buff == PermanentBuffs.RUSTED_FANG -> {
+                    // Boolean, the same shape the Arena badges above already use.
+                    detail = getString(R.string.arena_badge_locked_detail, PermanentBuffs.RUSTED_FANG_ARENA_FIGHT)
+                    percent = null
+                }
+                else -> {
+                    val target = PermanentBuffs.IRON_BOOTS_STEP_TARGET
+                    detail = getString(R.string.milestone_progress, steps.coerceAtMost(target), target)
+                    percent = ((steps.toDouble() / target) * 100).toInt().coerceIn(0, 100)
+                }
+            }
+
+            buffsList.addView(
+                row(
+                    parent = buffsList,
+                    iconRes = buff.iconRes,
+                    name = if (earned) getString(buff.nameRes) else getString(R.string.badge_locked),
+                    detail = detail,
+                    unlocked = earned,
+                    progress = percent
+                )
+            )
+        }
     }
 
     private fun renderBadges(prefs: android.content.SharedPreferences) {

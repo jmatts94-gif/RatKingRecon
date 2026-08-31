@@ -149,7 +149,10 @@ class SplicingActivity : AppCompatActivity() {
                 SpliceEffects.rollFor(parents[1].faction)
             )
 
-            val species = Fusion.roll(boosted = SpliceEffects.Kind.TINKERER in triggered)
+            val species = Fusion.roll(
+                boosted = SpliceEffects.Kind.TINKERER in triggered,
+                bonusFraction = PermanentBuffs.spliceOddsBonusFor(prefs)
+            )
 
             val deltas = triggered.map { SpliceEffects.statDeltaFor(it) }
             val basePower = maxOf(parents[0].power, parents[1].power) + 1

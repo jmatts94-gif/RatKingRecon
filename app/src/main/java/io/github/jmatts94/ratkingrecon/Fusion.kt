@@ -30,11 +30,19 @@ object Fusion {
      * Falls back to the whole roster if a tier is somehow empty, which a roster
      * edit could cause. A splice that mints an odd species is a smaller failure
      * than one that crashes the Ledger after taking the player's Scrap.
+     *
+     * [bonusFraction] is Collector's Instinct's own flat bonus - see
+     * [PermanentBuffs.COLLECTORS_INSTINCT_ODDS_BONUS] - added as extra points
+     * onto the Rare cutoff rather than as a multiplier on either tier's own
+     * odds, so a fixed 10-point buff always means exactly ten points, whatever
+     * [LEGENDARY_ROLL]/[RARE_ROLL] happen to be tuned to. Legendary's own cut
+     * is left untouched; the widened band comes out of Common instead.
      */
-    fun speciesFor(roll: Int): Rat {
+    fun speciesFor(roll: Int, bonusFraction: Double = 0.0): Rat {
+        val rareCut = RARE_ROLL + bonusFraction * 100.0
         val tier = when {
             roll <= LEGENDARY_ROLL -> Roster.legendary
-            roll <= RARE_ROLL -> Roster.rare
+            roll <= rareCut -> Roster.rare
             else -> Roster.common
         }
         return tier.randomOrNull() ?: Roster.all.random()
@@ -42,7 +50,8 @@ object Fusion {
 
     /**
      * Rolls a splice's species, [boosted] by a Tinkerer's own effect roll -
-     * see [SpliceEffects].
+     * see [SpliceEffects] - and by [bonusFraction] if Collector's Instinct has
+     * been earned - see [speciesFor].
      *
      * Rolls the d100 twice and keeps the lower, rather than reworking the
      * tier thresholds for a second code path: a lower roll is always a tier
@@ -50,9 +59,9 @@ object Fusion {
      * cannot be improved on either way - the boost only ever helps, never
      * hurts, without needing to special-case that outcome.
      */
-    fun roll(boosted: Boolean = false): Rat {
+    fun roll(boosted: Boolean = false, bonusFraction: Double = 0.0): Rat {
         val primary = (1..100).random()
         val roll = if (boosted) minOf(primary, (1..100).random()) else primary
-        return speciesFor(roll)
+        return speciesFor(roll, bonusFraction)
     }
 }

@@ -269,6 +269,7 @@ class ShopActivity : AppCompatActivity() {
                 DailyQuest.record(prefs, QuestType.HATCH)?.let {
                     DailyAlerts.postQuestPaid(applicationContext, it)
                 }
+                GameEngine.recordHatch(prefs)
                 stored
             }
 

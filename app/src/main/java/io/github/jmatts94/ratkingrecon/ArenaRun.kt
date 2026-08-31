@@ -138,13 +138,26 @@ object ArenaRun {
         START_RATIO + (MAX_RATIO - START_RATIO) * (fight - 1).toDouble() / (TOTAL_FIGHTS - 1)
 
     /**
-     * Share of the rat's own max HP topped up after every third fight cleared
-     * (3, 6, 9, 12) - not a full heal, which would flatten the "no safety net"
-     * carried-HP design this run is built around, just enough to keep a long
-     * run from being pure attrition against a curve that only ever climbs.
-     * Never applies after fight 15 - the run is already over by then, settled
-     * through the `cleared` branch [recordWin] takes instead of this one.
+     * Share of the rat's own max HP topped up after every fight cleared -
+     * not a full heal, which would flatten the "no safety net" carried-HP
+     * design this run is built around, just enough that a run's losses come
+     * from being out-fought rather than from HP quietly compounding downward
+     * across several individually-winnable fights in a row with nothing
+     * between them to break the slide. Never applies after fight 15 - the
+     * run is already over by then, settled through the `cleared` branch
+     * [recordWin] takes instead of this one.
+     *
+     * Every fight now, not every second or third: even with the curve (see
+     * [ratioFor]) and the Arena's own high-stat bonus (see
+     * [arenaPowerBonusFor]) both accounted for, a fight that is individually
+     * winnable can still leave a rat too wounded to survive the next one
+     * un-recovered - and with [RELIEF_EVERY_N_FIGHTS] at 2 or 3, a bad run of
+     * back-to-back close fights had nothing between them to stop that from
+     * compounding all the way to zero. This is still a *partial* top-up, so
+     * a fight that goes badly enough still costs real ground - it just no
+     * longer stacks silently on top of the last one.
      */
+    private const val RELIEF_EVERY_N_FIGHTS = 1
     const val ARENA_RELIEF_FRACTION = 0.30
 
     /**
@@ -163,6 +176,37 @@ object ArenaRun {
             maxHp = max(1, (rat.maxHp * ratio).roundToInt())
         )
     }
+
+    private const val STAT_TIER_1 = 15
+    private const val BONUS_PER_POINT = 1
+
+    /**
+     * A combat edge for a champion whose own stats have grown past what
+     * [ratioFor] assumes, so real investment in a rat keeps pulling ahead of
+     * the curve rather than being scaled back down to parity with it as the
+     * run goes on - or, past a first flat +4/+8 tried here first, topping
+     * out no matter how far past 20 a rat was pushed. [rustbotFor] above is
+     * uncapped on both stats for the same reason (see its own doc comment);
+     * this answers in kind, uncapped too, rather than capping only the
+     * player's side of a curve that does not cap the other one.
+     *
+     * Safe as a flat amount specifically because of *when* it applies -
+     * [rustbotFor] has already sized the bot off the rat's stats by the time
+     * this is added to the player's own side in [Rustbot.toBattle], so
+     * unlike a Shop [Loadout] (see its own doc comment on why those are
+     * multipliers instead), this bonus never feeds back into the enemy's
+     * math and cannot be scaled away by it.
+     *
+     * Power and Toughness are checked independently - [arenaPowerBonusFor]
+     * off Power, [arenaMaxHpBonusFor] off Toughness - so a lopsided rat only
+     * earns the half its stats actually cleared.
+     */
+    fun arenaPowerBonusFor(rat: RatEntity): Int = tierBonus(rat.effectivePower)
+
+    /** See [arenaPowerBonusFor]; off [RatEntity.effectiveToughness] instead. */
+    fun arenaMaxHpBonusFor(rat: RatEntity): Int = tierBonus(rat.effectiveToughness)
+
+    private fun tierBonus(stat: Int): Int = max(0, (stat - STAT_TIER_1) * BONUS_PER_POINT)
 
     /**
      * Which of the five boss kits a milestone fight (5/10/15) borrows its
@@ -346,13 +390,13 @@ object ArenaRun {
                 editor.putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + cosmeticScrapFallback)
             }
         } else {
-            // Every third fight cleared, the rat gets a breather: 30% of its
-            // own max HP topped up before the next fight starts, on top of
+            // Every fight cleared, the rat gets a breather: 30% of its own
+            // max HP topped up before the next fight starts, on top of
             // whatever it carried out of this one. Capped at the rat's own
             // true max - not the next fight's, which a Loadout could inflate -
             // so this reads as a partial heal, not a licence to overheal
             // through a Golden Wrench.
-            val carried = if (fightJustCleared % 3 == 0 && fighter != null) {
+            val carried = if (fightJustCleared % RELIEF_EVERY_N_FIGHTS == 0 && fighter != null) {
                 val relief = (fighter.effectiveMaxHp * ARENA_RELIEF_FRACTION).roundToInt()
                 min(fighter.effectiveMaxHp, ratHpAfterFight + relief)
             } else {
@@ -368,6 +412,16 @@ object ArenaRun {
         // above - it commits its own write, the same way ShopActivity's
         // purchase path already does.
         cosmeticFrame?.let { ShopEffects.grantCosmetic(prefs, it.id) }
+
+        // Rusted Fang's own commit, the same way - see
+        // PermanentBuffs.RUSTED_FANG_ARENA_FIGHT. Checked directly against
+        // fight 10 rather than reusing the `milestone` result above: that one
+        // is null once fight 10's own Arena badge is already earned, but a
+        // save that somehow has the badge without the buff (an old save
+        // imported after this shipped) must still be able to pick it up.
+        if (fightJustCleared == PermanentBuffs.RUSTED_FANG_ARENA_FIGHT) {
+            PermanentBuffs.checkRustedFang(prefs)
+        }
 
         if (cleared) {
             end(prefs)

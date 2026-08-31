@@ -186,6 +186,7 @@ object DailyQuest {
         val reward = rollReward(prefs, editor, streakAfter)
 
         editor.apply()
+        PermanentBuffs.checkSteadfastMomentum(prefs, streakAfter)
         return reward
     }
 

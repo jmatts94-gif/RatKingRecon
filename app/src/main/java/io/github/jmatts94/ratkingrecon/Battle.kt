@@ -97,7 +97,9 @@ data class RoundResult(
     /** Whether a Tinkerer's Special rolled its block chance and armed one - see [Battle.bubbleActive]. */
     val specialArmedBlock: Boolean = false,
     /** Whether a Scavenger's Special rolled its refund chance and shaved a round off its own cooldown. */
-    val specialRefundedCooldown: Boolean = false
+    val specialRefundedCooldown: Boolean = false,
+    /** HP Rusted Fang's lifesteal healed back this round - see [Battle.lifestealFraction]. */
+    val buffLifesteal: Int = 0
 )
 
 /**
@@ -134,7 +136,30 @@ class Battle(
      * fight but an Arena run's second one onward, which carries the rat's HP
      * in from how the last fight ended instead. See [Encounter.toBattle].
      */
-    startingRatHp: Int = ratMaxHp
+    startingRatHp: Int = ratMaxHp,
+    /**
+     * Rusted Fang's own fixed share of damage dealt, healed back on every hit
+     * that lands - see [PermanentBuffs.RUSTED_FANG_LIFESTEAL_FRACTION]. Zero
+     * until earned. Account-wide once it is, so unlike [incomingDamageReduction]
+     * this applies in every fight, not only an Arena one.
+     *
+     * A separate mechanic from the Smuggler faction's own Special-only
+     * lifesteal below (see [FactionSpecials.SMUGGLER_LIFESTEAL_FRACTION]) -
+     * different field, different formula (a share of *damage dealt* here,
+     * against a share of *max HP* there, on Special rounds only) - so the two
+     * stack rather than collide for a Smuggler-faction rat that has also
+     * earned Rusted Fang.
+     */
+    private val lifestealFraction: Double = 0.0,
+    /**
+     * Iron Boots' own fixed share of incoming damage shaved off - see
+     * [PermanentBuffs.IRON_BOOTS_DAMAGE_REDUCTION]. Zero until earned, and
+     * left at zero by every caller outside an Arena run - see
+     * [Encounter.toBattle]. Applied last, after DEFEND's own halving and a
+     * Protective Bubble's outright negation, so it only ever helps on top of
+     * whatever those already did rather than replacing them.
+     */
+    private val incomingDamageReduction: Double = 0.0
 ) {
 
     companion object {
@@ -384,6 +409,17 @@ class Battle(
         }
         botHp = max(0, botHp - dealt)
 
+        // Rusted Fang: a fixed share of whatever was just dealt, healed back
+        // on the spot. Checked against `dealt` rather than `action`, so a
+        // DEFEND or USE_ITEM round - both deal zero - simply heals nothing,
+        // with no separate guard needed.
+        var buffLifesteal = 0
+        if (dealt > 0 && lifestealFraction > 0.0) {
+            val healedTo = min(ratMaxHp, ratHp + (dealt * lifestealFraction).roundToInt())
+            buffLifesteal = healedTo - ratHp
+            ratHp = healedTo
+        }
+
         // Faction Specials' own secondary effects - see FactionSpecials. Only
         // ever rolled on the round the rat actually used its Special; a
         // requested SPECIAL that fell back to ATTACK above never reaches
@@ -506,6 +542,13 @@ class Battle(
                 } else {
                     bonused
                 }
+                // Iron Boots, Arena fights only - shaves a fixed share off
+                // whatever DEFEND/the Bubble already left, rather than
+                // competing with either: zero stays zero, and a halved hit is
+                // halved again on top.
+                if (incomingDamageReduction > 0.0) {
+                    taken = (taken * (1.0 - incomingDamageReduction)).roundToInt()
+                }
                 ratHp = max(0, ratHp - taken)
 
                 if (move?.appliesDot == true) {
@@ -555,7 +598,8 @@ class Battle(
             specialLifesteal = specialLifesteal,
             specialAppliedDot = specialAppliedDot,
             specialArmedBlock = specialArmedBlock,
-            specialRefundedCooldown = specialRefundedCooldown
+            specialRefundedCooldown = specialRefundedCooldown,
+            buffLifesteal = buffLifesteal
         ).also { log += it }
     }
 

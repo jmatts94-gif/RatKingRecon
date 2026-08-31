@@ -54,10 +54,19 @@ class EncounterActionReceiver : BroadcastReceiver() {
             return
         }
 
-        // Same surge the manual screen would apply, so both paths fight the
-        // same fight.
+        // Same surge - and the same Arena high-stat tier bonus, if a run is
+        // active - the manual screen would apply, so both paths fight the
+        // same fight. See BattleActivity.loadFight and ArenaRun.
+        val inArena = ArenaRun.isActive(prefs)
         val battle = AutoResolver.resolve(
-            encounter.toBattle(rat, ShopEffects.loadoutFor(prefs))
+            encounter.toBattle(
+                rat,
+                ShopEffects.loadoutFor(prefs),
+                bonusPower = if (inArena) ArenaRun.arenaPowerBonusFor(rat) else 0,
+                bonusMaxHp = if (inArena) ArenaRun.arenaMaxHpBonusFor(rat) else 0,
+                lifestealFraction = PermanentBuffs.lifestealFractionFor(prefs),
+                incomingDamageReduction = if (inArena) PermanentBuffs.arenaDamageReductionFor(prefs) else 0.0
+            )
         )
         val resolution = EncounterResolver.apply(app, encounter, rat, battle)
 

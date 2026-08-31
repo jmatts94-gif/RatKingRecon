@@ -393,6 +393,7 @@ RARE DROP: %2$s</string>
     <!-- Faction Specials' own secondary effects - see FactionSpecials. -->
     <!-- rat name, HP healed -->
     <string name="battle_special_lifesteal">%1$s siphons %2$d HP back.</string>
+    <string name="battle_buff_lifesteal">Rusted Fang siphons %2$d HP back for %1$s.</string>
     <!-- the bot's name -->
     <string name="battle_special_dot_applied">The blow leaves %1$s corroding.</string>
     <string name="battle_special_block_armed">The follow-through leaves an opening — the next hit will not land.</string>
@@ -497,6 +498,8 @@ RARE DROP: %2$s</string>
     <string name="achievements_roster_sub">%1$d rats held, %2$d of %3$d species found</string>
     <string name="achievements_hatching">Hatching</string>
     <string name="achievements_hatching_sub">Rarities that only turn up once.</string>
+    <string name="achievements_buffs">Permanent Buffs</string>
+    <string name="achievements_buffs_sub">Earned once, and active for good from that moment on.</string>
     <!-- Escaped: a leading ? in a resource value is read as an attr reference. -->
     <string name="badge_locked">\?\?\?</string>
     <!-- minimum level at which the boss can appear -->
@@ -527,6 +530,20 @@ RARE DROP: %2$s</string>
     <string name="milestone_not_yet">Not yet.</string>
     <!-- progress so far, target -->
     <string name="milestone_progress">%1$d of %2$d</string>
+
+    <!-- Permanent buffs - see PermanentBuffs. Locked detail reuses milestone_progress
+         (a plain count) since every unlock here is a numeric threshold but Rusted
+         Fang, which reuses arena_badge_locked_detail's own "Clear Fight N" wording. -->
+    <string name="buff_collectors_instinct_name">Collector\'s Instinct</string>
+    <string name="buff_collectors_instinct_effect">+10% Rare/Legendary odds at the Fusion Pot</string>
+    <string name="buff_steadfast_momentum_name">Steadfast Momentum</string>
+    <string name="buff_steadfast_momentum_effect">+15% Scrap and EXP from walking</string>
+    <string name="buff_rusted_fang_name">Rusted Fang</string>
+    <string name="buff_rusted_fang_effect">5% of damage dealt healed back in every fight</string>
+    <string name="buff_iron_boots_name">Iron Boots</string>
+    <string name="buff_iron_boots_effect">10% less damage taken in the Battle Arena</string>
+    <!-- earned detail: what the buff does, prefixed with "Active" -->
+    <string name="buff_active_detail">Active: %1$s</string>
 
     <!-- Long-press explainers -->
     <string name="tooltip_lifetime_title">Steps Walked</string>

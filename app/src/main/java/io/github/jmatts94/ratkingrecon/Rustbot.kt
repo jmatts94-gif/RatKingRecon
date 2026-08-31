@@ -278,12 +278,34 @@ data class Encounter(
      * it has always ignored whatever Loadout would later apply too - so a
      * Rare or Legendary rat is fighting an opponent sized for a plainer rat of
      * its same base stats, not one that grew to match it.
+     *
+     * [bonusPower]/[bonusMaxHp] are the Arena's own high-stat tier bonus (see
+     * [ArenaRun.arenaPowerBonusFor]/[ArenaRun.arenaMaxHpBonusFor]), zero for
+     * every other caller. Added flat, after the loadout multiplier - by the
+     * time either reaches here the bot above is already sized, so unlike
+     * [loadout] this can never feed back into what it is fighting.
+     *
+     * [lifestealFraction]/[incomingDamageReduction] are the two permanent
+     * combat buffs - see [PermanentBuffs]. Every caller reads
+     * [PermanentBuffs.lifestealFractionFor] unconditionally (Rusted Fang is
+     * account-wide), but only passes [PermanentBuffs.arenaDamageReductionFor]
+     * while an Arena run is active (Iron Boots is not) - see
+     * BattleActivity.loadFight and EncounterActionReceiver for where each is
+     * actually read.
      */
-    fun toBattle(rat: RatEntity, loadout: Loadout = Loadout.NONE, startingRatHp: Int? = null): Battle {
-        val maxHp = loadout.maxHpFor(rat.effectiveMaxHp)
+    fun toBattle(
+        rat: RatEntity,
+        loadout: Loadout = Loadout.NONE,
+        startingRatHp: Int? = null,
+        bonusPower: Int = 0,
+        bonusMaxHp: Int = 0,
+        lifestealFraction: Double = 0.0,
+        incomingDamageReduction: Double = 0.0
+    ): Battle {
+        val maxHp = loadout.maxHpFor(rat.effectiveMaxHp) + bonusMaxHp
         return Battle(
             ratName = rat.name,
-            ratPower = loadout.powerFor(rat.effectivePower),
+            ratPower = loadout.powerFor(rat.effectivePower) + bonusPower,
             ratMaxHp = maxHp,
             botName = botName,
             botPower = botPower,
@@ -293,7 +315,9 @@ data class Encounter(
             // Clamped rather than trusted outright - a Loadout bought between
             // an Arena run's fights could otherwise carry in more HP than
             // this fight's max allows.
-            startingRatHp = startingRatHp?.coerceIn(1, maxHp) ?: maxHp
+            startingRatHp = startingRatHp?.coerceIn(1, maxHp) ?: maxHp,
+            lifestealFraction = lifestealFraction,
+            incomingDamageReduction = incomingDamageReduction
         )
     }
 }

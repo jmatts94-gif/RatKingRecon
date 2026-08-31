@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.content.SharedPreferences
+import kotlin.math.roundToInt
 
 /**
  * Every step-driven game rule, in one place.
@@ -37,6 +38,21 @@ object GameEngine {
      * game keeps itself, so it only ever climbs.
      */
     const val KEY_LIFETIME_STEPS = "LIFETIME_STEPS"
+
+    /**
+     * Every rat ever hatched, for [PermanentBuffs.checkCollectorsInstinct].
+     *
+     * Incremented at the same three points [QuestType.HATCH] already counts
+     * as "a hatch" - a walked one, a Shop-bought one, and a Masterwork pull -
+     * so this means exactly what the daily quest already means by the word.
+     * Splicing is deliberately not one of them: it consumes two rats to mint
+     * one and has its own [QuestType.SPLICE], a different action with a
+     * different feel, not a fourth hatch route.
+     *
+     * Monotonic like [KEY_LIFETIME_STEPS] - a rat later spliced away must not
+     * un-earn a badge for having hatched it in the first place.
+     */
+    const val KEY_LIFETIME_HATCHES = "LIFETIME_HATCHES"
 
     const val KEY_MUTAGEN = "MUTAGEN_ACTIVE"
     const val KEY_POLISH = "POLISH_ACTIVE"
@@ -137,6 +153,20 @@ object GameEngine {
 
     fun lifetimeStepsOf(prefs: SharedPreferences): Long = prefs.getLong(KEY_LIFETIME_STEPS, 0L)
 
+    fun lifetimeHatchesOf(prefs: SharedPreferences): Long = prefs.getLong(KEY_LIFETIME_HATCHES, 0L)
+
+    /**
+     * Books one hatch toward the lifetime total, and the buff it can unlock.
+     *
+     * Called from every place a rat is actually minted - see
+     * [KEY_LIFETIME_HATCHES]'s own doc comment for which those are.
+     */
+    fun recordHatch(prefs: SharedPreferences) {
+        val total = lifetimeHatchesOf(prefs) + 1
+        prefs.edit().putLong(KEY_LIFETIME_HATCHES, total).apply()
+        PermanentBuffs.checkCollectorsInstinct(prefs, total)
+    }
+
     /**
      * The steps a save at [level] must have walked, at minimum.
      *
@@ -198,7 +228,12 @@ object GameEngine {
         val contractName = ActiveContract.load(prefs)?.name
         val bounty = resolveBounty(prefs, editor, totalSteps)
 
-        val banked = bankExp(dao, prefs, editor, gained)
+        // Steadfast Momentum multiplies the EXP these steps bank, not `gained`
+        // itself - that value also drives the daily step total, the lifetime
+        // total above, and the encounter/boss rolls below, none of which this
+        // buff is meant to touch.
+        val boostedExp = (gained * PermanentBuffs.stepRewardMultiplierFor(prefs)).roundToInt()
+        val banked = bankExp(dao, prefs, editor, boostedExp)
         val hatched = banked.hatched
         val level = banked.level
         val newLevel = banked.newLevel
@@ -210,8 +245,10 @@ object GameEngine {
         // ones are only worth re-reading when the collection just changed, which
         // is exactly when a hatch has landed.
         Milestones.refreshSteps(prefs, lifetimeStepsOf(prefs))
+        PermanentBuffs.checkIronBoots(prefs, lifetimeStepsOf(prefs))
         if (hatched != null) {
             Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+            recordHatch(prefs)
         }
 
         // The daily quest, after the steps and the hatch are both banked so it
@@ -483,6 +520,7 @@ object GameEngine {
         // A rat is a rat however it arrived, so a minted one counts towards a
         // hatching quest exactly as a walked one does.
         DailyQuest.record(prefs, QuestType.HATCH)
+        recordHatch(prefs)
         return stored
     }
 
@@ -520,7 +558,8 @@ object GameEngine {
         }
 
         if (totalSteps >= prefs.getFloat(KEY_BOUNTY_TARGET, Float.MAX_VALUE)) {
-            val reward = prefs.getInt(KEY_BOUNTY_REWARD, 0)
+            val baseReward = prefs.getInt(KEY_BOUNTY_REWARD, 0)
+            val reward = (baseReward * PermanentBuffs.stepRewardMultiplierFor(prefs)).roundToInt()
             editor.putBoolean(KEY_BOUNTY_ACTIVE, false)
             editor.putInt(KEY_SCRAP, scrapOf(prefs) + reward)
             return reward to false

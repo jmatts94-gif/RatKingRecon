@@ -154,7 +154,9 @@ class BattleActivity : AppCompatActivity() {
                 ShopEffects.loadoutFor(prefs),
                 startingHp,
                 bonusPower = if (inArena) ArenaRun.arenaPowerBonusFor(rat) else 0,
-                bonusMaxHp = if (inArena) ArenaRun.arenaMaxHpBonusFor(rat) else 0
+                bonusMaxHp = if (inArena) ArenaRun.arenaMaxHpBonusFor(rat) else 0,
+                lifestealFraction = PermanentBuffs.lifestealFractionFor(prefs),
+                incomingDamageReduction = if (inArena) PermanentBuffs.arenaDamageReductionFor(prefs) else 0.0
             )
 
             // Cleared rather than left standing - reloaded in place, this is
@@ -389,7 +391,15 @@ class BattleActivity : AppCompatActivity() {
             r.specialRefundedCooldown -> "\n" + getString(R.string.battle_special_cooldown_refunded)
             else -> ""
         }
-        return "Round ${r.round}: $subject$reply$dot$enemyDot$factionSpecial"
+        // Its own line, not folded into factionSpecial above - Rusted Fang is
+        // account-wide and can land on the same round as a Smuggler's own
+        // Special lifesteal, so the two are never mutually exclusive.
+        val buffHeal = if (r.buffLifesteal > 0) {
+            "\n" + getString(R.string.battle_buff_lifesteal, battle.ratName, r.buffLifesteal)
+        } else {
+            ""
+        }
+        return "Round ${r.round}: $subject$reply$dot$enemyDot$factionSpecial$buffHeal"
     }
 
     /** The whole clause for whichever item this round spent - see [BattleActivity.play]. */
