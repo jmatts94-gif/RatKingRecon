@@ -39,6 +39,7 @@ class DailyQuestTest {
             }
             QuestType.WIN_FIGHT -> DailyQuest.record(prefs, QuestType.WIN_FIGHT, now)
             QuestType.HATCH -> DailyQuest.record(prefs, QuestType.HATCH, now)
+            QuestType.SPLICE -> DailyQuest.record(prefs, QuestType.SPLICE, now)
         }
     }
 

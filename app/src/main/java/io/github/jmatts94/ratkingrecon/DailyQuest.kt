@@ -3,7 +3,7 @@ package io.github.jmatts94.ratkingrecon
 import android.content.SharedPreferences
 import androidx.annotation.StringRes
 
-/** The three things a day can ask for. */
+/** The things a day can ask for. */
 enum class QuestType {
     /** Walk a rolled number of steps. The only one with partial progress. */
     STEPS,
@@ -12,7 +12,10 @@ enum class QuestType {
     WIN_FIGHT,
 
     /** Add one rat to the Ledger, by any route. */
-    HATCH
+    HATCH,
+
+    /** Splice two rats into a mutant at the Fusion Pot. */
+    SPLICE
 }
 
 /** What finishing a quest paid out, so the caller can say so. */
@@ -123,7 +126,7 @@ object DailyQuest {
         val target = target(prefs)
         val raw = when (type(prefs)) {
             QuestType.STEPS -> DailySteps.today(prefs, now)
-            QuestType.WIN_FIGHT, QuestType.HATCH -> prefs.getInt(KEY_EVENTS, 0)
+            QuestType.WIN_FIGHT, QuestType.HATCH, QuestType.SPLICE -> prefs.getInt(KEY_EVENTS, 0)
         }
         return raw.coerceIn(0, target)
     }
@@ -229,5 +232,6 @@ object DailyQuest {
         QuestType.STEPS -> R.string.quest_steps_title
         QuestType.WIN_FIGHT -> R.string.quest_fight_title
         QuestType.HATCH -> R.string.quest_hatch_title
+        QuestType.SPLICE -> R.string.quest_splice_title
     }
 }

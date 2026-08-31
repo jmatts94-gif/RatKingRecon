@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   The run-ending loss popup - see BattleActivity.showArenaLossDialog. No
-  continue option and no revive offer: Scrap-revive is disabled in the
-  Arena by design, and a loss simply ends the run, rewards already banked
-  kept rather than forfeited.
+  continue option: Scrap-revive is disabled in the Arena by design, and a
+  loss simply ends the run, rewards already banked kept rather than
+  forfeited. arenaLossReviveButton is the one exception, shown only when a
+  Revive Token is held - it frees the rat's cooldown for another run, not
+  the lost fight itself.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -56,10 +58,24 @@
         tools:text="Banked from this run: 210 Scrap" />
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/arenaLossReviveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:visibility="gone"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="@color/cream"
+        app:backgroundTint="@color/brass_bright"
+        app:cornerRadius="16dp"
+        tools:text="Use Revive Token (2 held)"
+        tools:visibility="visible" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/arenaLossReturnButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="22dp"
+        android:layout_marginTop="10dp"
         android:text="@string/btn_arena_return_workshop"
         android:textAllCaps="false"
         android:textStyle="bold"

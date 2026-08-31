@@ -441,6 +441,8 @@ RARE DROP: %2$s</string>
     <string name="arena_loss_body">%1$s fell at Fight %2$d.</string>
     <string name="arena_loss_summary">Banked from this run: %1$d Scrap</string>
     <string name="arena_loss_summary_with_relics">Banked from this run: %1$d Scrap, %2$d relics</string>
+    <string name="arena_loss_revive_button">Use Revive Token (%1$d held)</string>
+    <string name="arena_loss_revive_done">%1$s is back on their feet and ready for another run.</string>
 
     <!-- Arena depth milestones - first-clear badges at fights 5/10/15, latched
          permanently the same way a boss badge is. See ArenaRun.MILESTONE_FIGHTS. -->
@@ -705,6 +707,7 @@ RARE DROP: %2$s</string>
     <string name="quest_steps_title">Walk %1$d steps</string>
     <string name="quest_fight_title">Win a Rustbot fight</string>
     <string name="quest_hatch_title">Hatch a rat</string>
+    <string name="quest_splice_title">Splice a rat at the Fusion Pot</string>
     <string name="quest_dialog_title">Today\'s Round</string>
     <!-- progress, target -->
     <string name="quest_progress">%1$d / %2$d</string>

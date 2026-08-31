@@ -147,8 +147,15 @@ class BattleActivity : AppCompatActivity() {
             // burns it when the fight settles. An Arena run past fight one
             // carries the rat's HP in from how the last fight ended - see
             // ArenaRun - rather than the full heal every other fight gets.
-            val startingHp = if (ArenaRun.isActive(prefs)) ArenaRun.carriedHpFor(prefs) else null
-            battle = encounter.toBattle(rat, ShopEffects.loadoutFor(prefs), startingHp)
+            val inArena = ArenaRun.isActive(prefs)
+            val startingHp = if (inArena) ArenaRun.carriedHpFor(prefs) else null
+            battle = encounter.toBattle(
+                rat,
+                ShopEffects.loadoutFor(prefs),
+                startingHp,
+                bonusPower = if (inArena) ArenaRun.arenaPowerBonusFor(rat) else 0,
+                bonusMaxHp = if (inArena) ArenaRun.arenaMaxHpBonusFor(rat) else 0
+            )
 
             // Cleared rather than left standing - reloaded in place, this is
             // still the same Activity instance the last fight's log was
@@ -628,6 +635,30 @@ class BattleActivity : AppCompatActivity() {
             getString(R.string.arena_loss_summary_with_relics, summary.scrapRunTotal, summary.relicsRunTotal)
         } else {
             getString(R.string.arena_loss_summary, summary.scrapRunTotal)
+        }
+
+        val tokensHeld = ShopEffects.charges(RatRepository.prefs(this), ShopEffects.KEY_REVIVE_TOKENS)
+        if (tokensHeld > 0) {
+            dialog.findViewById<MaterialButton>(R.id.arenaLossReviveButton).apply {
+                visibility = View.VISIBLE
+                text = getString(R.string.arena_loss_revive_button, tokensHeld)
+                setOnClickListener {
+                    lifecycleScope.launch {
+                        val ok = withContext(Dispatchers.IO) {
+                            EncounterResolver.reviveWithToken(this@BattleActivity, rat.id)
+                        }
+                        if (ok) {
+                            Toast.makeText(
+                                this@BattleActivity,
+                                getString(R.string.arena_loss_revive_done, resolution.ratName),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            dialog.dismiss()
+                            returnToWorkshop()
+                        }
+                    }
+                }
+            }
         }
 
         dialog.findViewById<MaterialButton>(R.id.arenaLossReturnButton).setOnClickListener {

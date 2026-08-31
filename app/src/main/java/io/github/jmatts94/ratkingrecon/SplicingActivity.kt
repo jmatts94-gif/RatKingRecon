@@ -175,6 +175,9 @@ class SplicingActivity : AppCompatActivity() {
             val mutantId = withContext(Dispatchers.IO) {
                 val id = dao.splice(parents, mutant)
                 Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+                DailyQuest.record(prefs, QuestType.SPLICE)?.let {
+                    DailyAlerts.postQuestPaid(applicationContext, it)
+                }
                 id
             }
 

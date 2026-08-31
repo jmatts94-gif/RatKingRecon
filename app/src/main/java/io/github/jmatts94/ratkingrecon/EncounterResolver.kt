@@ -182,4 +182,27 @@ object EncounterResolver {
         RatRepository.dao(app).revive(ratId)
         return true
     }
+
+    /**
+     * Wakes a knocked-out rat early by spending a held Revive Token.
+     *
+     * The Arena's own loss screen never offers the Scrap version [revive]
+     * gives an ordinary or boss loss - see BattleActivity.showArenaLossDialog
+     * - because that dialog would be resuming a fight already over. This is a
+     * different thing: freeing the rat's cooldown so it is eligible to be
+     * picked again, using a token bought at any point, not only one held
+     * before the loss (a held token is instead spent automatically the
+     * instant the loss happens - see [apply]).
+     *
+     * Returns false and changes nothing when the player holds no token.
+     */
+    fun reviveWithToken(context: Context, ratId: Long): Boolean {
+        val app = context.applicationContext
+        val prefs = RatRepository.prefs(app)
+
+        if (!ShopEffects.spendCharge(prefs, ShopEffects.KEY_REVIVE_TOKENS)) return false
+
+        RatRepository.dao(app).revive(ratId)
+        return true
+    }
 }
