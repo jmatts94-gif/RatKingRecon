@@ -86,6 +86,7 @@ class AchievementsActivity : AppCompatActivity() {
                 val dao = RatRepository.dao(this@AchievementsActivity)
                 val read = Milestones.readProgress(dao, prefs)
                 Milestones.refresh(prefs, read)
+                PermanentBuffs.refresh(prefs)
                 read
             }
             render(progress)

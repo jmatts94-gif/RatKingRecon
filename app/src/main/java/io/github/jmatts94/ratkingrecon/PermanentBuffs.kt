@@ -117,6 +117,22 @@ object PermanentBuffs {
         if (lifetimeSteps >= IRON_BOOTS_STEP_TARGET) latch(prefs, IRON_BOOTS)
     }
 
+    /**
+     * Re-checks all four against the save's current state - the same safety
+     * net [Milestones.refresh] is for its own badges, called from the same
+     * place (AchievementsActivity.onResume). A trigger missed at the moment
+     * it happened - most notably a save that cleared Arena fight 10 before
+     * this feature shipped, so [checkRustedFang] never ran for it - would
+     * otherwise be locked out of the buff forever, since none of the four
+     * `check*` functions above run except from their own live trigger.
+     */
+    fun refresh(prefs: SharedPreferences) {
+        checkCollectorsInstinct(prefs, GameEngine.lifetimeHatchesOf(prefs))
+        checkSteadfastMomentum(prefs, Streak.count(prefs))
+        if (ArenaRun.isMilestoneEarned(prefs, RUSTED_FANG_ARENA_FIGHT)) checkRustedFang(prefs)
+        checkIronBoots(prefs, GameEngine.lifetimeStepsOf(prefs))
+    }
+
     // ---- effect readers, read at the point of use --------------------------
 
     /** Extra points added to the Fusion Pot's Rare-or-better cutoff; 0 until earned. */

@@ -75,6 +75,43 @@ class PermanentBuffsTest {
         assertEquals(2, PermanentBuffs.earnedCount(prefs))
     }
 
+    // ---- the self-healing refresh ------------------------------------------
+
+    @Test
+    fun `refresh retroactively grants rusted fang to a save that already cleared fight ten`() {
+        val prefs = FakePrefs()
+        // Simulates a save from before this feature shipped: the Arena badge
+        // is already latched, but PermanentBuffs never ran for that clear.
+        prefs.edit().putBoolean("ARENA_MILESTONE_FIGHT_10", true).apply()
+        assertFalse(PermanentBuffs.isEarned(prefs, PermanentBuffs.RUSTED_FANG))
+
+        PermanentBuffs.refresh(prefs)
+        assertTrue(PermanentBuffs.isEarned(prefs, PermanentBuffs.RUSTED_FANG))
+    }
+
+    @Test
+    fun `refresh does not grant rusted fang without the arena badge`() {
+        val prefs = FakePrefs()
+        PermanentBuffs.refresh(prefs)
+        assertFalse(PermanentBuffs.isEarned(prefs, PermanentBuffs.RUSTED_FANG))
+    }
+
+    @Test
+    fun `refresh picks up every other buff already past its threshold too`() {
+        val prefs = FakePrefs()
+        prefs.edit()
+            .putLong(GameEngine.KEY_LIFETIME_HATCHES, 5L)
+            .putInt(Streak.KEY_COUNT, 10)
+            .putLong(GameEngine.KEY_LIFETIME_STEPS, 30_000L)
+            .apply()
+
+        PermanentBuffs.refresh(prefs)
+
+        assertTrue(PermanentBuffs.isEarned(prefs, PermanentBuffs.COLLECTORS_INSTINCT))
+        assertTrue(PermanentBuffs.isEarned(prefs, PermanentBuffs.STEADFAST_MOMENTUM))
+        assertTrue(PermanentBuffs.isEarned(prefs, PermanentBuffs.IRON_BOOTS))
+    }
+
     // ---- Collector's Instinct: the Fusion Pot's own odds -------------------
 
     @Test
