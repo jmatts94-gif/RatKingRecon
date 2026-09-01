@@ -5,7 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 
 /** What a milestone is measured against. */
-enum class MilestoneKind { STEPS, RATS_HELD, SPECIES, SHINY, MASTERWORK }
+enum class MilestoneKind { STEPS, RATS_HELD, SPECIES, SHINY, MASTERWORK, STAT_15, STAT_25 }
 
 /**
  * One achievement row.
@@ -28,7 +28,11 @@ data class MilestoneProgress(
     val ratsHeld: Int = 0,
     val speciesFound: Int = 0,
     val ownsShiny: Boolean = false,
-    val masterworkPulled: Boolean = false
+    val masterworkPulled: Boolean = false,
+    /** Whether the roster currently holds a rat at 15 Power and 15 Toughness or better. */
+    val hasStat15Rat: Boolean = false,
+    /** Whether the roster currently holds a rat at 25 Power and 25 Toughness or better. */
+    val hasStat25Rat: Boolean = false
 )
 
 /**
@@ -89,7 +93,9 @@ object Milestones {
 
     val hatching: List<Milestone> = listOf(
         Milestone("hatch_shiny", R.string.milestone_first_shiny, R.drawable.ic_sparkle, MilestoneKind.SHINY, 1L),
-        Milestone("hatch_masterwork", R.string.milestone_first_masterwork, R.drawable.ic_egg, MilestoneKind.MASTERWORK, 1L)
+        Milestone("hatch_masterwork", R.string.milestone_first_masterwork, R.drawable.ic_egg, MilestoneKind.MASTERWORK, 1L),
+        Milestone("hatch_stat15", R.string.milestone_battle_ready, R.drawable.ic_toughness, MilestoneKind.STAT_15, 1L),
+        Milestone("hatch_stat25", R.string.milestone_apex_rat, R.drawable.ic_power, MilestoneKind.STAT_25, 1L)
     )
 
     val all: List<Milestone> = steps + roster + hatching
@@ -103,6 +109,8 @@ object Milestones {
             MilestoneKind.SPECIES -> progress.speciesFound.toLong()
             MilestoneKind.SHINY -> if (progress.ownsShiny) 1L else 0L
             MilestoneKind.MASTERWORK -> if (progress.masterworkPulled) 1L else 0L
+            MilestoneKind.STAT_15 -> if (progress.hasStat15Rat) 1L else 0L
+            MilestoneKind.STAT_25 -> if (progress.hasStat25Rat) 1L else 0L
         }
 
     fun isMet(milestone: Milestone, progress: MilestoneProgress): Boolean =
@@ -140,6 +148,7 @@ object Milestones {
         val editor = prefs.edit()
         newlyEarned.forEach { editor.putBoolean(LATCH_PREFIX + it.id, true) }
         editor.apply()
+        newlyEarned.forEach { grantReward(prefs, it.id) }
         return newlyEarned
     }
 
@@ -158,18 +167,41 @@ object Milestones {
         val editor = prefs.edit()
         newlyEarned.forEach { editor.putBoolean(LATCH_PREFIX + it.id, true) }
         editor.apply()
+        newlyEarned.forEach { grantReward(prefs, it.id) }
         return newlyEarned
     }
 
+    /** Pays whatever [AchievementRewards] has attached to [milestoneId], if anything. */
+    private fun grantReward(prefs: SharedPreferences, milestoneId: String) {
+        AchievementRewards.forMilestone(milestoneId)?.let { AchievementRewards.grant(prefs, it) }
+    }
+
+    /** Effective Power/Toughness a rat must clear for [MilestoneKind.STAT_15]. */
+    private const val STAT_15_THRESHOLD = 15
+    /** Effective Power/Toughness a rat must clear for [MilestoneKind.STAT_25]. */
+    private const val STAT_25_THRESHOLD = 25
+
     /** Reads everything the milestones measure. Blocking: it queries the collection. */
-    fun readProgress(dao: RatDao, prefs: SharedPreferences): MilestoneProgress =
-        MilestoneProgress(
+    fun readProgress(dao: RatDao, prefs: SharedPreferences): MilestoneProgress {
+        // Loaded once and reused for both stat checks rather than two separate
+        // full-table reads - the other fields below stay their own lightweight
+        // aggregate queries, unchanged, since only the stat check needs a rat's
+        // own row to test two conditions against each other.
+        val roster = dao.all()
+        return MilestoneProgress(
             lifetimeSteps = GameEngine.lifetimeStepsOf(prefs),
             ratsHeld = dao.count(),
             speciesFound = dao.distinctSpeciesFound(Roster.all.map { it.artKey }),
             ownsShiny = dao.ownsShiny(),
-            masterworkPulled = prefs.getBoolean(KEY_MASTERWORK_PULLED, false)
+            masterworkPulled = prefs.getBoolean(KEY_MASTERWORK_PULLED, false),
+            hasStat15Rat = roster.any {
+                it.effectivePower >= STAT_15_THRESHOLD && it.effectiveToughness >= STAT_15_THRESHOLD
+            },
+            hasStat25Rat = roster.any {
+                it.effectivePower >= STAT_25_THRESHOLD && it.effectiveToughness >= STAT_25_THRESHOLD
+            }
         )
+    }
 
     /** Records a Masterwork pull, for the badge that has nothing else to read. */
     fun recordMasterworkPull(prefs: SharedPreferences) {

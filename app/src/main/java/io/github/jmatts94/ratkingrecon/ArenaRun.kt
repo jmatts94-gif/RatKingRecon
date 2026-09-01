@@ -316,16 +316,19 @@ object ArenaRun {
      * way every other frame already does, and a repeat clear falls back to
      * the ordinary pool.
      *
-     * That pool is drawn from every remaining frame in [Frames.all]. Weighted
-     * by [CardFrame.price] instead of picked uniformly, so
+     * That pool is drawn from every remaining [CardFrame.arenaPool] frame.
+     * Weighted by [CardFrame.price] instead of picked uniformly, so
      * the frames priced highest - the premium pair this is meant to feel like
      * a real payoff for reaching - come up markedly more often than Brass or
-     * Ember, without making them a lock.
+     * Ember, without making them a lock. Scoped to [CardFrame.arenaPool]
+     * rather than all of [Frames.all] so a frame earned a specific other way
+     * - see [AchievementRewards] - cannot also drop out of a lucky Arena
+     * clear with the real thing it stands for never actually met.
      */
     private fun weightedClearedFrame(prefs: SharedPreferences): CardFrame? {
         if (!ShopEffects.ownsCosmetic(prefs, Frames.ARENA_CHAMPION.id)) return Frames.ARENA_CHAMPION
 
-        val candidates = Frames.all.filterNot { ShopEffects.ownsCosmetic(prefs, it.id) }
+        val candidates = Frames.all.filter { it.arenaPool }.filterNot { ShopEffects.ownsCosmetic(prefs, it.id) }
         if (candidates.isEmpty()) return null
 
         var roll = (0 until candidates.sumOf { it.price }).random()

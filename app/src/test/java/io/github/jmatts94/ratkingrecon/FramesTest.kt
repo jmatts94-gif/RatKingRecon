@@ -137,12 +137,16 @@ class FramesTest {
     /**
      * A two-colour style needs two colours; a one-colour style must not break.
      * SCARRED joins PULSE here - its cracks blend between two colours the same
-     * way a pulse does, just slower and never fully dark.
+     * way a pulse does, just slower and never fully dark. LIGHTNING needs its
+     * glow and its flash to read as different heat; RADIANT's own third stop
+     * lives off-CardFrame (see FrameOverlayDrawable.radiantColors), but its
+     * first two still have to differ the same way PULSE's do.
      */
     @Test
     fun `only a two-colour style carries a second accent`() {
+        val twoColour = setOf(FrameStyle.PULSE, FrameStyle.SCARRED, FrameStyle.LIGHTNING, FrameStyle.RADIANT)
         for (frame in Frames.all) {
-            if (frame.style == FrameStyle.PULSE || frame.style == FrameStyle.SCARRED) {
+            if (frame.style in twoColour) {
                 assertTrue(
                     "${frame.id} blends between one colour and itself",
                     frame.accentColorRes != frame.accentAltColorRes
@@ -154,6 +158,16 @@ class FramesTest {
                     frame.accentAltColorRes
                 )
             }
+        }
+    }
+
+    /** Only the one frame sharing GEARS with Clockwork asked for the extra presence. */
+    @Test
+    fun `glow is opted into per frame, not switched on for a whole style`() {
+        assertTrue(Frames.IRON_GRIP.glow)
+        assertFalse("Clockwork shares Iron Grip's style but not its glow", Frames.CLOCKWORK.glow)
+        for (frame in Frames.all - Frames.IRON_GRIP) {
+            assertFalse("${frame.id} should not glow", frame.glow)
         }
     }
 

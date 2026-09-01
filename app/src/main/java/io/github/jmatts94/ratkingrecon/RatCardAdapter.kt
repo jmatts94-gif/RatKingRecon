@@ -127,17 +127,20 @@ class RatCardAdapter(
                     // SCARRED's own second wave of marks - see
                     // FrameOverlayDrawable.secondaryAccent - reads in the same
                     // aether blue AETHER_COIL pulses between, regardless of
-                    // this particular frame's own warm accent pair.
-                    secondaryAccent = if (frame.style == FrameStyle.SCARRED) {
-                        ContextCompat.getColor(context, R.color.aether_deep)
-                    } else {
-                        null
+                    // this particular frame's own warm accent pair. RADIANT's
+                    // third palette stop works the same way, off boiler_glow's
+                    // hot orange instead - see FrameOverlayDrawable.radiantColors.
+                    secondaryAccent = when (frame.style) {
+                        FrameStyle.SCARRED -> ContextCompat.getColor(context, R.color.aether_deep)
+                        FrameStyle.RADIANT -> ContextCompat.getColor(context, R.color.boiler_glow)
+                        else -> null
                     },
-                    secondaryAccentAlt = if (frame.style == FrameStyle.SCARRED) {
-                        ContextCompat.getColor(context, R.color.aether_glow)
-                    } else {
-                        null
-                    }
+                    secondaryAccentAlt = when (frame.style) {
+                        FrameStyle.SCARRED -> ContextCompat.getColor(context, R.color.aether_glow)
+                        FrameStyle.RADIANT -> ContextCompat.getColor(context, R.color.boiler_glow)
+                        else -> null
+                    },
+                    glow = frame.glow
                 ).apply { setDensity(context.resources.displayMetrics.density) }
             }
         }

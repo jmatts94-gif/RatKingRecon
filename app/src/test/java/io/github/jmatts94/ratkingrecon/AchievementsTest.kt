@@ -107,10 +107,10 @@ class AchievementsTest {
             Milestones.roster.map { it.target }
         )
         assertEquals(
-            listOf("hatch_shiny", "hatch_masterwork"),
+            listOf("hatch_shiny", "hatch_masterwork", "hatch_stat15", "hatch_stat25"),
             Milestones.hatching.map { it.id }
         )
-        assertEquals(12, Milestones.all.size)
+        assertEquals(14, Milestones.all.size)
     }
 
     @Test
@@ -202,6 +202,42 @@ class AchievementsTest {
         Milestones.recordMasterworkPull(prefs)
         Milestones.refresh(prefs, MilestoneProgress(masterworkPulled = true))
         assertTrue(Milestones.isEarned(prefs, badge))
+    }
+
+    // --- the two stat milestones -----------------------------------------------
+
+    @Test
+    fun `readProgress finds a rat that clears the stat thresholds`() {
+        val dao = AchStubDao()
+        val prefs = FakePrefs()
+        dao.insert(RatEntity(artKey = "no_such_species", name = "Test", power = 15, toughness = 15, shiny = false))
+
+        val progress = Milestones.readProgress(dao, prefs)
+        assertTrue(progress.hasStat15Rat)
+        assertFalse("15/15 does not clear the higher 25/25 bar", progress.hasStat25Rat)
+    }
+
+    @Test
+    fun `a stat milestone needs both stats at the threshold, not just one`() {
+        val dao = AchStubDao()
+        val prefs = FakePrefs()
+        dao.insert(RatEntity(artKey = "no_such_species", name = "Lopsided", power = 25, toughness = 5, shiny = false))
+
+        val progress = Milestones.readProgress(dao, prefs)
+        assertFalse("power alone must not satisfy it", progress.hasStat15Rat)
+        assertFalse(progress.hasStat25Rat)
+    }
+
+    @Test
+    fun `hatch_stat15 and hatch_stat25 latch independently`() {
+        val prefs = FakePrefs()
+        val stat15 = Milestones.hatching.first { it.id == "hatch_stat15" }
+        val stat25 = Milestones.hatching.first { it.id == "hatch_stat25" }
+
+        Milestones.refresh(prefs, MilestoneProgress(hasStat15Rat = true, hasStat25Rat = false))
+
+        assertTrue(Milestones.isEarned(prefs, stat15))
+        assertFalse(Milestones.isEarned(prefs, stat25))
     }
 
     @Test

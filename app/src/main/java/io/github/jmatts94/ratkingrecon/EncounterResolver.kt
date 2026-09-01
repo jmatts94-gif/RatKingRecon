@@ -108,9 +108,16 @@ object EncounterResolver {
 
             // The badge is the first win only; the Scrap is paid every time, at
             // the reduced rate Bosses.rewardFor already worked into the amount
-            // banked above when the encounter was built.
+            // banked above when the encounter was built. The achievement
+            // reward rides the same first-win-only gate as the badge itself -
+            // see AchievementRewards for what each boss actually pays.
             if (!isArenaFight) {
-                encounter.bossId?.let { badgeEarned = Bosses.markDefeated(prefs, it) }
+                encounter.bossId?.let { bossId ->
+                    badgeEarned = Bosses.markDefeated(prefs, bossId)
+                    if (badgeEarned) {
+                        AchievementRewards.forBoss(bossId)?.let { AchievementRewards.grant(prefs, it) }
+                    }
+                }
             }
 
             // The single point every win passes through, hand-played or

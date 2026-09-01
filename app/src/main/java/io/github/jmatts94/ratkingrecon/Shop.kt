@@ -264,6 +264,8 @@ object Shop {
                     FrameStyle.PULSE -> R.drawable.ic_sparkle
                     FrameStyle.STATIC -> R.drawable.ic_star
                     FrameStyle.SCARRED -> R.drawable.ic_power
+                    FrameStyle.LIGHTNING -> R.drawable.ic_power
+                    FrameStyle.RADIANT -> R.drawable.ic_lantern
                 }
             )
         }

@@ -23,7 +23,25 @@ enum class FrameStyle {
      * sword-nick marks breathing in aether blue - see
      * [FrameOverlayDrawable.secondaryAccent].
      */
-    SCARRED
+    SCARRED,
+
+    /**
+     * A jagged bolt cutting across the card face, top-right to bottom-left -
+     * the one style that crosses the card rather than tracing its border.
+     * Dark and still most of the time, then strikes twice in quick
+     * succession before going quiet again - see
+     * [FrameOverlayDrawable.drawLightning].
+     */
+    LIGHTNING,
+
+    /**
+     * A border cycling through a full palette rather than breathing between
+     * two - see [FrameOverlayDrawable.drawRadiant]. Reserved for the one
+     * frame in the game meant to read as a tier above every other, [PULSE]
+     * included: never dims to a whisper the way [PULSE] does at the bottom
+     * of its own breath, always a solid, shifting glow.
+     */
+    RADIANT
 }
 
 /**
@@ -76,7 +94,31 @@ data class CardFrame(
      * would be worth, since [ArenaRun]'s weighted pick still reads it, but
      * nothing ever charges it.
      */
-    val sellable: Boolean = true
+    val sellable: Boolean = true,
+
+    /**
+     * Whether [ArenaRun.weightedClearedFrame] may hand this out as a repeat
+     * Arena-clear reward.
+     *
+     * True for every frame that shipped before this flag existed, [ARENA_CHAMPION]
+     * included - that pool has always drawn from every frame not yet owned,
+     * sellable or not, and still should for the frames that were already in it.
+     * False only for a frame earned a specific other way (see [AchievementRewards]) -
+     * without this, [IRON_GRIP]/[NATURALISTS_COMPENDIUM]/[RAT_KINGS_CROWN] would be
+     * winnable from a lucky Arena clear with the real achievement behind them
+     * never met at all.
+     */
+    val arenaPool: Boolean = true,
+
+    /**
+     * Whether [FrameOverlayDrawable] draws a soft pulsing halo behind
+     * whatever [style] already draws - see [FrameOverlayDrawable.drawGlow].
+     * False for every frame that shipped before this existed, [IRON_GRIP]
+     * included by default until it opts in - a style shared with another
+     * frame (here, [CLOCKWORK]) must not change everywhere it is used just
+     * because one of the two frames wearing it asked for more presence.
+     */
+    val glow: Boolean = false
 )
 
 /**
@@ -207,8 +249,88 @@ object Frames {
         sellable = false
     )
 
-    val all: List<CardFrame> =
-        listOf(BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL, ARENA_CHAMPION)
+    /**
+     * Earned by raising one rat to 25 Power and 25 Toughness - see
+     * [AchievementRewards]. Pewter and boiler_glow, the same pair [BOILER]
+     * uses, but geared rather than steaming: this is a frame about a rat's
+     * own raw stats, not the Hatchery's output, so it borrows Clockwork's
+     * turning gears instead of Boiler's drifting steam.
+     *
+     * The one [FrameStyle.GEARS] frame with [glow] on - [CLOCKWORK] shares
+     * the same turning track, so the two need to be told apart by more than
+     * colour alone, and a rat that cleared this bar earned the extra
+     * presence a plain gear track does not have room to show on its own.
+     */
+    val IRON_GRIP = CardFrame(
+        id = "iron_grip",
+        nameRes = R.string.shop_name_frame_iron_grip,
+        descRes = R.string.shop_desc_frame_iron_grip,
+        strokeColorRes = R.color.pewter,
+        accentColorRes = R.color.boiler_glow,
+        style = FrameStyle.GEARS,
+        price = 400,
+        baseTier = false,
+        sellable = false,
+        arenaPool = false,
+        glow = true
+    )
+
+    /**
+     * Earned by finding every species in the roster - see [AchievementRewards].
+     * shiny_gold rather than any colour already spoken for by another frame:
+     * this badge is about the collection being complete, the same idea
+     * shiny_gold already marks everywhere else in the app.
+     *
+     * The only [FrameStyle.LIGHTNING] frame: a gold-lit border most of the
+     * time, struck twice in quick succession by a bolt in [R.color.cream] -
+     * the brightest tone this app has, so the strike itself reads as
+     * genuinely hot against the gold glow it leaves behind rather than as
+     * more gold on gold. [strokeColorRes] is [R.color.amber_dark] rather
+     * than shiny_gold itself, so the static border and the glow the strike
+     * leaves behind read as two different things.
+     */
+    val NATURALISTS_COMPENDIUM = CardFrame(
+        id = "naturalists_compendium",
+        nameRes = R.string.shop_name_frame_compendium,
+        descRes = R.string.shop_desc_frame_compendium,
+        strokeColorRes = R.color.amber_dark,
+        accentColorRes = R.color.shiny_gold,
+        accentAltColorRes = R.color.cream,
+        style = FrameStyle.LIGHTNING,
+        price = 500,
+        baseTier = false,
+        sellable = false,
+        arenaPool = false
+    )
+
+    /**
+     * Earned by walking one million lifetime steps - the single hardest
+     * milestone in the game, so the frame is built to match: the one
+     * [FrameStyle.RADIANT] frame, cycling through three golds - brass_bright,
+     * shiny_gold, boiler_glow's hot orange - rather than breathing between
+     * two the way every [FrameStyle.PULSE] frame does, and never dimming to
+     * a whisper the way those do at the bottom of their own breath. Meant to
+     * read as a tier above every other frame in the game, [ARENA_CHAMPION]
+     * included.
+     */
+    val RAT_KINGS_CROWN = CardFrame(
+        id = "rat_kings_crown",
+        nameRes = R.string.shop_name_frame_rat_king,
+        descRes = R.string.shop_desc_frame_rat_king,
+        strokeColorRes = R.color.amber_dark,
+        accentColorRes = R.color.brass_bright,
+        accentAltColorRes = R.color.shiny_gold,
+        style = FrameStyle.RADIANT,
+        price = 800,
+        baseTier = false,
+        sellable = false,
+        arenaPool = false
+    )
+
+    val all: List<CardFrame> = listOf(
+        BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL,
+        ARENA_CHAMPION, IRON_GRIP, NATURALISTS_COMPENDIUM, RAT_KINGS_CROWN
+    )
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }
 

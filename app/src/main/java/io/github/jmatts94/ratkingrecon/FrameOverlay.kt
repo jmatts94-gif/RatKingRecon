@@ -14,6 +14,7 @@ import android.os.SystemClock
 import android.view.Choreographer
 import android.view.View
 import androidx.core.graphics.ColorUtils
+import kotlin.math.max
 import kotlin.math.sin
 
 /**
@@ -63,7 +64,16 @@ class FrameOverlayDrawable(
      * every other style, where there is nothing that reads them.
      */
     private val secondaryAccent: Int? = null,
-    private val secondaryAccentAlt: Int? = secondaryAccent
+    private val secondaryAccentAlt: Int? = secondaryAccent,
+    /**
+     * Whether a soft halo breathes behind whatever [style] already draws -
+     * see [drawGlow]. False by default, so every frame that shipped before
+     * this existed is unchanged; opted into per-frame via [CardFrame.glow]
+     * rather than switched on for a whole style, since a style can be shared
+     * by a frame that wants the extra presence and one that does not - see
+     * [Frames.IRON_GRIP] and [Frames.CLOCKWORK].
+     */
+    private val glow: Boolean = false
 ) : Drawable() {
 
     private companion object {
@@ -127,6 +137,42 @@ class FrameOverlayDrawable(
         // rather than sharing a fraction with any of them.
         val GEAR_MOTIF_POSITIONS = floatArrayOf(0.13f, 0.67f)
         val SWORD_MOTIF_POSITIONS = floatArrayOf(0.31f, 0.85f)
+
+        // --- the optional glow, behind whatever the style already draws ---
+        const val GLOW_HALO_WIDTH_DP = 9f
+        const val GLOW_MIN_ALPHA = 40
+        const val GLOW_MAX_ALPHA = 150
+
+        /** One slow breath per turn of the shared clock - a presence, not a pulse to compete with the gears. */
+        const val GLOW_CYCLES = 1f
+
+        // --- the lightning strike, cutting across the card rather than
+        // tracing its border ---
+        const val LIGHTNING_INSET_DP = 10f
+
+        /** How far the bolt zigzags off the straight diagonal, each vertex. */
+        const val LIGHTNING_JAG_DP = 18f
+        const val LIGHTNING_STEPS = 5
+
+        /** Its own clock, independent of FrameClock - a strike does not share a gear's rhythm. */
+        const val LIGHTNING_PERIOD_MS = 2_600f
+        const val LIGHTNING_FLASH1_START = 0f
+        const val LIGHTNING_FLASH2_START = 0.16f
+
+        /** Both flashes share this width, as a fraction of the whole cycle - brief either way. */
+        const val LIGHTNING_FLASH_DURATION = 0.10f
+        const val LIGHTNING_GLOW_WIDTH_DP = 11f
+        const val LIGHTNING_CORE_WIDTH_DP = 2.5f
+        const val LIGHTNING_GLOW_ALPHA = 210
+
+        // --- the radiant border, cycling a full palette rather than
+        // breathing between two ---
+        const val RADIANT_HALO_WIDTH_DP = 10f
+        const val RADIANT_HALO_ALPHA = 140
+        const val RADIANT_CORE_WIDTH_DP = 4f
+
+        /** Full loops of the palette per turn of the shared clock. */
+        const val RADIANT_CYCLES = 1f
     }
 
     private var density = 1f
@@ -157,7 +203,11 @@ class FrameOverlayDrawable(
     private var dashEffects: Array<DashPathEffect>? = null
     private var crackPaths: List<Path> = emptyList()
     private var blueMotifPaths: List<Path> = emptyList()
+    private var lightningPath: Path = Path()
     private var built = false
+
+    /** RADIANT's own palette - accent, accentAlt, and a third stop off secondaryAccent. */
+    private val radiantColors: IntArray by lazy { intArrayOf(accent, accentAlt, secondaryAccent ?: accent) }
 
     /** Set by the view before this is attached, so dp can become px. */
     fun setDensity(value: Float) {
@@ -181,6 +231,7 @@ class FrameOverlayDrawable(
     private fun build() {
         buildTrack()
         if (style == FrameStyle.SCARRED) buildCracks()
+        if (style == FrameStyle.LIGHTNING) buildLightning()
         built = true
     }
 
@@ -296,10 +347,51 @@ class FrameOverlayDrawable(
         }
     }
 
+    /**
+     * A jagged bolt from the top-right corner to the bottom-left, built once
+     * against [bounds] the same way [borderPath] is - a zigzag rather than a
+     * ruled diagonal, offset alternately left and right of the straight line
+     * between the two corners so it reads as a strike rather than a scratch.
+     */
+    private fun buildLightning() {
+        val b = bounds
+        if (b.isEmpty) return
+
+        val inset = dp(LIGHTNING_INSET_DP)
+        val startX = b.right - inset
+        val startY = b.top + inset
+        val endX = b.left + inset
+        val endY = b.bottom - inset
+        val jag = dp(LIGHTNING_JAG_DP)
+
+        // The direction perpendicular to the straight diagonal, normalised -
+        // each vertex steps along the diagonal and out along this, alternating
+        // sides, rather than off the diagonal's own direction.
+        val dx = endX - startX
+        val dy = endY - startY
+        val length = kotlin.math.hypot(dx, dy).let { if (it == 0f) 1f else it }
+        val perpX = -dy / length
+        val perpY = dx / length
+
+        lightningPath = Path().apply {
+            moveTo(startX, startY)
+            for (i in 1 until LIGHTNING_STEPS) {
+                val t = i / LIGHTNING_STEPS.toFloat()
+                val baseX = startX + dx * t
+                val baseY = startY + dy * t
+                val sign = if (i % 2 == 0) 1f else -1f
+                lineTo(baseX + perpX * jag * sign, baseY + perpY * jag * sign)
+            }
+            lineTo(endX, endY)
+        }
+    }
+
     override fun draw(canvas: Canvas) {
         val b = bounds
         if (b.isEmpty) return
         if (!built) build()
+
+        if (glow) drawGlow(canvas)
 
         when (style) {
             FrameStyle.STATIC -> Unit
@@ -307,7 +399,88 @@ class FrameOverlayDrawable(
             FrameStyle.STEAM -> drawSteam(canvas, b)
             FrameStyle.PULSE -> drawPulse(canvas)
             FrameStyle.SCARRED -> drawScarred(canvas)
+            FrameStyle.LIGHTNING -> drawLightning(canvas)
+            FrameStyle.RADIANT -> drawRadiant(canvas)
         }
+    }
+
+    /**
+     * A soft halo breathing behind whatever [style] draws on top of it - see
+     * [CardFrame.glow]. Deliberately translucent even at its brightest
+     * ([GLOW_MAX_ALPHA] well short of 255): this sits behind a crisp track or
+     * border that has to stay readable, not compete with it.
+     */
+    private fun drawGlow(canvas: Canvas) {
+        val wave = (sin((FrameClock.phase() * GLOW_CYCLES * 2f * Math.PI).toFloat()) + 1f) / 2f
+
+        pulsePaint.color = accent
+        pulsePaint.strokeWidth = dp(GLOW_HALO_WIDTH_DP)
+        pulsePaint.alpha = (GLOW_MIN_ALPHA + (GLOW_MAX_ALPHA - GLOW_MIN_ALPHA) * wave).toInt().coerceIn(0, 255)
+        canvas.drawPath(borderPath, pulsePaint)
+    }
+
+    /**
+     * The strike itself: dark and still most of the cycle, then two brief
+     * flashes in quick succession - see [flashIntensity] - before going
+     * quiet again. Runs on its own clock rather than [FrameClock]'s shared
+     * phase, because a strike's rhythm has nothing to do with a gear's.
+     *
+     * The same halo-then-core trick every other animated frame uses, just
+     * gated by [intensity] rather than always drawn: a flat single-width
+     * line reads as a wire sitting on the card, not as lightning crossing it.
+     */
+    private fun drawLightning(canvas: Canvas) {
+        val t = (SystemClock.uptimeMillis() % LIGHTNING_PERIOD_MS.toLong()) / LIGHTNING_PERIOD_MS
+        val intensity = max(
+            flashIntensity(t, LIGHTNING_FLASH1_START),
+            flashIntensity(t, LIGHTNING_FLASH2_START)
+        )
+        if (intensity <= 0f) return
+
+        pulsePaint.color = accent
+        pulsePaint.strokeWidth = dp(LIGHTNING_GLOW_WIDTH_DP)
+        pulsePaint.alpha = (LIGHTNING_GLOW_ALPHA * intensity).toInt().coerceIn(0, 255)
+        canvas.drawPath(lightningPath, pulsePaint)
+
+        pulsePaint.color = accentAlt
+        pulsePaint.strokeWidth = dp(LIGHTNING_CORE_WIDTH_DP)
+        pulsePaint.alpha = (255 * intensity).toInt().coerceIn(0, 255)
+        canvas.drawPath(lightningPath, pulsePaint)
+    }
+
+    /**
+     * 0 outside [start]..[start]+[LIGHTNING_FLASH_DURATION] of the cycle,
+     * and inside it a fast rise to full brightness followed by a faster
+     * decay back to nothing - a strike, not a fade in either direction.
+     */
+    private fun flashIntensity(t: Float, start: Float): Float {
+        val local = (t - start) / LIGHTNING_FLASH_DURATION
+        if (local < 0f || local > 1f) return 0f
+        return if (local < 0.2f) local / 0.2f else 1f - (local - 0.2f) / 0.8f
+    }
+
+    /**
+     * A border cycling through [radiantColors] rather than breathing between
+     * two - see [FrameStyle.RADIANT]. The core never drops below full alpha,
+     * unlike [drawPulse]'s own breath: the colour keeps moving, but the
+     * border itself never dims, which is the difference this style is built
+     * to read as against a frame merely pulsing.
+     */
+    private fun drawRadiant(canvas: Canvas) {
+        val colors = radiantColors
+        val cyclePos = (FrameClock.phase() * RADIANT_CYCLES * colors.size) % colors.size
+        val index = cyclePos.toInt().coerceIn(0, colors.size - 1)
+        val next = (index + 1) % colors.size
+        val color = ColorUtils.blendARGB(colors[index], colors[next], cyclePos - index)
+
+        pulsePaint.color = color
+        pulsePaint.strokeWidth = dp(RADIANT_HALO_WIDTH_DP)
+        pulsePaint.alpha = RADIANT_HALO_ALPHA
+        canvas.drawPath(borderPath, pulsePaint)
+
+        pulsePaint.strokeWidth = dp(RADIANT_CORE_WIDTH_DP)
+        pulsePaint.alpha = 255
+        canvas.drawPath(borderPath, pulsePaint)
     }
 
     /**

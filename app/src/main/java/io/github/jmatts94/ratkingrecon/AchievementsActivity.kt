@@ -203,15 +203,19 @@ class AchievementsActivity : AppCompatActivity() {
         badgeList.removeAllViews()
         Bosses.all.forEach { spec ->
             val earned = Bosses.isDefeated(prefs, spec.id)
+            val reward = AchievementRewards.forBoss(spec.id)?.let { AchievementRewards.describe(this, it) }
+            val detail = when {
+                earned && reward != null -> getString(R.string.badge_earned_detail_with_reward, reward)
+                earned -> getString(R.string.badge_earned_detail)
+                reward != null -> getString(R.string.badge_locked_detail_with_reward, spec.minLevel, reward)
+                else -> getString(R.string.badge_locked_detail, spec.minLevel)
+            }
             badgeList.addView(
                 row(
                     parent = badgeList,
                     iconRes = spec.badgeRes,
                     name = if (earned) getString(spec.nameRes) else getString(R.string.badge_locked),
-                    detail = getString(
-                        if (earned) R.string.badge_earned_detail else R.string.badge_locked_detail,
-                        spec.minLevel
-                    ),
+                    detail = detail,
                     unlocked = earned,
                     progress = null
                 )
@@ -267,11 +271,18 @@ class AchievementsActivity : AppCompatActivity() {
         milestones.forEach { milestone ->
             val earned = Milestones.isEarned(prefs, milestone)
             val current = Milestones.currentFor(milestone, progress)
+            val reward = AchievementRewards.forMilestone(milestone.id)?.let { AchievementRewards.describe(this, it) }
 
             // A yes/no milestone has nothing to count towards, so it gets a
-            // plain "not yet" rather than "0 of 1".
+            // plain "not yet" rather than "0 of 1". Reward text only joins
+            // the yes/no rows - a numeric progress row already has the bar
+            // beneath it, and "37 of 100000. Reward: ..." reads as clutter a
+            // bar-only row does not have room to spare.
             val detail = when {
+                earned && reward != null -> getString(R.string.milestone_done_with_reward, reward)
                 earned -> getString(R.string.milestone_done)
+                milestone.target == 1L && reward != null ->
+                    getString(R.string.milestone_not_yet_with_reward, reward)
                 milestone.target == 1L -> getString(R.string.milestone_not_yet)
                 else -> getString(R.string.milestone_progress, current, milestone.target)
             }

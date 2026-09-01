@@ -72,7 +72,7 @@
     <string name="shop_active">Active</string>
     <string name="shop_equip">Equip</string>
     <string name="shop_equipped">Equipped</string>
-    <string name="shop_arena_reward_only">Arena Reward Only</string>
+    <string name="shop_arena_reward_only">Not For Sale</string>
     <string name="shop_coming_soon_btn">Coming Soon</string>
     <!-- description, number held -->
     <string name="shop_held">%1$s  ·  %2$d held</string>
@@ -505,6 +505,10 @@ RARE DROP: %2$s</string>
     <!-- minimum level at which the boss can appear -->
     <string name="badge_locked_detail">Stalks walkers from Level %1$d.</string>
     <string name="badge_earned_detail">Defeated.</string>
+    <!-- minimum level, reward -->
+    <string name="badge_locked_detail_with_reward">Stalks walkers from Level %1$d. Reward: %2$s</string>
+    <!-- reward -->
+    <string name="badge_earned_detail_with_reward">Defeated. %1$s</string>
     <string name="arena_badge_locked_detail">Clear Fight %1$d of the Battle Arena.</string>
     <string name="arena_badge_earned_detail">Cleared.</string>
 
@@ -525,11 +529,26 @@ RARE DROP: %2$s</string>
     <!-- Hatching milestones -->
     <string name="milestone_first_shiny">First Shiny</string>
     <string name="milestone_first_masterwork">First Masterwork</string>
+    <string name="milestone_battle_ready">Battle-Ready</string>
+    <string name="milestone_apex_rat">Apex Rat</string>
 
     <string name="milestone_done">Earned.</string>
+    <!-- earned detail, with what it paid -->
+    <string name="milestone_done_with_reward">Earned. %1$s</string>
     <string name="milestone_not_yet">Not yet.</string>
+    <!-- locked detail, with what it will pay -->
+    <string name="milestone_not_yet_with_reward">Not yet. Reward: %1$s</string>
     <!-- progress so far, target -->
     <string name="milestone_progress">%1$d of %2$d</string>
+
+    <!-- Achievement rewards - see AchievementRewards. One-time payouts on
+         Hatching, Roster, Steps and Combat Badge achievements. -->
+    <string name="achievement_reward_scrap">+%1$d Scrap</string>
+    <string name="achievement_reward_mutagen">A free Tinkerer\'s Serum, armed for your next hatch</string>
+    <string name="achievement_reward_salvage">A Salvage Cache — one random combat item</string>
+    <string name="achievement_reward_revive">1 free Revive Token</string>
+    <!-- frame name -->
+    <string name="achievement_reward_cosmetic">New frame: %1$s</string>
 
     <!-- Permanent buffs - see PermanentBuffs. Locked detail reuses milestone_progress
          (a plain count) since every unlock here is a numeric threshold but Rusted
@@ -638,6 +657,13 @@ RARE DROP: %2$s</string>
          tradeable at the Relic Trader; only clearing all 15 Arena fights grants it. -->
     <string name="shop_name_frame_arena_champion">Champion\'s Banner</string>
     <string name="shop_desc_frame_arena_champion">A battle-scarred border, cracks glowing brass-and-copper alongside newer marks in aether blue. Earned only by clearing every fight of the Battle Arena. Animated.</string>
+
+    <string name="shop_name_frame_iron_grip">Iron Grip Frame</string>
+    <string name="shop_desc_frame_iron_grip">A steel border with brass gears turning at the edge. Earned by raising one rat to 25 Power and 25 Toughness. Animated.</string>
+    <string name="shop_name_frame_compendium">Naturalist\'s Compendium</string>
+    <string name="shop_desc_frame_compendium">A gold trim for a finished collection. Earned by finding every species in the roster.</string>
+    <string name="shop_name_frame_rat_king">The Rat King\'s Crown</string>
+    <string name="shop_desc_frame_rat_king">Gold light breathing along the border. Earned by walking one million lifetime steps. Animated.</string>
 
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
     <string name="relic_rusted_gear">⚙️ Rusted Gear</string>
