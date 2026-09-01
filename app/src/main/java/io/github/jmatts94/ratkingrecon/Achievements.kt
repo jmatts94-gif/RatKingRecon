@@ -5,7 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 
 /** What a milestone is measured against. */
-enum class MilestoneKind { STEPS, RATS_HELD, SPECIES, SHINY, MASTERWORK, STAT_15, STAT_25 }
+enum class MilestoneKind { STEPS, RATS_HELD, SPECIES, SHINY, MASTERWORK, STAT_15, STAT_25, SPLICE_COUNT, SPLICE_TINKERER }
 
 /**
  * One achievement row.
@@ -32,7 +32,11 @@ data class MilestoneProgress(
     /** Whether the roster currently holds a rat at 15 Power and 15 Toughness or better. */
     val hasStat15Rat: Boolean = false,
     /** Whether the roster currently holds a rat at 25 Power and 25 Toughness or better. */
-    val hasStat25Rat: Boolean = false
+    val hasStat25Rat: Boolean = false,
+    /** Lifetime splices completed at the Fusion Pot. Only ever climbs - see [Milestones.KEY_LIFETIME_SPLICES]. */
+    val lifetimeSplices: Long = 0L,
+    /** Whether a Tinkerer roll has ever fired on a splice. */
+    val tinkererTriggered: Boolean = false
 )
 
 /**
@@ -70,6 +74,12 @@ object Milestones {
      */
     const val KEY_MASTERWORK_PULLED = "MASTERWORK_PULLED"
 
+    /** Lifetime splices completed at the Fusion Pot. Monotonic like [GameEngine.KEY_LIFETIME_STEPS]. */
+    const val KEY_LIFETIME_SPLICES = "LIFETIME_SPLICES"
+
+    /** Set the first time a Tinkerer roll fires on a splice - see [SpliceEffects.Kind.TINKERER]. */
+    const val KEY_TINKERER_TRIGGERED = "TINKERER_TRIGGERED"
+
     val steps: List<Milestone> = listOf(
         Milestone("steps_10k", R.string.milestone_first_steps, R.drawable.ic_footprint, MilestoneKind.STEPS, 10_000L),
         Milestone("steps_50k", R.string.milestone_pathfinder, R.drawable.ic_footprint, MilestoneKind.STEPS, 50_000L),
@@ -98,7 +108,20 @@ object Milestones {
         Milestone("hatch_stat25", R.string.milestone_apex_rat, R.drawable.ic_power, MilestoneKind.STAT_25, 1L)
     )
 
-    val all: List<Milestone> = steps + roster + hatching
+    /**
+     * Splicing at the Fusion Pot. "Lucky Break" pairs with [SPLICE_TINKERER] rather
+     * than a count, the same reason the other three categories keep one milestone
+     * that isn't a plain threshold - a splice track built from nothing but bigger
+     * numbers would read the same way roster and hatching already do.
+     */
+    val splicing: List<Milestone> = listOf(
+        Milestone("splice_first", R.string.milestone_first_splice, R.drawable.ic_flask, MilestoneKind.SPLICE_COUNT, 1L),
+        Milestone("splice_10", R.string.milestone_mad_scientist, R.drawable.ic_flask, MilestoneKind.SPLICE_COUNT, 10L),
+        Milestone("splice_lucky", R.string.milestone_lucky_break, R.drawable.ic_sparkle, MilestoneKind.SPLICE_TINKERER, 1L),
+        Milestone("splice_25", R.string.milestone_chimera_master, R.drawable.ic_hexagon, MilestoneKind.SPLICE_COUNT, 25L)
+    )
+
+    val all: List<Milestone> = steps + roster + hatching + splicing
 
     // ---- measuring -----------------------------------------------------------
 
@@ -111,6 +134,8 @@ object Milestones {
             MilestoneKind.MASTERWORK -> if (progress.masterworkPulled) 1L else 0L
             MilestoneKind.STAT_15 -> if (progress.hasStat15Rat) 1L else 0L
             MilestoneKind.STAT_25 -> if (progress.hasStat25Rat) 1L else 0L
+            MilestoneKind.SPLICE_COUNT -> progress.lifetimeSplices
+            MilestoneKind.SPLICE_TINKERER -> if (progress.tinkererTriggered) 1L else 0L
         }
 
     fun isMet(milestone: Milestone, progress: MilestoneProgress): Boolean =
@@ -199,12 +224,28 @@ object Milestones {
             },
             hasStat25Rat = roster.any {
                 it.effectivePower >= STAT_25_THRESHOLD && it.effectiveToughness >= STAT_25_THRESHOLD
-            }
+            },
+            lifetimeSplices = prefs.getLong(KEY_LIFETIME_SPLICES, 0L),
+            tinkererTriggered = prefs.getBoolean(KEY_TINKERER_TRIGGERED, false)
         )
     }
 
     /** Records a Masterwork pull, for the badge that has nothing else to read. */
     fun recordMasterworkPull(prefs: SharedPreferences) {
         prefs.edit().putBoolean(KEY_MASTERWORK_PULLED, true).apply()
+    }
+
+    /**
+     * Records one splice at the Fusion Pot. Monotonic like [GameEngine.KEY_LIFETIME_STEPS] -
+     * the roster shrinks as splicing is used, so a badge counting rats held would
+     * be the wrong thing to gate this on.
+     */
+    fun recordSplice(prefs: SharedPreferences) {
+        prefs.edit().putLong(KEY_LIFETIME_SPLICES, prefs.getLong(KEY_LIFETIME_SPLICES, 0L) + 1).apply()
+    }
+
+    /** Records that a Tinkerer roll has fired at least once, for "Lucky Break". */
+    fun recordTinkererTrigger(prefs: SharedPreferences) {
+        prefs.edit().putBoolean(KEY_TINKERER_TRIGGERED, true).apply()
     }
 }

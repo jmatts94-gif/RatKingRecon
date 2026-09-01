@@ -177,6 +177,8 @@ class SplicingActivity : AppCompatActivity() {
             // to act on the right row.
             val mutantId = withContext(Dispatchers.IO) {
                 val id = dao.splice(parents, mutant)
+                Milestones.recordSplice(prefs)
+                if (SpliceEffects.Kind.TINKERER in triggered) Milestones.recordTinkererTrigger(prefs)
                 Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
                 DailyQuest.record(prefs, QuestType.SPLICE)?.let {
                     DailyAlerts.postQuestPaid(applicationContext, it)

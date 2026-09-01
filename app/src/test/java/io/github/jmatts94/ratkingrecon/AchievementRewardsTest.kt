@@ -81,6 +81,17 @@ class AchievementRewardsTest {
         }
     }
 
+    @Test
+    fun `every splicing milestone maps to a reward, and the final one pays Chimera's Weave`() {
+        for (milestone in Milestones.splicing) {
+            assertTrue("no reward mapped for ${milestone.id}", AchievementRewards.forMilestone(milestone.id) != null)
+        }
+        assertEquals(
+            AchievementReward.Cosmetic(Frames.CHIMERAS_WEAVE.id),
+            AchievementRewards.forMilestone("splice_25")
+        )
+    }
+
     /**
      * The interaction this whole flag exists to prevent: a frame meant to be
      * earned one specific way must never also fall out of a lucky Arena
@@ -91,6 +102,7 @@ class AchievementRewardsTest {
         assertFalse(Frames.IRON_GRIP.arenaPool)
         assertFalse(Frames.NATURALISTS_COMPENDIUM.arenaPool)
         assertFalse(Frames.RAT_KINGS_CROWN.arenaPool)
+        assertFalse(Frames.CHIMERAS_WEAVE.arenaPool)
         assertTrue("the Arena's own flagship frame must stay in its own pool", Frames.ARENA_CHAMPION.arenaPool)
     }
 

@@ -327,9 +327,32 @@ object Frames {
         arenaPool = false
     )
 
+    /**
+     * Earned by completing 25 splices at the Fusion Pot - see [AchievementRewards].
+     * Teal rather than any of the warm metals every other frame draws from: this
+     * badge is about the Fusion Pot's own chemistry, not the Hatchery or a rat's
+     * raw stats, so it borrows Combat's cool palette instead - see [Shop.combat].
+     * Breathes the same way [EMBER] and [AETHER_COIL] do, between [R.color.teal_fill]
+     * and the paler [R.color.teal_bg], with [R.color.teal_border] as the stroke so
+     * the two never draw in the same colour.
+     */
+    val CHIMERAS_WEAVE = CardFrame(
+        id = "chimeras_weave",
+        nameRes = R.string.shop_name_frame_chimera,
+        descRes = R.string.shop_desc_frame_chimera,
+        strokeColorRes = R.color.teal_border,
+        accentColorRes = R.color.teal_fill,
+        accentAltColorRes = R.color.teal_bg,
+        style = FrameStyle.PULSE,
+        price = 450,
+        baseTier = false,
+        sellable = false,
+        arenaPool = false
+    )
+
     val all: List<CardFrame> = listOf(
         BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL,
-        ARENA_CHAMPION, IRON_GRIP, NATURALISTS_COMPENDIUM, RAT_KINGS_CROWN
+        ARENA_CHAMPION, IRON_GRIP, NATURALISTS_COMPENDIUM, RAT_KINGS_CROWN, CHIMERAS_WEAVE
     )
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }

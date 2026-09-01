@@ -110,7 +110,11 @@ class AchievementsTest {
             listOf("hatch_shiny", "hatch_masterwork", "hatch_stat15", "hatch_stat25"),
             Milestones.hatching.map { it.id }
         )
-        assertEquals(14, Milestones.all.size)
+        assertEquals(
+            listOf("splice_first", "splice_10", "splice_lucky", "splice_25"),
+            Milestones.splicing.map { it.id }
+        )
+        assertEquals(18, Milestones.all.size)
     }
 
     @Test
@@ -269,6 +273,41 @@ class AchievementsTest {
     @Test
     fun `distance is derived from steps`() {
         assertEquals(7.62, Milestones.kilometresFor(10_000L), 0.01)
+    }
+
+    // --- splicing ---------------------------------------------------------------
+
+    @Test
+    fun `lifetime splices accumulate and never decrement`() {
+        val prefs = FakePrefs()
+        repeat(3) { Milestones.recordSplice(prefs) }
+
+        assertEquals(3L, Milestones.readProgress(AchStubDao(), prefs).lifetimeSplices)
+    }
+
+    @Test
+    fun `splice count milestones latch off the lifetime total`() {
+        val prefs = FakePrefs()
+        repeat(10) { Milestones.recordSplice(prefs) }
+
+        val progress = Milestones.readProgress(AchStubDao(), prefs)
+        Milestones.refresh(prefs, progress)
+
+        assertTrue(Milestones.isEarned(prefs, Milestones.splicing.first { it.id == "splice_first" }))
+        assertTrue(Milestones.isEarned(prefs, Milestones.splicing.first { it.id == "splice_10" }))
+        assertFalse(Milestones.isEarned(prefs, Milestones.splicing.first { it.id == "splice_25" }))
+    }
+
+    @Test
+    fun `Lucky Break latches once a Tinkerer roll has fired, and survives the roster shrinking`() {
+        val prefs = FakePrefs()
+        val badge = Milestones.splicing.first { it.id == "splice_lucky" }
+        assertFalse(Milestones.isEarned(prefs, badge))
+
+        Milestones.recordTinkererTrigger(prefs)
+        Milestones.refresh(prefs, Milestones.readProgress(AchStubDao(), prefs))
+
+        assertTrue(Milestones.isEarned(prefs, badge))
     }
 
     // --- the Golden Wrench ----------------------------------------------------

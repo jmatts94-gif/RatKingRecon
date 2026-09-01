@@ -18,9 +18,15 @@ enum class QuestType {
     SPLICE
 }
 
-/** What finishing a quest paid out, so the caller can say so. */
+/**
+ * What finishing a quest paid out, so the caller can say so.
+ *
+ * [Scrap.streakBonus] is folded into [Scrap.amount] already - it is broken out
+ * separately only so a caller wording the payout can call the bonus out, the
+ * same way [DailyAlerts.postQuestPaid] does.
+ */
 sealed interface QuestReward {
-    data class Scrap(val amount: Int) : QuestReward
+    data class Scrap(val amount: Int, val streakBonus: Int = 0) : QuestReward
     data class Relic(val relic: io.github.jmatts94.ratkingrecon.Relic) : QuestReward
 }
 
@@ -60,6 +66,17 @@ object DailyQuest {
      */
     private const val STREAK_MID_TIER = 7
     private const val STREAK_TOP_TIER = 14
+
+    /**
+     * Scrap added per day of an ongoing streak, on top of the day's own roll -
+     * see [streakBonusFor]. The relic tiers above already reward a streak by
+     * widening what a relic day can pay; this is the same idea for a Scrap day,
+     * so a streak pays a little more every day rather than only at 7 and 14.
+     */
+    private const val STREAK_BONUS_PER_DAY = 2
+
+    /** Reached at streak 15, two days after the relic pool itself maxes out. */
+    private const val STREAK_BONUS_CAP = 30
 
     // ---- the day's quest -----------------------------------------------------
 
@@ -205,14 +222,18 @@ object DailyQuest {
     ): QuestReward {
         if ((1..2).random() == 1) {
             val amount = SCRAP_REWARD.random()
-            editor.putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + amount)
-            return QuestReward.Scrap(amount)
+            val bonus = streakBonusFor(streak)
+            editor.putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + amount + bonus)
+            return QuestReward.Scrap(amount + bonus, streakBonus = bonus)
         }
 
         val relic = eligibleRelics(streak).random()
         Relics.grant(prefs, editor, relic)
         return QuestReward.Relic(relic)
     }
+
+    /** The escalating top-up a streak of [streak] days has earned, capped at [STREAK_BONUS_CAP]. */
+    fun streakBonusFor(streak: Int): Int = (streak * STREAK_BONUS_PER_DAY).coerceIn(0, STREAK_BONUS_CAP)
 
     /**
      * Which relics a streak of [streak] days has earned.

@@ -76,7 +76,11 @@ object DailyAlerts {
     fun postQuestPaid(context: Context, reward: QuestReward) {
         val body = when (reward) {
             is QuestReward.Scrap ->
-                context.getString(R.string.notif_quest_paid_scrap, reward.amount)
+                if (reward.streakBonus > 0) {
+                    context.getString(R.string.notif_quest_paid_scrap_streak, reward.amount, reward.streakBonus)
+                } else {
+                    context.getString(R.string.notif_quest_paid_scrap, reward.amount)
+                }
             is QuestReward.Relic ->
                 context.getString(
                     R.string.notif_quest_paid_relic,

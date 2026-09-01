@@ -498,6 +498,8 @@ RARE DROP: %2$s</string>
     <string name="achievements_roster_sub">%1$d rats held, %2$d of %3$d species found</string>
     <string name="achievements_hatching">Hatching</string>
     <string name="achievements_hatching_sub">Rarities that only turn up once.</string>
+    <string name="achievements_splicing">Splicing</string>
+    <string name="achievements_splicing_sub">What the Fusion Pot has produced.</string>
     <string name="achievements_buffs">Permanent Buffs</string>
     <string name="achievements_buffs_sub">Earned once, and active for good from that moment on.</string>
     <!-- Escaped: a leading ? in a resource value is read as an attr reference. -->
@@ -531,6 +533,12 @@ RARE DROP: %2$s</string>
     <string name="milestone_first_masterwork">First Masterwork</string>
     <string name="milestone_battle_ready">Battle-Ready</string>
     <string name="milestone_apex_rat">Apex Rat</string>
+
+    <!-- Splicing milestones -->
+    <string name="milestone_first_splice">First Splice</string>
+    <string name="milestone_mad_scientist">Mad Scientist</string>
+    <string name="milestone_lucky_break">Lucky Break</string>
+    <string name="milestone_chimera_master">Chimera Master</string>
 
     <string name="milestone_done">Earned.</string>
     <!-- earned detail, with what it paid -->
@@ -665,6 +673,9 @@ RARE DROP: %2$s</string>
     <string name="shop_name_frame_rat_king">The Rat King\'s Crown</string>
     <string name="shop_desc_frame_rat_king">Gold light breathing along the border. Earned by walking one million lifetime steps. Animated.</string>
 
+    <string name="shop_name_frame_chimera">Chimera\'s Weave</string>
+    <string name="shop_desc_frame_chimera">A teal glow breathing through the border, mixed like something out of the Fusion Pot. Earned by completing 25 splices. Animated.</string>
+
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
     <string name="relic_rusted_gear">⚙️ Rusted Gear</string>
     <string name="relic_glowing_vial">🧪 Glowing Vial</string>
@@ -786,6 +797,8 @@ RARE DROP: %2$s</string>
     <string name="notif_quest_paid_title">Round complete</string>
     <!-- scrap paid -->
     <string name="notif_quest_paid_scrap">Today\'s round paid +%1$d Scrap.</string>
+    <!-- total scrap paid, streak bonus included in it -->
+    <string name="notif_quest_paid_scrap_streak">Today\'s round paid +%1$d Scrap (+%2$d streak bonus).</string>
     <!-- relic name -->
     <string name="notif_quest_paid_relic">Today\'s round turned up %1$s.</string>
     <string name="notif_streak_title">Your lantern is going out</string>

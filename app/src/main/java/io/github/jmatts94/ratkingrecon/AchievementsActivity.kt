@@ -47,6 +47,7 @@ class AchievementsActivity : AppCompatActivity() {
     private lateinit var stepsList: LinearLayout
     private lateinit var rosterList: LinearLayout
     private lateinit var hatchingList: LinearLayout
+    private lateinit var splicingList: LinearLayout
     private lateinit var buffsList: LinearLayout
     private lateinit var summary: TextView
     private lateinit var stepsSubtitle: TextView
@@ -69,6 +70,7 @@ class AchievementsActivity : AppCompatActivity() {
         stepsList = findViewById(R.id.stepsList)
         rosterList = findViewById(R.id.rosterList)
         hatchingList = findViewById(R.id.hatchingList)
+        splicingList = findViewById(R.id.splicingList)
         buffsList = findViewById(R.id.buffsList)
         summary = findViewById(R.id.achievementsSummary)
         stepsSubtitle = findViewById(R.id.stepsSubtitle)
@@ -136,6 +138,7 @@ class AchievementsActivity : AppCompatActivity() {
         renderMilestones(stepsList, Milestones.steps, prefs, progress)
         renderMilestones(rosterList, Milestones.roster, prefs, progress)
         renderMilestones(hatchingList, Milestones.hatching, prefs, progress)
+        renderMilestones(splicingList, Milestones.splicing, prefs, progress)
         renderBuffs(prefs)
     }
 

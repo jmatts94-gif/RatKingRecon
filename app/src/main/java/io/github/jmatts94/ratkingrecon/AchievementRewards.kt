@@ -64,6 +64,13 @@ object AchievementRewards {
         "steps_1m" to AchievementReward.Cosmetic(Frames.RAT_KINGS_CROWN.id)
     )
 
+    private val splicing = mapOf(
+        "splice_first" to AchievementReward.Scrap(15),
+        "splice_10" to AchievementReward.FreeMutagen,
+        "splice_lucky" to AchievementReward.SalvageCache,
+        "splice_25" to AchievementReward.Cosmetic(Frames.CHIMERAS_WEAVE.id)
+    )
+
     /** Keyed on [BossSpec.id], one rung of the ladder at a time. */
     private val combat = mapOf(
         "junk_golem" to AchievementReward.SalvageCache,
@@ -77,7 +84,7 @@ object AchievementRewards {
         "rustbringer" to AchievementReward.ReviveToken
     )
 
-    fun forMilestone(id: String): AchievementReward? = hatching[id] ?: roster[id] ?: steps[id]
+    fun forMilestone(id: String): AchievementReward? = hatching[id] ?: roster[id] ?: steps[id] ?: splicing[id]
 
     fun forBoss(id: String): AchievementReward? = combat[id]
 
