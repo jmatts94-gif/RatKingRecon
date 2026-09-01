@@ -9,11 +9,11 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -60,6 +60,22 @@ class TasksActivity : AppCompatActivity() {
      * clears the cache itself.
      */
     private var rosterStats: RosterStats? = null
+
+    /** Which tier [ratPicker] was opened for - read back once it returns. */
+    private var pendingTaskTier: LedgerTaskTier? = null
+
+    /** Opened by [pickRatFor], resolved by [start]. */
+    private val ratPicker = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val tier = pendingTaskTier
+        pendingTaskTier = null
+        if (tier == null || result.resultCode != RESULT_OK) return@registerForActivityResult
+
+        val ratId = result.data?.getLongExtra(TaskRatPickerActivity.EXTRA_RAT_ID, LedgerTasks.NO_RAT)
+            ?: LedgerTasks.NO_RAT
+        start(tier, ratId)
+    }
 
     private val ticker = Handler(Looper.getMainLooper())
 
@@ -375,93 +391,35 @@ class TasksActivity : AppCompatActivity() {
     }
 
     /**
-     * Offers to name a faction for [tier]'s bonus before starting it - see
-     * [TaskBonuses]. Purely optional: dismissing without picking, or picking
-     * "No rat", starts the job at baseline exactly as it always has.
-     *
-     * One row per faction rather than one per owned rat - the bonus is the
-     * same no matter which of a player's rats carries it, so a roster with six
-     * Smugglers gained nothing from six identical rows. Picking a faction
-     * resolves to that faction's best rat automatically, by the same combined
-     * stat line the Binder itself ranks by.
+     * Opens [TaskRatPickerActivity] to optionally name a rat for [tier]'s
+     * bonus before starting it - see [TaskBonuses]. Purely optional:
+     * dismissing without picking, or picking "No rat", starts the job at
+     * baseline exactly as it always has.
      *
      * The rat named here is not reserved by this - a Ledger Task has never
      * locked anything up, and naming one for a bonus does not change that.
+     *
+     * The tier's own requirement is passed along too, so the picker can dim
+     * a rat that would not itself clear it - [setupTask] only ever unlocked
+     * the Start button off the roster's own best stat, never off whichever
+     * rat ended up named, and a grid that let every rat look equally pickable
+     * under a "Requires: a Shiny rat" job read as broken even though nothing
+     * about starting the job actually was.
      */
     private fun pickRatFor(tier: LedgerTaskTier) {
-        lifecycleScope.launch {
-            val roster = withContext(Dispatchers.IO) { RatRepository.dao(this@TasksActivity).all() }
-
-            val bestOfFaction: List<RatEntity?> = TaskBonuses.FACTIONS.map { faction ->
-                roster.filter { it.faction == faction }
-                    .maxByOrNull { it.effectivePower + it.effectiveToughness }
-            }
-
-            val dialog = android.app.Dialog(this@TasksActivity)
-            dialog.setContentView(R.layout.dialog_pick_rat)
-            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-            dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
-
-            val rows = dialog.findViewById<ViewGroup>(R.id.pickRatRows)
-            val inflater = layoutInflater
-
-            addPickRow(rows, inflater, getString(R.string.task_pick_no_rat), null, enabled = true) {
-                start(tier, LedgerTasks.NO_RAT)
-                dialog.dismiss()
-            }
-
-            TaskBonuses.FACTIONS.forEachIndexed { i, faction ->
-                val bonus = getString(TaskBonuses.descriptionFor(faction)!!)
-                val rat = bestOfFaction[i]
-                val detail = if (rat != null) bonus else "$bonus ${getString(R.string.task_pick_none_owned)}"
-                addPickRow(rows, inflater, faction, detail, enabled = rat != null) {
-                    start(tier, rat!!.id)
-                    dialog.dismiss()
-                }
-            }
-
-            dialog.findViewById<View>(R.id.pickRatCloseButton).setOnClickListener { dialog.dismiss() }
-            dialog.show()
-        }
+        pendingTaskTier = tier
+        val requirement = LedgerTasks.stored(prefs, tier).requirement
+        val intent = Intent(this, TaskRatPickerActivity::class.java)
+            .putExtra(TaskRatPickerActivity.EXTRA_REQUIREMENT_KIND, requirementKindFor(tier))
+            .putExtra(TaskRatPickerActivity.EXTRA_REQUIREMENT_AMOUNT, requirement)
+        ratPicker.launch(intent)
     }
 
-    /**
-     * One faction (or "No rat") row in [R.layout.dialog_pick_rat], styled like
-     * the rest of the app rather than a plain list item.
-     *
-     * Disabled swaps the same card-white/card-muted pair the Shop already uses
-     * for an option the player cannot take right now, instead of a new
-     * treatment invented just for this dialog.
-     */
-    private fun addPickRow(
-        parent: ViewGroup,
-        inflater: android.view.LayoutInflater,
-        title: String,
-        detail: String?,
-        enabled: Boolean,
-        onPick: () -> Unit
-    ) {
-        val row = inflater.inflate(R.layout.item_task_faction_pick, parent, false)
-        row.setBackgroundResource(if (enabled) R.drawable.bg_card_white else R.drawable.bg_card_muted)
-
-        val titleColor = ContextCompat.getColor(this, if (enabled) R.color.text_primary else R.color.text_muted)
-        row.findViewById<TextView>(R.id.pickRatRowTitle).apply {
-            text = title
-            setTextColor(titleColor)
-        }
-
-        val detailView = row.findViewById<TextView>(R.id.pickRatRowDetail)
-        if (detail != null) {
-            detailView.text = detail
-        } else {
-            detailView.visibility = View.GONE
-        }
-
-        row.isEnabled = enabled
-        row.isClickable = enabled
-        if (enabled) row.setOnClickListener { onPick() }
-
-        parent.addView(row)
+    /** Which stat, if any, [tier] gates its Start button on - see [bindTasks]. */
+    private fun requirementKindFor(tier: LedgerTaskTier): String = when (tier.id) {
+        "M1" -> TaskRatPickerActivity.REQUIRES_POWER
+        "M2" -> TaskRatPickerActivity.REQUIRES_TOUGHNESS
+        else -> TaskRatPickerActivity.REQUIRES_SHINY
     }
 
     private fun start(tier: LedgerTaskTier, ratId: Long) {

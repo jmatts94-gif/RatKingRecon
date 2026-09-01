@@ -41,6 +41,10 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".TaskRatPickerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".ArenaLandingActivity"
             android:exported="false"
             android:screenOrientation="portrait"
