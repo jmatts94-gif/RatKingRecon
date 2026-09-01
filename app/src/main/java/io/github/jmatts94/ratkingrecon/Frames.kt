@@ -333,8 +333,12 @@ object Frames {
      * badge is about the Fusion Pot's own chemistry, not the Hatchery or a rat's
      * raw stats, so it borrows Combat's cool palette instead - see [Shop.combat].
      * Breathes the same way [EMBER] and [AETHER_COIL] do, between [R.color.teal_fill]
-     * and the paler [R.color.teal_bg], with [R.color.teal_border] as the stroke so
-     * the two never draw in the same colour.
+     * and [R.color.teal_light], with [R.color.teal_border] as the stroke so the
+     * two never draw in the same colour. Not [R.color.teal_bg]: that pale end
+     * measured close enough to cream/card_white that the frame nearly vanished
+     * into whatever card it sat on for half of every breath - the same
+     * not-enough-presence problem [IRON_GRIP] had on its own style, which is
+     * why this gets the same glow fix on top of the colour one.
      */
     val CHIMERAS_WEAVE = CardFrame(
         id = "chimeras_weave",
@@ -342,11 +346,12 @@ object Frames {
         descRes = R.string.shop_desc_frame_chimera,
         strokeColorRes = R.color.teal_border,
         accentColorRes = R.color.teal_fill,
-        accentAltColorRes = R.color.teal_bg,
+        accentAltColorRes = R.color.teal_light,
         style = FrameStyle.PULSE,
         price = 450,
         baseTier = false,
         sellable = false,
+        glow = true,
         arenaPool = false
     )
 

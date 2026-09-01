@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -47,6 +48,17 @@ class MainActivity : AppCompatActivity() {
          */
         const val GLOW_FADE_MS = 280L
 
+        /**
+         * One breath of the lantern's own continuous flicker on the home tile -
+         * see [startLanternFlicker]. Close to [ArenaBadgeMedallion]'s own
+         * GLOW_CYCLE_MS, so the two glows on this screen read as the same kind
+         * of light rather than two different rhythms.
+         */
+        const val LANTERN_FLICKER_MS = 1_600L
+
+        /** Never fully dark mid-flicker - a lit lantern dimming, not switching off. */
+        const val LANTERN_FLICKER_MIN_ALPHA = 130
+
         /** How long each tip sits before the next one, inside the 6-8s the note asked for. */
         const val TIP_INTERVAL_MS = 7_000L
 
@@ -58,6 +70,9 @@ class MainActivity : AppCompatActivity() {
 
     /** The Arena tile's three medallions' own spin/glow animators - see [updateArenaTile]. */
     private val arenaTileAnimators = mutableListOf<ObjectAnimator>()
+
+    /** The streak lantern's own continuous flicker - see [startLanternFlicker]. */
+    private var lanternFlicker: ObjectAnimator? = null
 
     /**
      * Keeps the Scrap Run countdown honest while the screen is open.
@@ -490,7 +505,38 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<TextView>(R.id.streakCount).text = Streak.count(sharedPreferences).toString()
 
-        applyGlow(findViewById(R.id.streakGlow), DailyQuest.percent(sharedPreferences))
+        val glow = findViewById<View>(R.id.streakGlow)
+        applyGlow(glow, DailyQuest.percent(sharedPreferences))
+        startLanternFlicker(glow)
+    }
+
+    /**
+     * A slow continuous breath on top of [applyGlow]'s own stage brightness -
+     * the home tile only, not the quest dialog's own glow, which stays the
+     * static read [applyGlow] already gave it.
+     *
+     * The same trick [ArenaBadgeMedallion.start] uses for an earned badge's
+     * own glow: this animates the background Drawable's alpha rather than the
+     * View's, so it cannot fight [applyGlow]'s ViewPropertyAnimator for the
+     * same property. [android.graphics.drawable.Drawable.mutate] first, for
+     * the same reason that one does - bg_lantern_glow is one Drawable cached
+     * and shared with the quest dialog's own glow, and animating it unmutated
+     * would flicker that one too.
+     *
+     * Restarted on every call rather than left running, the same as
+     * [updateArenaTile]'s own medallion animators - [updateScreen] can run
+     * more than once per resume, and a lantern restarting its phase
+     * occasionally is not something a player watching this tile would notice.
+     */
+    private fun startLanternFlicker(glow: View) {
+        lanternFlicker?.cancel()
+        glow.background.mutate()
+        lanternFlicker = ObjectAnimator.ofInt(glow.background, "alpha", LANTERN_FLICKER_MIN_ALPHA, 255).apply {
+            duration = LANTERN_FLICKER_MS
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            start()
+        }
     }
 
     /**
@@ -875,6 +921,8 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(stateReceiver)
         ArenaBadgeMedallion.stop(arenaTileAnimators)
         arenaTileAnimators.clear()
+        lanternFlicker?.cancel()
+        lanternFlicker = null
     }
 
     /** Fired by [StepTrackerService] whenever steps changed the save. */

@@ -1,12 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Backgrounds: warm cream fading to tan -->
+    <!--
+      Backgrounds: warm cream fading to tan.
+
+      app_bg/app_bg_end exist alongside cream/tan rather than replacing them,
+      because cream in particular does double duty as a bright accent colour
+      inside several illustrations (the hatch pipe's specular line, gear-badge
+      icon tints, every Arena screen's own light-on-dark text) that must not
+      shift just because the page background does. Only the surface role -
+      the page wash, the theme's own background/surface attrs - reads from
+      these two; see values-night/colors.xml for where they actually diverge.
+    -->
     <color name="cream">#FBF3E3</color>
     <color name="tan">#F5E6C8</color>
+    <color name="app_bg">@color/cream</color>
+    <color name="app_bg_end">@color/tan</color>
+
+    <!--
+      A shaded surface's own low end in dark steampunk - see
+      drawable-night/bg_hatch_panel.xml, bg_pill_tan.xml and bg_pill_arena.xml.
+      Unused here; every panel in this app that needs a dark-only colour still
+      carries a light-mode value, the same as
+      [highlight_glow]/[achievement_check_tint]/[destructive] below, so a
+      reference to it never needs a fallback that does not exist.
+    -->
+    <color name="panel_shade">@color/tan</color>
 
     <!-- Primary accent, used for main action buttons -->
     <color name="amber">#E8A94F</color>
     <color name="amber_dark">#C98B36</color>
+
+    <!--
+      The EXP bar's fill and the Achievements checkmark, kept apart from
+      [amber]/[amber_dark] on purpose. Both equal their "parent" colour here,
+      so light mode is unchanged - see values-night/colors.xml for the one
+      brighter gold both converge on once dark steampunk is on, which is the
+      whole reason they exist as their own names rather than reusing amber
+      directly: amber also has to stay whatever a dark steampunk *button*
+      needs, which is a different, less saturated brass.
+    -->
+    <color name="highlight_glow">@color/amber</color>
+    <color name="achievement_check_tint">@color/amber_dark</color>
 
     <!-- Card surfaces -->
     <color name="card_white">#FFFFFF</color>
@@ -22,6 +56,16 @@
 
     <!-- Dismiss actions: warm terracotta rather than a clashing red -->
     <color name="terracotta">#C1673F</color>
+
+    <!--
+      Reset Save's own colour, kept apart from [terracotta] because that name
+      is also Ember's frame colour (Frames.EMBER) - overriding it for dark
+      steampunk would recolour an owned collectible along with a button. Equal
+      to terracotta here, so light mode reads exactly as it always has; see
+      values-night/colors.xml for the lightened variant contrast needs against
+      a dark card.
+    -->
+    <color name="destructive">@color/terracotta</color>
 
     <!-- Animated Binder frames. Kept inside the warm palette so a frame reads
          as part of the workshop rather than as a sticker on top of it. -->
@@ -76,6 +120,16 @@
     <color name="teal_bg">#EAF3F0</color>
     <color name="teal_border">#BFDDD5</color>
     <color name="teal_fill">#3E8A73</color>
+
+    <!--
+      Chimera's Weave's own pulse - see Frames.CHIMERAS_WEAVE. Its breath used
+      to run all the way to teal_bg at the pale end, which is close enough to
+      cream/card_white that the frame nearly vanished into whatever card it
+      sat on for half of every cycle. This is a genuinely teal pale rather
+      than a near-white one, so the frame stays legibly teal throughout the
+      breath instead of fading out.
+    -->
+    <color name="teal_light">#7FBBA5</color>
 
     <!--
       The Aether Coil frame's pulse: pale blue-white brightening to a richer

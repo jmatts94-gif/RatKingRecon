@@ -1,29 +1,34 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!--
-      Pinned to a Light parent on purpose. The palette is hardcoded warm cream,
-      which does not invert, so a DayNight parent would mix our light surfaces
-      with dark Material chrome in night mode.
+      Pinned to a Light parent rather than DayNight, on purpose - a DayNight
+      parent would swap Material's own chrome by the system's own dark mode
+      setting, which is not what drives this app's palette. Dark steampunk
+      (see GameSettings.KEY_DARK_STEAMPUNK) reaches this theme a different
+      way: RatKingApp forces AppCompatDelegate's *own* night mode from the
+      player's saved toggle, independent of the system setting, which is what
+      makes values-night/colors.xml resolve here - see that file's own
+      comment. This style stays otherwise identical in both folders; only the
+      colours it points at, and the two status/navigation-bar booleans below,
+      actually move.
     -->
     <style name="Base.Theme.RatKingRecon" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/amber</item>
         <item name="colorOnPrimary">@color/text_primary</item>
-        <item name="colorSurface">@color/cream</item>
+        <item name="colorSurface">@color/app_bg</item>
         <item name="colorOnSurface">@color/text_primary</item>
-        <item name="android:colorBackground">@color/cream</item>
-        <item name="android:statusBarColor">@color/cream</item>
+        <item name="android:colorBackground">@color/app_bg</item>
+        <item name="android:statusBarColor">@color/app_bg</item>
         <item name="android:windowLightStatusBar">true</item>
         <!-- Warm shadows on every button; see values-v28/styles.xml. -->
         <item name="materialButtonStyle">@style/Widget.RatKing.Button</item>
         <!-- Screen transitions, for every Activity at once. -->
         <item name="android:windowAnimationStyle">@style/Animation.RatKing.Screen</item>
-        <item name="android:navigationBarColor">@color/tan</item>
+        <item name="android:navigationBarColor">@color/app_bg_end</item>
         <!--
           API 27+, and minSdk is 24. Not split into a values-v27 variant because
           the platform simply ignores a theme attribute it does not know, so the
           only thing a variant would buy is three more copies of this style to
-          keep in step - there is already a night one that exists purely to be
-          identical. On 24-26 the navigation bar keeps light icons on tan, which
-          is legible; from 27 it gets the dark ones the palette wants.
+          keep in step - values-night overrides this one directly instead.
         -->
         <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
     </style>

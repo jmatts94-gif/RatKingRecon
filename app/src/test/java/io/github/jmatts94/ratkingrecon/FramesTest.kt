@@ -161,12 +161,21 @@ class FramesTest {
         }
     }
 
-    /** Only the one frame sharing GEARS with Clockwork asked for the extra presence. */
+    /**
+     * The two frames that asked for the extra presence: Iron Grip on GEARS
+     * (shared with Clockwork, which does not glow), Chimera's Weave on PULSE
+     * (shared with Ember and Aether Coil, neither of which glow either).
+     */
     @Test
     fun `glow is opted into per frame, not switched on for a whole style`() {
+        val glowing = setOf(Frames.IRON_GRIP, Frames.CHIMERAS_WEAVE)
+
         assertTrue(Frames.IRON_GRIP.glow)
+        assertTrue(Frames.CHIMERAS_WEAVE.glow)
         assertFalse("Clockwork shares Iron Grip's style but not its glow", Frames.CLOCKWORK.glow)
-        for (frame in Frames.all - Frames.IRON_GRIP) {
+        assertFalse("Ember shares Chimera's Weave's style but not its glow", Frames.EMBER.glow)
+        assertFalse("Aether Coil shares Chimera's Weave's style but not its glow", Frames.AETHER_COIL.glow)
+        for (frame in Frames.all - glowing) {
             assertFalse("${frame.id} should not glow", frame.glow)
         }
     }

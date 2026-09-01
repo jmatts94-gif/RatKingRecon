@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dark steampunk's own earned-row treatment - see bg_card_earned.xml.
+
+  The light version is a flat 20% amber wash, which was enough distinction
+  against cream. Against a near-black card that same flat wash would barely
+  register, so this is the "mini feature moment" flagged for it: a richer
+  wash off highlight_glow (the same bright gold the checkmark and the EXP bar
+  now share) and a thicker, brighter stroke, so an earned row genuinely reads
+  as lit rather than merely tinted.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#4DE8A33D" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/highlight_glow" />
+    <corners android:radius="16dp" />
+</shape>

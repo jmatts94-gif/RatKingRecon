@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dark steampunk's own version of bg_pill_tan.
+
+  The light version's end stop (#F8F0E1) is a hand-picked near-white a few
+  percent warmer than card_white, since a colour resource cannot be referenced
+  with a modified value inline. Left as that literal hex here, every pill and
+  home-screen nav button using it would fade from card_white's own dark value
+  at the top into a stray light cream at the bottom - which is exactly the
+  bug this file exists to avoid. panel_shade stands in for it instead: a few
+  percent off card_white in the same direction the light version's own stop
+  is, just darker rather than lighter - and, unlike app_bg_end, not close
+  enough to the page itself to undercut the pill's own contrast against it.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@color/card_white"
+        android:endColor="@color/panel_shade"
+        android:type="linear" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/card_border" />
+    <corners android:radius="20dp" />
+</shape>

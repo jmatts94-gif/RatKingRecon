@@ -9,8 +9,8 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24"
-    android:tint="@color/amber_dark">
+    android:tint="@color/achievement_check_tint">
     <path
-        android:fillColor="@color/amber_dark"
+        android:fillColor="@color/achievement_check_tint"
         android:pathData="M9,16.2 L4.8,12 3.4,13.4 9,19 21,7 19.6,5.6 Z" />
 </vector>

@@ -3,6 +3,7 @@ package io.github.jmatts94.ratkingrecon
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatDelegate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -50,6 +51,20 @@ class RatKingApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Forces AppCompatDelegate's own night mode from the player's saved
+        // toggle - see GameSettings.KEY_DARK_STEAMPUNK - independent of the
+        // system's own dark mode setting, which this app otherwise ignores
+        // (see Base.Theme.RatKingRecon's own comment). Has to happen before
+        // any Activity is created: this is what makes values-night resolve
+        // from the very first screen rather than only after a later toggle.
+        AppCompatDelegate.setDefaultNightMode(
+            if (GameSettings.darkSteampunkEnabled(RatRepository.prefs(this))) {
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else {
+                AppCompatDelegate.MODE_NIGHT_NO
+            }
+        )
 
         // Decoding happens off-thread, so this is done at launch rather than at
         // the moment a cue is wanted - otherwise the first hatch of a session,

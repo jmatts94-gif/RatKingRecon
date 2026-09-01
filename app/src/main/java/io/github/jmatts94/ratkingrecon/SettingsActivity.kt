@@ -8,6 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.materialswitch.MaterialSwitch
@@ -108,6 +109,19 @@ class SettingsActivity : AppCompatActivity() {
         sound.isChecked = GameSettings.soundEnabled(prefs)
         sound.setOnCheckedChangeListener { _, on ->
             prefs.edit().putBoolean(GameSettings.KEY_SOUND, on).apply()
+        }
+
+        val darkSteampunk = findViewById<MaterialSwitch>(R.id.darkSteampunkSwitch)
+        darkSteampunk.isChecked = GameSettings.darkSteampunkEnabled(prefs)
+        darkSteampunk.setOnCheckedChangeListener { _, on ->
+            prefs.edit().putBoolean(GameSettings.KEY_DARK_STEAMPUNK, on).apply()
+            AppCompatDelegate.setDefaultNightMode(
+                if (on) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+            )
+            // Every other Activity still on the back stack is recreated by
+            // AppCompatDelegate itself as it is resumed; this one has to be
+            // told directly since it is the one already in front.
+            recreate()
         }
     }
 
@@ -257,9 +271,9 @@ class SettingsActivity : AppCompatActivity() {
      * in Room, so clearing only the preferences would leave a Level 1 player
      * still holding every rat they had.
      *
-     * The two switches are put back afterwards. They are settings rather than
-     * progress, and having them silently flip themselves on from this very
-     * screen would be a surprise.
+     * The three switches are put back afterwards. They are settings rather
+     * than progress, and having them silently flip themselves back to default
+     * from this very screen would be a surprise.
      */
     private fun resetSave() {
         setBusy(true)
@@ -268,6 +282,7 @@ class SettingsActivity : AppCompatActivity() {
                 val prefs = RatRepository.prefs(this@SettingsActivity)
                 val notifications = GameSettings.notificationsEnabled(prefs)
                 val sound = GameSettings.soundEnabled(prefs)
+                val darkSteampunk = GameSettings.darkSteampunkEnabled(prefs)
 
                 // As with import: keep a sensor event from landing mid-wipe.
                 stopService(Intent(this@SettingsActivity, StepTrackerService::class.java))
@@ -275,6 +290,7 @@ class SettingsActivity : AppCompatActivity() {
                 prefs.edit().clear()
                     .putBoolean(GameSettings.KEY_NOTIFICATIONS, notifications)
                     .putBoolean(GameSettings.KEY_SOUND, sound)
+                    .putBoolean(GameSettings.KEY_DARK_STEAMPUNK, darkSteampunk)
                     .commit()
 
                 RatRepository.dao(this@SettingsActivity).deleteAll()

@@ -1,23 +1,26 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!--
-      Deliberately identical to the light theme. The redesign is a single warm
-      cream palette; letting night mode swap surfaces would break it. Replace
-      this with a real dark palette if a night variant is ever designed.
+      Dark steampunk - see GameSettings.KEY_DARK_STEAMPUNK and RatKingApp,
+      which is what actually puts the app into this folder's resources by
+      forcing AppCompatDelegate's night mode, independent of the system
+      setting. Every colour attribute below points at the exact same names
+      the light theme does; only values-night/colors.xml differs, which is
+      what actually recolours this. The two booleans are the one thing that
+      cannot come from a colour resource - a dark status/navigation bar needs
+      light icons, the reverse of the light theme's own.
     -->
     <style name="Base.Theme.RatKingRecon" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/amber</item>
         <item name="colorOnPrimary">@color/text_primary</item>
-        <item name="colorSurface">@color/cream</item>
+        <item name="colorSurface">@color/app_bg</item>
         <item name="colorOnSurface">@color/text_primary</item>
-        <item name="android:colorBackground">@color/cream</item>
-        <item name="android:statusBarColor">@color/cream</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:colorBackground">@color/app_bg</item>
+        <item name="android:statusBarColor">@color/app_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
         <!-- Kept in step with the light theme, which this deliberately mirrors. -->
         <item name="materialButtonStyle">@style/Widget.RatKing.Button</item>
         <item name="android:windowAnimationStyle">@style/Animation.RatKing.Screen</item>
-        <item name="android:navigationBarColor">@color/tan</item>
-        <!-- API 27+, and minSdk is 24. See the light theme for why this is
-             suppressed rather than split into a values-night-v27 variant. -->
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
+        <item name="android:navigationBarColor">@color/app_bg_end</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
     </style>
 </resources>

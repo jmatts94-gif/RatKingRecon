@@ -209,6 +209,12 @@
     <string name="toggle_sound">Sound and vibration</string>
     <string name="toggle_sound_sub">Let alerts play a sound and buzz.</string>
 
+    <!-- Settings: display -->
+    <string name="settings_cat_display">Display</string>
+    <string name="settings_cat_display_sub">How the workshop looks.</string>
+    <string name="toggle_dark_steampunk">Dark steampunk</string>
+    <string name="toggle_dark_steampunk_sub">A darker brass-and-shadow palette — not a true black mode.</string>
+
     <!-- Settings: about -->
     <string name="settings_cat_about">About</string>
     <!-- version name, version code -->

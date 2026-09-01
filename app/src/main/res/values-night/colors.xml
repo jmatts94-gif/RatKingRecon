@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The "dark steampunk" palette - see GameSettings.KEY_DARK_STEAMPUNK.
+
+  Only resolved once AppCompatDelegate is told to force night mode, which
+  RatKingApp does at launch from the player's own saved toggle - this has
+  nothing to do with the system's own dark mode setting.
+
+  Deliberately narrow. Every name overridden here is a structural surface or
+  text colour used everywhere it appears; nothing a frame, a relic, or an
+  Arena screen leans on for its own identity is touched, because those are
+  meant to look the same regardless of which page they are sitting on - see
+  colors.xml's own comments on cream, terracotta and amber_dark for the
+  specific collisions that ruled each one out of a blanket override.
+-->
+<resources>
+
+    <!-- The page background and its gradient's darker end. -->
+    <color name="app_bg">#161A1D</color>
+    <color name="app_bg_end">#1E2327</color>
+
+    <!--
+      Card/panel surfaces and their border. Raised from an earlier #2B2320 -
+      close enough to app_bg above that every tile on the home screen read as
+      barely differentiated from the page behind it, not just the hatch tile
+      that got its own targeted fix first. This is the systemic version of
+      that same fix: every surface in the app reads from this one name, so
+      lifting it here is what makes every tile, pill, button and card stand
+      off the page at once rather than a drawable at a time.
+    -->
+    <color name="card_white">#362B23</color>
+    <color name="card_border">#4A3B2E</color>
+
+    <!--
+      The low end of a surface that shades itself - the hatch tile's own
+      gradient (drawable-night/bg_hatch_panel.xml) and the header/nav pills'
+      (drawable-night/bg_pill_tan.xml, bg_pill_arena.xml). All three used to
+      fade towards app_bg_end at this end, which is close enough to the page
+      itself that a tile's own *bottom* edge undercut the contrast its top
+      edge had - visible on the hatch tile first since it is the largest, but
+      true of every pill built the same way. Close to card_white instead, so
+      the shading reads as a light gradient across one raised surface rather
+      than as the surface itself fading back into the page.
+    -->
+    <color name="panel_shade">#332820</color>
+
+    <!-- Text. -->
+    <color name="text_primary">#E8DCC8</color>
+    <color name="text_muted">#C9B896</color>
+
+    <!-- Primary accent - buttons, primary actions, currency icons. -->
+    <color name="amber">#B87333</color>
+
+    <!--
+      The one brighter gold every glow moment converges on: the EXP bar's
+      fill, the Achievements checkmark, and the streak lantern (whose own
+      glow lives in drawable-night/bg_lantern_glow.xml, since its stops need
+      baked-in alpha a colour reference alone cannot carry). Both names in
+      colors.xml point at a different light-mode parent so neither shifts
+      there; here they are the same value on purpose, since dark steampunk is
+      exactly the "everything that glows reads as one light" mode.
+    -->
+    <color name="highlight_glow">#E8A33D</color>
+    <color name="achievement_check_tint">#E8A33D</color>
+
+    <!-- Disabled/muted surfaces - the progress bar track among them. -->
+    <color name="disabled_fill">#332A23</color>
+
+    <!-- Elevation shadow. A plain recess, not a glow - see the two above for the glow. -->
+    <color name="shadow_warm">#0D0A08</color>
+
+    <!--
+      Combat's cool accent. teal_bg was a near-white wash in light mode - kept
+      as-is here it would read as a stray bright card among dark ones, so it
+      gets a proper dark teal panel instead. teal_fill is brightened slightly,
+      the same reasoning as [destructive] below: a mid-tone that read clearly
+      against cream does not automatically clear contrast against near-black.
+    -->
+    <color name="teal_bg">#1E2E29</color>
+    <color name="teal_border">#3E5A50</color>
+    <color name="teal_fill">#4FA98C</color>
+
+    <!-- Chimera's Weave's pulse - see colors.xml's own comment. Sits between
+         the two above, so the breath stays visibly teal in this mode too. -->
+    <color name="teal_light">#5A8A78</color>
+
+    <!--
+      Reset Save's colour. Terracotta itself is Ember's frame colour and stays
+      untouched app-wide - this is the one place that would have used it, given
+      its own name instead. Lightened from #C1673F: measured against card_white,
+      the unlit value clears WCAG AA for large/bold text comfortably rather
+      than sitting at the edge of it.
+    -->
+    <color name="destructive">#D9835C</color>
+
+</resources>

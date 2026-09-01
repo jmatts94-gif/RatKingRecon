@@ -207,6 +207,67 @@
                     android:layout_marginStart="12dp" />
             </LinearLayout>
 
+            <!-- Display -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_cat_display"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_cat_display_sub"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_card_white"
+                android:elevation="4dp"
+                android:outlineAmbientShadowColor="@color/shadow_warm"
+                android:outlineSpotShadowColor="@color/shadow_warm"
+                tools:targetApi="28"
+                android:padding="14dp"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/toggle_dark_steampunk"
+                        android:textColor="@color/text_primary"
+                        android:textStyle="bold"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/toggle_dark_steampunk_sub"
+                        android:textColor="@color/text_muted"
+                        android:textSize="12sp"
+                        android:layout_marginTop="2dp" />
+                </LinearLayout>
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/darkSteampunkSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp" />
+            </LinearLayout>
+
             <!-- About -->
             <TextView
                 android:layout_width="match_parent"
@@ -272,9 +333,9 @@
                 android:text="@string/btn_reset_save"
                 android:textAllCaps="false"
                 android:textStyle="bold"
-                android:textColor="@color/terracotta"
+                android:textColor="@color/destructive"
                 app:backgroundTint="@color/card_white"
-                app:strokeColor="@color/terracotta"
+                app:strokeColor="@color/destructive"
                 app:strokeWidth="1dp"
                 app:cornerRadius="16dp"
         app:elevation="4dp"

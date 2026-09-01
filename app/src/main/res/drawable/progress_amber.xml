@@ -13,7 +13,10 @@
     <item android:id="@android:id/progress">
         <clip>
             <shape android:shape="rectangle">
-                <solid android:color="@color/amber" />
+                <!-- highlight_glow rather than amber directly, so dark
+                     steampunk's brighter fill and its amber buttons can move
+                     independently - see colors.xml's own comment on the two. -->
+                <solid android:color="@color/highlight_glow" />
                 <corners android:radius="8dp" />
             </shape>
         </clip>

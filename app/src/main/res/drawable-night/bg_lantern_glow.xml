@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Dark steampunk's own streak lantern glow - see bg_lantern_glow.xml.
+
+  The light version's stops were tuned against cream, where brass_bright had
+  to fight a bright page to read as light at all. Against dark steampunk's
+  near-black page the same fight does not exist - a gaslight glows brightest
+  exactly where the room is darkest - so this is the other half of the "mini
+  feature moment" flagged for it: highlight_glow's own brighter gold, richer
+  at both stops than the light version's brass_bright ever needed to be,
+  since there is finally room for it to actually blaze.
+
+  Still built as baked-in alpha per stop rather than a colour reference alone
+  - drawable XML cannot combine @color/x with its own separate alpha here,
+  the same reason the light version is hand-written hex rather than a name.
+  MainActivity.applyGlow's own alpha/scale animation is unchanged; only what
+  it is animating moved.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <gradient
+        android:type="radial"
+        android:gradientRadius="50%"
+        android:startColor="#F2E8A33D"
+        android:centerColor="#99E8A33D"
+        android:endColor="#00E8A33D" />
+</shape>
