@@ -7,10 +7,10 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
@@ -119,15 +119,39 @@ class RelicTraderActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * A row per available item, styled like every other in-app picker - see
+     * BattleActivity.showItemsDialog, which this mirrors - rather than the
+     * plain text list a stock AlertDialog draws.
+     */
     private fun chooseItemVoucher(exchange: RelicExchange) {
         val items = RelicTrader.availableItemChoices(prefs)
-        val labels = items.map { getString(itemNameRes(it)) }.toTypedArray()
 
-        AlertDialog.Builder(this)
-            .setTitle(R.string.trade_pick_item)
-            .setItems(labels) { _, which -> settle(exchange, items[which].name) }
-            .setNegativeButton(R.string.trade_cancel, null)
-            .show()
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_item_voucher)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
+
+        val rows = dialog.findViewById<ViewGroup>(R.id.itemVoucherRows)
+        val inflater = LayoutInflater.from(this)
+
+        items.forEach { item ->
+            val row = inflater.inflate(R.layout.item_voucher_choice, rows, false)
+
+            row.findViewById<ImageView>(R.id.voucherChoiceIcon).setImageResource(itemIconRes(item))
+            row.findViewById<TextView>(R.id.voucherChoiceLabel).text = getString(itemNameRes(item))
+            row.findViewById<MaterialButton>(R.id.voucherChoicePickButton).setOnClickListener {
+                dialog.dismiss()
+                settle(exchange, item.name)
+            }
+
+            rows.addView(row)
+        }
+
+        dialog.findViewById<MaterialButton>(R.id.itemVoucherCancelButton).setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun itemNameRes(item: BattleItem): Int = when (item) {
@@ -135,6 +159,13 @@ class RelicTraderActivity : AppCompatActivity() {
         BattleItem.CORROSIVE_CHARGE -> R.string.shop_name_corrosive_charge
         BattleItem.REINFORCED_PLATING -> R.string.shop_name_reinforced_plating
         BattleItem.CLEANSE -> R.string.shop_name_cleanse
+    }
+
+    private fun itemIconRes(item: BattleItem): Int = when (item) {
+        BattleItem.HP_TONIC -> R.drawable.ic_flask
+        BattleItem.REINFORCED_PLATING -> R.drawable.ic_toughness
+        BattleItem.CORROSIVE_CHARGE -> R.drawable.ic_settings
+        BattleItem.CLEANSE -> R.drawable.ic_sparkle
     }
 
     private fun settle(exchange: RelicExchange, choiceId: String?) {
