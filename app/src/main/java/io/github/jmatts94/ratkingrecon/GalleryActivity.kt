@@ -134,10 +134,11 @@ class GalleryActivity : AppCompatActivity() {
     /**
      * Swaps the list behind the grid.
      *
-     * Sorting and filtering happen in SQL rather than in memory, and the result
-     * is handed to the adapter, which diffs it against what is already shown -
-     * so changing filter moves the cards that moved rather than rebuilding all
-     * of them.
+     * Every sort loads the full roster and orders it in Kotlin, by the same
+     * combined stat line the cards themselves show - see the POWER case
+     * below. The result is handed to the adapter, which diffs it against
+     * what is already shown, so changing filter moves the cards that moved
+     * rather than rebuilding all of them.
      */
     private fun renderGrid(filter: String) {
         currentFilter = filter
@@ -145,7 +146,18 @@ class GalleryActivity : AppCompatActivity() {
             val filteredList = withContext(Dispatchers.IO) {
                 val dao = RatRepository.dao(this@GalleryActivity)
                 when (filter) {
-                    "POWER" -> dao.byPowerDesc()
+                    // Not a @Query like the others: byPowerDesc() orders by
+                    // the stored power column, but the card shows
+                    // effectivePower/effectiveToughness (stat + rarity
+                    // bonus) - see RatCardAdapter.onBindViewHolder. Sorting
+                    // by the raw column let a 2/2 outrank a 1/55, since
+                    // toughness and the rarity bonus were both ignored.
+                    // Sorted in Kotlin instead, by the same combined stat
+                    // line the cards themselves show.
+                    "POWER" -> dao.all().sortedWith(
+                        compareByDescending<RatEntity> { it.effectivePower + it.effectiveToughness }
+                            .thenBy { it.id }
+                    )
                     // Rarity and faction are both derived from artKey, not a
                     // column, so neither can be a @Query like the others -
                     // sorted in Kotlin instead, ties broken by the same
