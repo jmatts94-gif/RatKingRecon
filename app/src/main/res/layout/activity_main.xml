@@ -685,20 +685,8 @@
             android:outlineSpotShadowColor="@color/shadow_warm"
             tools:targetApi="28" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/devResetButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/btn_dev_reset"
-            android:textAllCaps="false"
-            android:textSize="11sp"
-            android:textColor="@color/text_muted"
-            app:backgroundTint="@android:color/transparent"
-            app:elevation="0dp" />
-
         <!--
-          A worn scrap-note in the dead space below Dev Reset: ambient flavor
+          A worn scrap-note in the dead space below Settings: ambient flavor
           and tips, cycled and crossfaded by MainActivity's tip ticker.
 
           bg_scrap_note rather than bg_pill_tan or bg_card_muted - no elevation,

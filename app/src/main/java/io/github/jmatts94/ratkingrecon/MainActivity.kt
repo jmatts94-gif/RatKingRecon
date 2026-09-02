@@ -392,26 +392,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(android.content.Intent(this, ArenaLandingActivity::class.java))
         }
 
-        findViewById<Button>(R.id.devResetButton).setOnClickListener {
-            sharedPreferences.edit().clear().apply()
-            playerLevel = 1
-            currentExp = 0
-            maxExp = GameEngine.maxExpFor(1)
-
-            // In-memory state has to go too, or a cleared bounty still blocks
-            // the Contract Board until the app is restarted.
-            isBountyActive = false
-            bountyReward = 0
-            bountyTargetSteps = 0f
-            bountyEndTime = 0L
-            isExpeditionActive = false
-            deployedRatId = -1L
-            expeditionEndTime = 0L
-
-            updateScreen()
-            Toast.makeText(this, getString(R.string.toast_game_reset), Toast.LENGTH_SHORT).show()
-        }
-
         // Load the rest of the game data
         loadGame()
 

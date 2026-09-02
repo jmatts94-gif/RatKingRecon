@@ -96,7 +96,6 @@
     <string name="btn_open_ledger">The Rat Ledger</string>
     <string name="btn_shop">Shop</string>
     <string name="btn_settings">Settings</string>
-    <string name="btn_dev_reset">Dev Reset</string>
 
     <!--
       The three tiles stacked beside the egg. All read existing state; none of
@@ -116,7 +115,7 @@
 
     <!--
       Ambient flavor and tips cycled in the small tile at the foot of the home
-      screen, below Dev Reset. Nothing reads which one is showing, so this list
+      screen, below Settings. Nothing reads which one is showing, so this list
       is edited or extended by changing entries here and nothing else.
     -->
     <string-array name="gameplay_tips">
@@ -276,7 +275,6 @@ RARE DROP: %2$s</string>
     <string name="splice_effect_scavenger">♻️ Scavenger instinct! %1$d Scrap refunded</string>
     <!-- rat name -->
     <string name="toast_hatch_joined">%1$s hatched and joined the Ledger!</string>
-    <string name="toast_game_reset">Game Reset</string>
 
     <!-- Ledger Tasks (timed roster jobs). mission_checking_roster is shared with
          the Contract Board dialog, so it keeps its original name. -->
