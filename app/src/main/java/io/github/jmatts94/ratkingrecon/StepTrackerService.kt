@@ -306,7 +306,7 @@ class StepTrackerService : Service(), SensorEventListener {
                 description = getString(R.string.channel_hatch_desc)
                 enableVibration(true)
                 setSound(
-                    Uri.parse("android.resource://$packageName/${R.raw.hatch}"),
+                    Uri.parse("android.resource://$packageName/${R.raw.sfx_hatch}"),
                     AudioAttributes.Builder()
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .setUsage(AudioAttributes.USAGE_NOTIFICATION)

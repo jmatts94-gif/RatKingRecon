@@ -242,6 +242,13 @@ class TasksActivity : AppCompatActivity() {
         bindContracts()
         refresh()
         ticker.postDelayed(tick, TICK_MS)
+
+        CoachMarkOverlay.showIfDue(
+            activity = this,
+            shouldShow = TasksCoachMarks.shouldShow(prefs),
+            steps = TasksCoachMarks.stepsFor(prefs),
+            onFinish = { TasksCoachMarks.markComplete(prefs) }
+        )
     }
 
     override fun onPause() {
@@ -471,7 +478,10 @@ class TasksActivity : AppCompatActivity() {
             LedgerTasks.reroll(editor, tier)
             editor.apply()
 
-            if (relic != null) GameSounds.play(this@TasksActivity, GameSounds.Cue.RELIC)
+            if (relic != null) {
+                GameSounds.play(this@TasksActivity, GameSounds.Cue.RELIC)
+                Haptics.play(this@TasksActivity, Haptics.Cue.RELIC)
+            }
 
             // Foundry-born's bonus EXP, banked through the same path a walked
             // step would use - see GameEngine.bankBonusExp. A hatch from this

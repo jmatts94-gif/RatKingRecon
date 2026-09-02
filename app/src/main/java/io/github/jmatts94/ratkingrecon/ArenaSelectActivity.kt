@@ -67,6 +67,13 @@ class ArenaSelectActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.arenaSelectConfirmButton).setOnClickListener { confirm() }
 
         load()
+
+        CoachMarkOverlay.showIfDue(
+            activity = this,
+            shouldShow = ArenaCoachMarks.shouldShow(prefs),
+            steps = ArenaCoachMarks.stepsFor(prefs),
+            onFinish = { ArenaCoachMarks.markComplete(prefs) }
+        )
     }
 
     private fun onPetTapped(pet: RatEntity) {

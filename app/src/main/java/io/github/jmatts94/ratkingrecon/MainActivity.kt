@@ -415,6 +415,7 @@ class MainActivity : AppCompatActivity() {
         // same moment heard while the player is watching it, where the alert is
         // deliberately suppressed.
         GameSounds.play(this, GameSounds.Cue.HATCH)
+        Haptics.play(this, Haptics.Cue.HATCH)
     }
 
     private fun updateScreen() {
@@ -797,7 +798,12 @@ class MainActivity : AppCompatActivity() {
         // with the player. It has to be here rather than in onCreate: the splash
         // is started and not waited for, so onCreate has no idea whether it is
         // done. See CoachMarks.shouldShow.
-        CoachMarkOverlay.showIfDue(this)
+        CoachMarkOverlay.showIfDue(
+            activity = this,
+            shouldShow = CoachMarks.shouldShow(sharedPreferences),
+            steps = CoachMarks.stepsFor(sharedPreferences),
+            onFinish = { CoachMarks.markComplete(sharedPreferences) }
+        )
 
         maybeShowWhatsNew()
     }

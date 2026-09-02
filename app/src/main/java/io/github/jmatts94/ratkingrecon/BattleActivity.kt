@@ -474,6 +474,7 @@ class BattleActivity : AppCompatActivity() {
 
             if (resolution.won) {
                 GameSounds.play(this@BattleActivity, GameSounds.Cue.VICTORY)
+                Haptics.play(this@BattleActivity, Haptics.Cue.VICTORY)
                 lines += getString(
                     R.string.battle_won, resolution.ratName, resolution.botName, resolution.reward
                 )
@@ -484,6 +485,8 @@ class BattleActivity : AppCompatActivity() {
                 }
                 render()
             } else {
+                GameSounds.play(this@BattleActivity, GameSounds.Cue.DEFEAT)
+                Haptics.play(this@BattleActivity, Haptics.Cue.DEFEAT)
                 lines += EncounterResolver.lossMessage(this@BattleActivity, resolution)
                 render()
             }
@@ -575,6 +578,9 @@ class BattleActivity : AppCompatActivity() {
 
     /** The fight-15 celebration: final reward, the cosmetic drop, then back to the Workshop. */
     private fun showArenaClearedDialog(outcome: ArenaFightOutcome) {
+        GameSounds.play(this, GameSounds.Cue.ARENA_CLEARED)
+        Haptics.play(this, Haptics.Cue.ARENA_CLEARED)
+
         val dialog = android.app.Dialog(this)
         dialog.setContentView(R.layout.dialog_arena_cleared)
         dialog.setCancelable(false)

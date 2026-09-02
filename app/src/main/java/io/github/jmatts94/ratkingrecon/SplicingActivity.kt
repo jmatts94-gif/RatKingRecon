@@ -59,6 +59,13 @@ class SplicingActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.spliceConfirmButton).setOnClickListener { splice() }
 
         load()
+
+        CoachMarkOverlay.showIfDue(
+            activity = this,
+            shouldShow = SplicingCoachMarks.shouldShow(prefs),
+            steps = SplicingCoachMarks.stepsFor(prefs),
+            onFinish = { SplicingCoachMarks.markComplete(prefs) }
+        )
     }
 
     private fun onPetTapped(pet: RatEntity) {
@@ -193,6 +200,13 @@ class SplicingActivity : AppCompatActivity() {
             // The result card is the confirmation - which faction effects
             // fired shows right on it, below Power/Toughness, so there is
             // nothing left for a toast to say.
+            //
+            // HATCH rather than a splice-specific cue: a new rat joining the
+            // roster is the same beat whether it walked out of an egg or the
+            // Fusion Pot, and a near-identical second cue would only earn its
+            // keep once there is a distinct sound to pair it with.
+            GameSounds.play(this@SplicingActivity, GameSounds.Cue.HATCH)
+            Haptics.play(this@SplicingActivity, Haptics.Cue.HATCH)
             EnlargedRatDialog.show(
                 activity = this@SplicingActivity,
                 pet = mutant.copy(id = mutantId),

@@ -14,17 +14,26 @@ import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnPreDraw
 import com.google.android.material.button.MaterialButton
 
 /**
- * The first-visit walkthrough of the workshop screen.
+ * The first-visit walkthrough of a screen.
  *
- * A view rather than an Activity or a Dialog, added over MainActivity's own
- * content. That is the whole reason it can point at anything: the pills and the
- * lantern being described are the real ones, still on screen underneath, so
- * there is nothing to keep in step with them and no second copy of the home
- * screen to maintain. Retiring it is removing a view.
+ * A view rather than an Activity or a Dialog, added over the host activity's
+ * own content. That is the whole reason it can point at anything: whatever is
+ * being described is the real view, still on screen underneath, so there is
+ * nothing to keep in step with it and no second copy of the screen to
+ * maintain. Retiring it is removing a view.
+ *
+ * Generic over which walkthrough it is playing - [steps] is already the stops
+ * one player is owed on one screen (home, Arena, Splicing, Tasks, ...), and
+ * [onFinish] is that walkthrough's own bookkeeping (bumping its own revision
+ * in its own preference key). The overlay itself knows nothing about any of
+ * that; see [CoachMarks] for the home screen's walkthrough and the pattern a
+ * screen's own object follows to add one of its own.
  *
  * The dimming and the hole are a single [Path] filled EVEN_ODD - a rectangle the
  * size of the screen with a rounded rectangle inside it, where the doubled
@@ -33,18 +42,10 @@ import com.google.android.material.button.MaterialButton
  * saveLayer every frame or fall apart at the corners.
  */
 class CoachMarkOverlay private constructor(
-    private val activity: AppCompatActivity
+    private val activity: AppCompatActivity,
+    private val steps: List<CoachMark>,
+    private val onFinish: () -> Unit
 ) : FrameLayout(activity) {
-
-    /**
-     * The stops this player is owed, read once when the overlay is built.
-     *
-     * Not [CoachMarks.steps] - that is the whole walkthrough, and somebody
-     * returning after an update is owed only the part of it that changed. Read
-     * once rather than per step so the list cannot shift underneath the counter
-     * while it is being walked.
-     */
-    private val steps = CoachMarks.stepsFor(RatRepository.prefs(activity))
 
     private val density = resources.displayMetrics.density
     private val holePad = 6 * density
@@ -75,6 +76,20 @@ class CoachMarkOverlay private constructor(
 
     private var index = 0
 
+    /**
+     * The status bar/cutout at the top and the nav bar at the bottom, so the
+     * card never lands underneath either.
+     *
+     * [EdgeToEdge] pads the activity's own root view for these, but this
+     * overlay is added as that root's sibling, straight onto
+     * `android.R.id.content` - a second, later child the same listener never
+     * reaches. Read directly instead, rather than depending on the host
+     * activity having already run [EdgeToEdge.apply] on some view this one
+     * happens to sit next to.
+     */
+    private var topInset = 0
+    private var bottomInset = 0
+
     private val backCallback = object : OnBackPressedCallback(true) {
         // Back steps backwards, and closes from the first stop. Trapping someone
         // behind four captions would be worse than letting them out, and the
@@ -92,6 +107,16 @@ class CoachMarkOverlay private constructor(
         // and would otherwise be tappable through the dimming.
         isClickable = true
         setOnClickListener { advance() }
+
+        ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            topInset = bars.top
+            bottomInset = bars.bottom
+            if (holeReady) positionCard()
+            insets
+        }
 
         card = LayoutInflater.from(context).inflate(R.layout.view_coach_mark, this, false)
         (card.layoutParams as LayoutParams).apply {
@@ -168,7 +193,12 @@ class CoachMarkOverlay private constructor(
         invalidate()
     }
 
-    /** Below the hole where it fits, above it where it does not. */
+    /**
+     * Below the hole where it fits, above it where it does not - clamped
+     * inside [topInset]/[bottomInset] either way, so a hole tall enough to
+     * fail both (a grid filling most of the screen) still lands the card
+     * clear of the status bar rather than jammed underneath it.
+     */
     private fun positionCard() {
         val available = width - 2 * side
         if (available <= 0) return
@@ -180,8 +210,9 @@ class CoachMarkOverlay private constructor(
         val cardHeight = card.measuredHeight
 
         val below = hole.bottom + gap
-        card.translationY = if (below + cardHeight <= height - gap) below
-        else (hole.top - gap - cardHeight).coerceAtLeast(gap)
+        val bottomLimit = height - bottomInset - gap
+        card.translationY = if (below + cardHeight <= bottomLimit) below
+        else (hole.top - gap - cardHeight).coerceAtLeast(topInset + gap)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -196,7 +227,7 @@ class CoachMarkOverlay private constructor(
 
     /** Retires the walkthrough, whether it was finished or skipped. */
     private fun finish() {
-        CoachMarks.markComplete(RatRepository.prefs(activity))
+        onFinish()
         backCallback.isEnabled = false
         (parent as? ViewGroup)?.removeView(this)
     }
@@ -204,24 +235,36 @@ class CoachMarkOverlay private constructor(
     companion object {
 
         /**
-         * Runs the walkthrough over [activity], if it is owed one.
+         * Runs a walkthrough over [activity], if [shouldShow] says it is owed
+         * one - the caller's own `Walkthrough.shouldShow(prefs)`, evaluated
+         * before this is called rather than inside it, since it is the
+         * caller's preference key being read.
+         *
+         * [onFinish] is the caller's own `Walkthrough.markComplete(prefs)`,
+         * called whether the walkthrough was finished or skipped - both write
+         * the flag, the same bargain [CoachMarks] already made.
          *
          * Safe to call on every resume - the flag decides, and the flag is
-         * written on the way out by both the last Next and Skip.
+         * written on the way out either way.
          */
-        fun showIfDue(activity: AppCompatActivity) {
-            if (!CoachMarks.shouldShow(RatRepository.prefs(activity))) return
+        fun showIfDue(
+            activity: AppCompatActivity,
+            shouldShow: Boolean,
+            steps: List<CoachMark>,
+            onFinish: () -> Unit
+        ) {
+            if (!shouldShow || steps.isEmpty()) return
 
             val host = activity.findViewById<ViewGroup>(android.R.id.content) ?: return
-            val overlay = CoachMarkOverlay(activity)
+            val overlay = CoachMarkOverlay(activity, steps, onFinish)
             host.addView(
                 overlay,
                 LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
             )
             activity.onBackPressedDispatcher.addCallback(activity, overlay.backCallback)
 
-            // The home screen is still being laid out on the resume that gets
-            // here first; nothing can be measured until it has settled.
+            // The screen is still being laid out on the resume that gets here
+            // first; nothing can be measured until it has settled.
             overlay.doOnPreDraw { overlay.showStep(0) }
         }
     }

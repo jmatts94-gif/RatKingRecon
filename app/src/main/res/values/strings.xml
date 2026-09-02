@@ -178,6 +178,21 @@
     <string name="coach_arena_tile">Your deepest Battle Arena run, and the badges earned along the way. Tap to see them on the Achievements screen.</string>
     <string name="coach_battle_arena">The Battle Arena: an escalating 15-fight gauntlet for your strongest rat, no healing between fights, with an exclusive reward for clearing it.</string>
 
+    <!-- ArenaSelectActivity's own walkthrough - see ArenaCoachMarks. -->
+    <string name="coach_arena_select_grid">Pick the one rat this run is built around — no swapping once the run starts.</string>
+    <string name="coach_arena_select_status">A recovering rat is greyed out and can\'t be picked here until it\'s back on its feet.</string>
+    <string name="coach_arena_select_confirm">Confirm locks them in and starts the climb.</string>
+
+    <!-- SplicingActivity's own walkthrough - see SplicingCoachMarks. -->
+    <string name="coach_splice_grid">Pick two rats to feed the Fusion Pot — the mutant it mints takes the higher Power and Toughness of the two, plus one.</string>
+    <string name="coach_splice_status">Each parent\'s faction can roll its own bonus effect on the splice — what fired shows right on the result card.</string>
+    <string name="coach_splice_confirm">Confirm spends the Scrap and reveals what you got.</string>
+
+    <!-- TasksActivity's own walkthrough - see TasksCoachMarks. -->
+    <string name="coach_tasks_contracts">Short, Medium, or Long — pick a walking contract and it starts tracking your steps right away. Only one runs at a time.</string>
+    <string name="coach_tasks_ledger">A Ledger Task needs a rat clearing its stat requirement, not just its faction. Send one off and it\'s back when the timer runs out.</string>
+    <string name="coach_tasks_relics">A Ledger Task has a chance to pay out a Relic on top of its usual reward. Your running total sits here.</string>
+
     <!-- First-launch walkthrough -->
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
