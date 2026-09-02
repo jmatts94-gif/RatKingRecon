@@ -79,7 +79,7 @@
                     android:layout_width="16dp"
                     android:layout_height="16dp"
                     android:src="@drawable/ic_settings"
-                    android:tint="@color/cream"
+                    app:tint="@color/cream"
                     android:importantForAccessibility="no" />
 
                 <ImageView
@@ -88,7 +88,7 @@
                     android:layout_height="16dp"
                     android:layout_marginStart="2dp"
                     android:src="@drawable/ic_settings"
-                    android:tint="@color/cream"
+                    app:tint="@color/cream"
                     android:importantForAccessibility="no" />
 
                 <ImageView
@@ -97,7 +97,7 @@
                     android:layout_height="16dp"
                     android:layout_marginStart="2dp"
                     android:src="@drawable/ic_settings"
-                    android:tint="@color/cream"
+                    app:tint="@color/cream"
                     android:importantForAccessibility="no" />
             </LinearLayout>
         </FrameLayout>

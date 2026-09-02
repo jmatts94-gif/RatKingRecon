@@ -21,7 +21,7 @@
         android:src="@drawable/ic_settings"
         android:alpha="0.10"
         android:importantForAccessibility="no"
-        android:tint="@color/copper" />
+        app:tint="@color/copper" />
 
     <ImageView
         android:id="@+id/arenaGearTwo"
@@ -33,7 +33,7 @@
         android:src="@drawable/ic_settings"
         android:alpha="0.12"
         android:importantForAccessibility="no"
-        android:tint="@color/brass_bright" />
+        app:tint="@color/brass_bright" />
 
     <LinearLayout
         android:layout_width="match_parent"

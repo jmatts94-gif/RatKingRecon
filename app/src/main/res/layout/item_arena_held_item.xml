@@ -5,6 +5,7 @@
   in, not something spent here, so there is no Use button.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -18,7 +19,7 @@
         android:layout_height="22dp"
         android:layout_marginEnd="12dp"
         android:importantForAccessibility="no"
-        android:tint="@color/brass_bright"
+        app:tint="@color/brass_bright"
         tools:src="@drawable/ic_flask" />
 
     <TextView
