@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "834495806954",
+    "project_id": "rat-king-recon",
+    "storage_bucket": "rat-king-recon.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:834495806954:android:52d24d0c4665ab57ad4693",
+        "android_client_info": {
+          "package_name": "io.github.jmatts94.ratkingrecon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZ-jK6YH2Iy8wlD9up00sbHcVgFDr6_Fo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -159,6 +159,6 @@ dependencies {
 
     if (hasFirebaseConfig) {
         implementation(platform(libs.firebase.bom))
-        implementation(libs.firebase.crashlytics.ktx)
+        implementation(libs.firebase.crashlytics)
     }
 }
