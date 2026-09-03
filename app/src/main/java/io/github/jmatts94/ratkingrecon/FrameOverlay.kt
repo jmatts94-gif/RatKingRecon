@@ -75,7 +75,19 @@ class FrameOverlayDrawable(
      * by a frame that wants the extra presence and one that does not - see
      * [Frames.IRON_GRIP] and [Frames.CLOCKWORK].
      */
-    private val glow: Boolean = false
+    private val glow: Boolean = false,
+    /**
+     * The border path's own corner radius and inset from the view's bounds,
+     * in dp - see [buildTrack]. Default to [TRACK_CORNER_DP]/[TRACK_INSET_DP],
+     * tuned for item_rat_card.xml's small MaterialCardView grid tile
+     * (app:cardCornerRadius 14dp, a 3dp stroke). A caller drawing this over a
+     * card shaped differently - see [EnlargedRatDialog], whose card carries
+     * a 34dp corner and a 5dp stroke - must pass its own matching values, or
+     * every style built from [borderPath] traces a corner too tight for the
+     * card underneath it and visibly pokes out past the card's own edge.
+     */
+    private val trackCornerDp: Float = TRACK_CORNER_DP,
+    private val trackInsetDp: Float = TRACK_INSET_DP
 ) : Drawable() {
 
     companion object {
@@ -87,8 +99,17 @@ class FrameOverlayDrawable(
          * both show whatever frame the player has equipped and would
          * otherwise each carry their own copy of this lookup, one of them
          * eventually drifting from the other.
+         *
+         * [trackCornerDp]/[trackInsetDp] default to null, which leaves
+         * [FrameOverlayDrawable]'s own grid-tuned defaults in place - only a
+         * caller whose card is shaped differently needs to pass its own.
          */
-        fun forFrame(context: Context, frame: CardFrame): FrameOverlayDrawable = FrameOverlayDrawable(
+        fun forFrame(
+            context: Context,
+            frame: CardFrame,
+            trackCornerDp: Float? = null,
+            trackInsetDp: Float? = null
+        ): FrameOverlayDrawable = FrameOverlayDrawable(
             frame.style,
             ContextCompat.getColor(context, frame.accentColorRes),
             ContextCompat.getColor(context, frame.accentAltColorRes),
@@ -107,7 +128,9 @@ class FrameOverlayDrawable(
                 FrameStyle.RADIANT -> ContextCompat.getColor(context, R.color.boiler_glow)
                 else -> null
             },
-            glow = frame.glow
+            glow = frame.glow,
+            trackCornerDp = trackCornerDp ?: TRACK_CORNER_DP,
+            trackInsetDp = trackInsetDp ?: TRACK_INSET_DP
         ).apply { setDensity(context.resources.displayMetrics.density) }
 
         // --- the gear track running the perimeter ---
@@ -280,7 +303,7 @@ class FrameOverlayDrawable(
         val b = bounds
         if (b.isEmpty) return
 
-        val inset = dp(TRACK_INSET_DP)
+        val inset = dp(trackInsetDp)
         val width = dp(TRACK_WIDTH_DP)
         trackPaint.strokeWidth = width
 
@@ -294,8 +317,8 @@ class FrameOverlayDrawable(
         borderPath.reset()
         borderPath.addRoundRect(
             borderRect,
-            dp(TRACK_CORNER_DP),
-            dp(TRACK_CORNER_DP),
+            dp(trackCornerDp),
+            dp(trackCornerDp),
             Path.Direction.CW
         )
 

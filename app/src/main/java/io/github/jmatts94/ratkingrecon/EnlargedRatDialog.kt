@@ -80,19 +80,36 @@ object EnlargedRatDialog {
         val equippedFrame = Frames.byId(ShopEffects.equippedCosmetic(prefs))
         val frameAnimator = FrameAnimator()
         if (equippedFrame != null) {
+            // This card's own corner radius and stroke width - bg_recon_card_outer's
+            // declared 34dp radius, and the border's 5dp padding in
+            // dialog_enlarged_rat.xml. Both the solid stroke below and the
+            // animated overlay's own border path (see FrameOverlayDrawable's
+            // trackCornerDp/trackInsetDp) have to agree with these exact
+            // numbers, or the two visibly disagree at every corner - an
+            // animated frame's track built for the grid's much smaller,
+            // tighter card pokes out past this card's true edge otherwise.
+            val cardCornerDp = 34f
+            val cardStrokeDp = 5f
+
             val borderView = dialog.findViewById<View>(R.id.enlargedCardBorder)
             val density = cardContext.resources.displayMetrics.density
             borderView.background = GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
-                cornerRadius = 34f * density
-                // Matches the border's own 5dp padding in dialog_enlarged_rat.xml,
-                // so equipping a frame changes what fills that ring rather than
-                // its thickness - the inner card never shifts.
-                setStroke((5 * density).toInt(), ContextCompat.getColor(cardContext, equippedFrame.strokeColorRes))
+                cornerRadius = cardCornerDp * density
+                setStroke((cardStrokeDp * density).toInt(), ContextCompat.getColor(cardContext, equippedFrame.strokeColorRes))
             }
             if (equippedFrame.style != FrameStyle.STATIC) {
                 val frameOverlay = dialog.findViewById<View>(R.id.enlargedFrameOverlay)
-                frameOverlay.background = FrameOverlayDrawable.forFrame(cardContext, equippedFrame)
+                frameOverlay.background = FrameOverlayDrawable.forFrame(
+                    cardContext,
+                    equippedFrame,
+                    // Concentric with the stroke above: inset to its
+                    // centreline, corner radius reduced by the same amount so
+                    // the curve continues smoothly from cardCornerDp rather
+                    // than snapping to a different one partway round.
+                    trackCornerDp = cardCornerDp - cardStrokeDp / 2,
+                    trackInsetDp = cardStrokeDp / 2
+                )
                 frameAnimator.attach(frameOverlay)
             }
         }
