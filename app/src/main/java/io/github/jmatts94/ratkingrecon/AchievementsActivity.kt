@@ -135,7 +135,7 @@ class AchievementsActivity : AppCompatActivity() {
 
         renderBadges(prefs)
         renderArenaBadges(prefs)
-        renderMilestones(stepsList, Milestones.steps, prefs, progress)
+        renderMilestones(stepsList, Milestones.steps, prefs, progress, shareable = true)
         renderMilestones(rosterList, Milestones.roster, prefs, progress)
         renderMilestones(hatchingList, Milestones.hatching, prefs, progress)
         renderMilestones(splicingList, Milestones.splicing, prefs, progress)
@@ -268,7 +268,8 @@ class AchievementsActivity : AppCompatActivity() {
         into: LinearLayout,
         milestones: List<Milestone>,
         prefs: android.content.SharedPreferences,
-        progress: MilestoneProgress
+        progress: MilestoneProgress,
+        shareable: Boolean = false
     ) {
         into.removeAllViews()
         milestones.forEach { milestone ->
@@ -299,6 +300,15 @@ class AchievementsActivity : AppCompatActivity() {
                     unlocked = earned,
                     progress = if (earned || milestone.target == 1L) null else {
                         Milestones.percentTowards(milestone, progress)
+                    },
+                    // Only a Lifetime Steps row that has actually been earned
+                    // gets the Recon Card treatment - see ReconCard.kt. This
+                    // is the one flex on the whole screen backed by actual
+                    // footsteps rather than a lucky roll.
+                    onShare = if (shareable && earned) {
+                        { ReconCard.shareStepsMilestone(this, milestone) }
+                    } else {
+                        null
                     }
                 )
             )
@@ -323,7 +333,8 @@ class AchievementsActivity : AppCompatActivity() {
         name: String,
         detail: String,
         unlocked: Boolean,
-        progress: Int?
+        progress: Int?,
+        onShare: (() -> Unit)? = null
     ): View {
         val view = LayoutInflater.from(this)
             .inflate(R.layout.item_achievement, parent, false)
@@ -354,6 +365,15 @@ class AchievementsActivity : AppCompatActivity() {
             } else {
                 visibility = View.VISIBLE
                 this.progress = progress
+            }
+        }
+
+        view.findViewById<View>(R.id.achievementShare).apply {
+            if (onShare == null) {
+                visibility = View.GONE
+            } else {
+                visibility = View.VISIBLE
+                setOnClickListener { onShare() }
             }
         }
 

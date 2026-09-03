@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A Recon Card for a hatch or a splice - see ReconCard.kt.
+
+  Never actually shown to the player: inflated off-screen at a fixed size,
+  populated, then rendered straight to a Bitmap and handed to the OS share
+  sheet. Fixed dp dimensions on the root rather than match_parent/wrap_content
+  is what makes that possible - ReconCard measures this with an EXACTLY
+  spec built from those same numbers, so there is nothing here that depends
+  on whatever screen happens to inflate it.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="480dp"
+    android:layout_height="600dp"
+    android:background="@drawable/bg_recon_card_outer"
+    android:padding="6dp">
+
+    <LinearLayout
+        android:id="@+id/reconCardInner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_recon_card_inner"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="26dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="26dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/reconAppIcon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_launcher_foreground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.RatKing.Circle"
+                app:strokeColor="@color/card_white"
+                app:strokeWidth="2dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:letterSpacing="0.10"
+                android:text="@string/app_name"
+                android:textAllCaps="true"
+                android:textColor="@color/text_muted"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="290dp"
+            android:layout_height="290dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_recon_portrait_ring" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/reconPortrait"
+                android:layout_width="272dp"
+                android:layout_height="272dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:contentDescription="@null"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.RatKing.Circle"
+                app:strokeColor="@color/card_white"
+                app:strokeWidth="4dp" />
+
+            <LinearLayout
+                android:id="@+id/reconRarityBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="10dp"
+                android:background="@drawable/bg_badge_scrim"
+                android:orientation="horizontal"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="5dp">
+
+                <ImageView
+                    android:id="@+id/reconGear1"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_settings"
+                    android:contentDescription="@null"
+                    app:tint="@color/cream" />
+
+                <ImageView
+                    android:id="@+id/reconGear2"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginStart="3dp"
+                    android:src="@drawable/ic_settings"
+                    android:contentDescription="@null"
+                    app:tint="@color/cream" />
+
+                <ImageView
+                    android:id="@+id/reconGear3"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginStart="3dp"
+                    android:src="@drawable/ic_settings"
+                    android:contentDescription="@null"
+                    app:tint="@color/cream" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/reconName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="14dp"
+            android:textColor="@color/text_primary"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            tools:text="Cogtail" />
+
+        <TextView
+            android:id="@+id/reconSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="3dp"
+            android:layout_marginHorizontal="28dp"
+            android:gravity="center"
+            android:letterSpacing="0.05"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="Brawlers · Rare" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_recon_stat_pill"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:paddingVertical="7dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_power"
+                    android:contentDescription="@null"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/reconPower"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    tools:text="7" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="1dp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_recon_stat_pill"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:paddingVertical="7dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/ic_toughness"
+                    android:contentDescription="@null"
+                    app:tint="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/reconToughness"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    tools:text="9" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/reconRibbon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_recon_ribbon"
+            android:gravity="center"
+            android:letterSpacing="0.06"
+            android:paddingVertical="15dp"
+            android:textAllCaps="true"
+            android:textColor="@color/card_white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="Just Hatched" />
+
+    </LinearLayout>
+</FrameLayout>

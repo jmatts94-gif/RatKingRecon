@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A Recon Card for a Lifetime Steps milestone - see ReconCard.kt and
+  card_recon_rat.xml's own comment for why this is inflated off-screen
+  rather than ever actually shown.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="480dp"
+    android:layout_height="600dp"
+    android:background="@drawable/bg_recon_card_outer"
+    android:padding="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_recon_card_inner"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginStart="26dp"
+            android:layout_marginTop="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_launcher_foreground"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.RatKing.Circle"
+                app:strokeColor="@color/card_white"
+                app:strokeWidth="2dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:letterSpacing="0.10"
+                android:text="@string/app_name"
+                android:textAllCaps="true"
+                android:textColor="@color/text_muted"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <io.github.jmatts94.ratkingrecon.GaugeDialView
+            android:id="@+id/reconGauge"
+            android:layout_width="270dp"
+            android:layout_height="270dp"
+            android:layout_marginTop="18dp" />
+
+        <TextView
+            android:id="@+id/reconStepsNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:textColor="@color/text_primary"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            tools:text="50,000" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:letterSpacing="0.10"
+            android:text="@string/recon_steps_label"
+            android:textAllCaps="true"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/reconStepsKm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_muted"
+            android:textSize="13sp"
+            tools:text="≈ 38.5 km walked, all of it real" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/reconRibbon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_recon_ribbon"
+            android:gravity="center"
+            android:letterSpacing="0.06"
+            android:paddingVertical="15dp"
+            android:textAllCaps="true"
+            android:textColor="@color/card_white"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:text="Pathfinder" />
+
+    </LinearLayout>
+</FrameLayout>

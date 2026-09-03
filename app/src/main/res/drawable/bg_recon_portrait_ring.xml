@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The gear-tooth ring around a Recon Card's portrait - a sweep gradient
+  standing in for actual gear teeth, the same shorthand the app icon's own
+  circular gear-ring background already uses at a glance.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="ring"
+    android:innerRadiusRatio="8.5"
+    android:thicknessRatio="15"
+    android:useLevel="false">
+    <gradient
+        android:type="sweep"
+        android:startColor="@color/brass_bright"
+        android:centerColor="@color/copper"
+        android:endColor="@color/brass_bright" />
+</shape>

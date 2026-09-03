@@ -44,4 +44,9 @@
         <item name="android:windowExitAnimation">@anim/screen_pop_exit</item>
     </style>
 
+    <!-- A ShapeableImageView clipped to a circle regardless of its own size - see ReconCard.kt. -->
+    <style name="ShapeAppearanceOverlay.RatKing.Circle" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+
 </resources>

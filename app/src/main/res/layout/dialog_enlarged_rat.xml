@@ -8,6 +8,7 @@
     android:gravity="center">
 
     <LinearLayout
+        android:id="@+id/enlargedCard"
         android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -195,4 +196,24 @@
             app:cornerRadius="16dp" />
 
     </LinearLayout>
+
+    <!--
+      A Recon Card export, not a system share of this dialog itself - see
+      ReconCard.kt. Pinned to the card's own top-end corner rather than sat
+      inside it as a fourth action button, since sharing is a side action on
+      the rat, not a peer of Battle Rat / Scrap Run / Close.
+    -->
+    <ImageButton
+        android:id="@+id/enlargedShareButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@id/enlargedCard"
+        android:layout_alignEnd="@id/enlargedCard"
+        android:layout_marginTop="-10dp"
+        android:layout_marginEnd="-10dp"
+        android:background="@drawable/bg_recon_card_outer"
+        android:contentDescription="@string/btn_share"
+        android:padding="10dp"
+        android:src="@drawable/ic_share"
+        app:tint="@color/card_white" />
 </RelativeLayout>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The banner a Recon Card's own name/badge sits in, flush against the bottom
+  edge of bg_recon_card_inner - bottom corners match that drawable's radius
+  exactly so the two read as one continuous rounded rectangle rather than a
+  bar stacked on top of it.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="90"
+        android:startColor="@color/amber"
+        android:endColor="@color/amber_dark" />
+    <corners
+        android:topLeftRadius="0dp"
+        android:topRightRadius="0dp"
+        android:bottomLeftRadius="30dp"
+        android:bottomRightRadius="30dp" />
+</shape>

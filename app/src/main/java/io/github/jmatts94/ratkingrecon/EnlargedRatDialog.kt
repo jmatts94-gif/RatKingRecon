@@ -49,6 +49,7 @@ object EnlargedRatDialog {
         val deployButton = dialog.findViewById<Button>(R.id.deployScrapyardButton)
         val battleRatButton = dialog.findViewById<Button>(R.id.battleRatButton)
         val closeButton = dialog.findViewById<Button>(R.id.closeEnlargedButton)
+        val shareButton = dialog.findViewById<View>(R.id.enlargedShareButton)
 
         // 2. Set the Visuals and Stats
         enlargedImage.setImageResource(pet.imageRes)
@@ -168,6 +169,8 @@ object EnlargedRatDialog {
             Toast.makeText(activity, activity.getString(R.string.toast_rat_deployed, pet.name), Toast.LENGTH_LONG).show()
             dialog.dismiss()
         }
+
+        shareButton.setOnClickListener { ReconCard.shareRat(activity, pet) }
 
         // 4. Closing the pop-up
         closeButton.setOnClickListener { dialog.dismiss() }

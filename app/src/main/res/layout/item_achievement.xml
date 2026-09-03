@@ -8,6 +8,7 @@
   the same "unlocked" boolean this layout otherwise knows nothing about.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -70,6 +71,23 @@
         android:layout_marginStart="8dp"
         android:src="@drawable/ic_check"
         android:contentDescription="@null"
+        android:visibility="gone" />
+
+    <!--
+      A Recon Card export for this row - see ReconCard.kt. Only ever wired for
+      an earned Lifetime Steps row (AchievementsActivity.row()'s onShare
+      param), so every other badge on this screen leaves it gone.
+    -->
+    <ImageButton
+        android:id="@+id/achievementShare"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="6dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/btn_share"
+        android:padding="6dp"
+        android:src="@drawable/ic_share"
+        app:tint="@color/text_muted"
         android:visibility="gone" />
 
 </LinearLayout>

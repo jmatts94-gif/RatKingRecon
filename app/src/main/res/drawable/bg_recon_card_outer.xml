@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Recon Card's own frame - see ReconCard.kt. A brass-to-amber diagonal
+  gradient behind the cream inner card (bg_recon_card_inner), read as a thin
+  metal border once the inner card is inset a few dp on top of it. The same
+  three-stop family bg_recon_ribbon already uses, kept apart from the Binder
+  frame collectibles (bg_frame_brass etc.) - a Recon Card is exported once,
+  never equipped, so it has no reason to share their drawables.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="135"
+        android:startColor="@color/brass_bright"
+        android:centerColor="@color/copper"
+        android:endColor="@color/amber_dark" />
+    <corners android:radius="34dp" />
+</shape>

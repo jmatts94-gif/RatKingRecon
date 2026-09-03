@@ -24,6 +24,18 @@
     <!-- shown for an artKey the roster no longer recognises, in place of a faction -->
     <string name="enlarged_rat_faction_unknown">Unaffiliated</string>
 
+    <!-- Recon Cards - see ReconCard.kt. The exported share image's own subtitle line: "Brawlers · Rare". -->
+    <string name="recon_card_subtitle">%1$s · %2$s</string>
+    <string name="recon_ribbon_hatched">Just Hatched</string>
+    <string name="recon_ribbon_spliced">Freshly Spliced</string>
+    <string name="recon_steps_label">Lifetime Steps</string>
+    <!-- "≈ 38.5 km walked, all of it real" - the one flex backed by actual footsteps. -->
+    <string name="recon_steps_km">≈ %1$.1f km walked, all of it real</string>
+    <string name="recon_share_chooser_title">Share Recon Card</string>
+    <string name="recon_share_subject_rat">%1$s — Rat King Recon</string>
+    <string name="recon_share_subject_milestone">Rat King Recon</string>
+    <string name="btn_share">Share</string>
+
     <!-- What each faction is worth to a Scrap Run or Ledger Task, shown beside
          the faction line above and in the Ledger Task rat picker. See TaskBonuses. -->
     <string name="task_bonus_smugglers">+15% Scrap on completion</string>
