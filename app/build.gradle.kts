@@ -22,6 +22,21 @@ val releaseKeystore: Properties? = rootProject.file("keystore.properties")
     .takeIf { it.exists() }
     ?.let { file -> Properties().apply { file.inputStream().use { load(it) } } }
 
+/**
+ * Crashlytics needs values (app id, API key) that only exist once this file
+ * has been downloaded from a real Firebase project console and dropped in -
+ * there is nothing to generate it from locally. Gated the same way as
+ * [releaseKeystore]: absent on a fresh clone is the normal case, and the
+ * build should stay green rather than fail on a missing file nobody but the
+ * project owner can produce.
+ */
+val hasFirebaseConfig = file("google-services.json").exists()
+
+if (hasFirebaseConfig) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
+}
+
 android {
     namespace = "io.github.jmatts94.ratkingrecon"
     compileSdk {
@@ -141,4 +156,9 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+
+    if (hasFirebaseConfig) {
+        implementation(platform(libs.firebase.bom))
+        implementation(libs.firebase.crashlytics.ktx)
+    }
 }
