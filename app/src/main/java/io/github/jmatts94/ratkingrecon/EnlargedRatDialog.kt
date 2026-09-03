@@ -32,8 +32,18 @@ object EnlargedRatDialog {
         onBattleRatToggled: () -> Unit = {},
         onDismiss: () -> Unit = {}
     ) {
+        // The Dialog's own window still needs the real activity context - it
+        // carries the window token android.app.Dialog.show() requires, which
+        // a configuration-only context (see lightSteampunkContext) does not
+        // have. Only the inflater for its content is swapped, the same
+        // technique ReconCard.kt uses to keep this card's colours - XML and
+        // the ones looked up here in Kotlin alike - pinned to the Recon
+        // Card's fixed cream-and-brass look regardless of Dark Steampunk.
+        val cardContext = lightSteampunkContext(activity)
         val dialog = android.app.Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
-        dialog.setContentView(R.layout.dialog_enlarged_rat)
+        dialog.setContentView(
+            LayoutInflater.from(activity).cloneInContext(cardContext).inflate(R.layout.dialog_enlarged_rat, null)
+        )
 
         // 1. Hook up the UI Elements
         val enlargedImage = dialog.findViewById<ImageView>(R.id.enlargedRatImage)
@@ -83,12 +93,12 @@ object EnlargedRatDialog {
         val onDuty = BattleRat.isBattleRat(prefs, pet.id)
         nameText.text = if (pet.shiny) activity.getString(R.string.card_name_shiny, pet.name) else pet.name
         nameText.setTextColor(
-            ContextCompat.getColor(activity, if (pet.shiny) R.color.shiny_gold else R.color.text_primary)
+            ContextCompat.getColor(cardContext, if (pet.shiny) R.color.shiny_gold else R.color.text_primary)
         )
         nameText.setCompoundDrawablesRelative(
-            CardIcons.faction(activity, 24, pet.faction),
+            CardIcons.faction(cardContext, 24, pet.faction),
             null,
-            if (onDuty) CardIcons.battle(activity, 22) else null,
+            if (onDuty) CardIcons.battle(cardContext, 22) else null,
             null
         )
         nameText.compoundDrawablePadding = (6 * activity.resources.displayMetrics.density).toInt()
@@ -101,7 +111,7 @@ object EnlargedRatDialog {
             effectsContainer.visibility = View.GONE
         } else {
             effectsContainer.visibility = View.VISIBLE
-            val inflater = LayoutInflater.from(activity)
+            val inflater = LayoutInflater.from(activity).cloneInContext(cardContext)
             extraLines.forEach { line ->
                 val lineView = inflater.inflate(
                     R.layout.item_splice_effect_line, effectsContainer, false

@@ -2,14 +2,12 @@ package io.github.jmatts94.ratkingrecon
 
 import android.content.ContentValues
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -56,29 +54,9 @@ object ReconCard {
 
     private val stepsFormat: NumberFormat get() = NumberFormat.getIntegerInstance()
 
-    /**
-     * A [LayoutInflater] pinned to light mode regardless of the player's own
-     * Dark Steampunk setting.
-     *
-     * Every colour in card_recon_rat.xml / card_recon_steps.xml resolves
-     * through the same tokens the rest of the app uses (@color/text_primary
-     * and friends), which is exactly right for in-app UI and exactly wrong
-     * here - a Recon Card is a fixed exported image, and values-night's
-     * swap of those same tokens for on-screen contrast reads as washed-out,
-     * barely legible text once baked into a PNG. Forcing the configuration
-     * this narrowly, only for the inflate, is what lets the card layouts
-     * keep using the app's ordinary colour tokens at all rather than a
-     * parallel "always light" set that would drift from them over time.
-     */
-    private fun lightInflater(activity: AppCompatActivity): LayoutInflater {
-        val config = Configuration(activity.resources.configuration)
-        config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
-            Configuration.UI_MODE_NIGHT_NO
-        val lightContext = ContextThemeWrapper(
-            activity.createConfigurationContext(config), R.style.Theme_RatKingRecon
-        )
-        return LayoutInflater.from(activity).cloneInContext(lightContext)
-    }
+    /** See [lightSteampunkContext] - a Recon Card is a fixed exported image, never dark-mode aware. */
+    private fun lightInflater(activity: AppCompatActivity): LayoutInflater =
+        LayoutInflater.from(activity).cloneInContext(lightSteampunkContext(activity))
 
     fun shareRat(activity: AppCompatActivity, pet: RatEntity) {
         val view = lightInflater(activity).inflate(R.layout.card_recon_rat, null) as ViewGroup
