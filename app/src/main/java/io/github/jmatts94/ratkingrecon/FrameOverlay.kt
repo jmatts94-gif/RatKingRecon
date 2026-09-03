@@ -1,5 +1,6 @@
 package io.github.jmatts94.ratkingrecon
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.ColorFilter
 import android.graphics.DashPathEffect
@@ -13,6 +14,7 @@ import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import android.view.Choreographer
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import kotlin.math.max
 import kotlin.math.sin
@@ -76,14 +78,45 @@ class FrameOverlayDrawable(
     private val glow: Boolean = false
 ) : Drawable() {
 
-    private companion object {
+    companion object {
+        /**
+         * Builds the overlay for [frame], reading every colour it needs off
+         * [frame] itself so a caller never has to know which of its fields
+         * matter for which [FrameStyle] - see [RatCardAdapter] and
+         * [EnlargedRatDialog], the grid card and the enlarged card, which
+         * both show whatever frame the player has equipped and would
+         * otherwise each carry their own copy of this lookup, one of them
+         * eventually drifting from the other.
+         */
+        fun forFrame(context: Context, frame: CardFrame): FrameOverlayDrawable = FrameOverlayDrawable(
+            frame.style,
+            ContextCompat.getColor(context, frame.accentColorRes),
+            ContextCompat.getColor(context, frame.accentAltColorRes),
+            // SCARRED's own second wave of marks - see [secondaryAccent] -
+            // reads in the same aether blue AETHER_COIL pulses between,
+            // regardless of this particular frame's own warm accent pair.
+            // RADIANT's third palette stop works the same way, off
+            // boiler_glow's hot orange instead - see [radiantColors].
+            secondaryAccent = when (frame.style) {
+                FrameStyle.SCARRED -> ContextCompat.getColor(context, R.color.aether_deep)
+                FrameStyle.RADIANT -> ContextCompat.getColor(context, R.color.boiler_glow)
+                else -> null
+            },
+            secondaryAccentAlt = when (frame.style) {
+                FrameStyle.SCARRED -> ContextCompat.getColor(context, R.color.aether_glow)
+                FrameStyle.RADIANT -> ContextCompat.getColor(context, R.color.boiler_glow)
+                else -> null
+            },
+            glow = frame.glow
+        ).apply { setDensity(context.resources.displayMetrics.density) }
+
         // --- the gear track running the perimeter ---
-        const val TRACK_WIDTH_DP = 3f
-        const val TRACK_TOOTH_DP = 3.5f
-        const val TRACK_GAP_DP = 3.5f
-        const val TRACK_INSET_DP = 3.5f
-        const val TRACK_CORNER_DP = 11f
-        const val TRACK_ALPHA = 210
+        private const val TRACK_WIDTH_DP = 3f
+        private const val TRACK_TOOTH_DP = 3.5f
+        private const val TRACK_GAP_DP = 3.5f
+        private const val TRACK_INSET_DP = 3.5f
+        private const val TRACK_CORNER_DP = 11f
+        private const val TRACK_ALPHA = 210
 
         /**
          * How many phases of the marching track are pre-built.
@@ -93,39 +126,39 @@ class FrameOverlayDrawable(
          * step is visible at this speed, and twenty-four small immutable objects
          * built once per card is cheaper than one per frame forever.
          */
-        const val DASH_STEPS = 24
+        private const val DASH_STEPS = 24
 
         // --- steam ---
-        const val PARTICLES_PER_EDGE = 6
-        const val PARTICLE_RADIUS_DP = 3.2f
-        const val PARTICLE_DRIFT_DP = 7f
-        const val PARTICLE_ALPHA = 220
-        const val GLOW_ALPHA = 75
-        const val GLOW_SCALE = 2.2f
+        private const val PARTICLES_PER_EDGE = 6
+        private const val PARTICLE_RADIUS_DP = 3.2f
+        private const val PARTICLE_DRIFT_DP = 7f
+        private const val PARTICLE_ALPHA = 220
+        private const val GLOW_ALPHA = 75
+        private const val GLOW_SCALE = 2.2f
 
         // --- the breathing border ---
-        const val PULSE_WIDTH_DP = 3.5f
-        const val PULSE_HALO_WIDTH_DP = 7f
-        const val PULSE_HALO_ALPHA = 60
-        const val PULSE_MIN_ALPHA = 140
-        const val PULSE_MAX_ALPHA = 255
+        private const val PULSE_WIDTH_DP = 3.5f
+        private const val PULSE_HALO_WIDTH_DP = 7f
+        private const val PULSE_HALO_ALPHA = 60
+        private const val PULSE_MIN_ALPHA = 140
+        private const val PULSE_MAX_ALPHA = 255
 
         /** Breaths per turn of the shared clock, so a pulse lasts three seconds. */
-        const val PULSE_CYCLES = 2f
+        private const val PULSE_CYCLES = 2f
 
         // --- the scarred border's glowing cracks ---
-        const val CRACK_WIDTH_DP = 2f
-        const val CRACK_HALO_WIDTH_DP = 5f
-        const val CRACK_HALO_ALPHA = 90
-        const val CRACK_MIN_ALPHA = 90
-        const val CRACK_MAX_ALPHA = 255
-        const val CRACK_JAG_DP = 5f
+        private const val CRACK_WIDTH_DP = 2f
+        private const val CRACK_HALO_WIDTH_DP = 5f
+        private const val CRACK_HALO_ALPHA = 90
+        private const val CRACK_MIN_ALPHA = 90
+        private const val CRACK_MAX_ALPHA = 255
+        private const val CRACK_JAG_DP = 5f
 
         /** Breaths per turn of the clock - slower than PULSE, an old wound rather than a heartbeat. */
-        const val CRACK_CYCLES = 1f
+        private const val CRACK_CYCLES = 1f
 
         /** Each crack sits this far around the perimeter from the last, 0..1 of the total path length. */
-        val CRACK_POSITIONS = floatArrayOf(0.04f, 0.22f, 0.40f, 0.58f, 0.76f, 0.92f)
+        private val CRACK_POSITIONS = floatArrayOf(0.04f, 0.22f, 0.40f, 0.58f, 0.76f, 0.92f)
 
         // --- the new gear-tooth and sword-nick marks, in aether blue ---
         //
@@ -135,44 +168,44 @@ class FrameOverlayDrawable(
         // sword nick - so the two motifs read as distinct marks rather than
         // more of the same crack repeated. Interleaved between CRACK_POSITIONS
         // rather than sharing a fraction with any of them.
-        val GEAR_MOTIF_POSITIONS = floatArrayOf(0.13f, 0.67f)
-        val SWORD_MOTIF_POSITIONS = floatArrayOf(0.31f, 0.85f)
+        private val GEAR_MOTIF_POSITIONS = floatArrayOf(0.13f, 0.67f)
+        private val SWORD_MOTIF_POSITIONS = floatArrayOf(0.31f, 0.85f)
 
         // --- the optional glow, behind whatever the style already draws ---
-        const val GLOW_HALO_WIDTH_DP = 9f
-        const val GLOW_MIN_ALPHA = 40
-        const val GLOW_MAX_ALPHA = 150
+        private const val GLOW_HALO_WIDTH_DP = 9f
+        private const val GLOW_MIN_ALPHA = 40
+        private const val GLOW_MAX_ALPHA = 150
 
         /** One slow breath per turn of the shared clock - a presence, not a pulse to compete with the gears. */
-        const val GLOW_CYCLES = 1f
+        private const val GLOW_CYCLES = 1f
 
         // --- the lightning strike, cutting across the card rather than
         // tracing its border ---
-        const val LIGHTNING_INSET_DP = 10f
+        private const val LIGHTNING_INSET_DP = 10f
 
         /** How far the bolt zigzags off the straight diagonal, each vertex. */
-        const val LIGHTNING_JAG_DP = 18f
-        const val LIGHTNING_STEPS = 5
+        private const val LIGHTNING_JAG_DP = 18f
+        private const val LIGHTNING_STEPS = 5
 
         /** Its own clock, independent of FrameClock - a strike does not share a gear's rhythm. */
-        const val LIGHTNING_PERIOD_MS = 2_600f
-        const val LIGHTNING_FLASH1_START = 0f
-        const val LIGHTNING_FLASH2_START = 0.16f
+        private const val LIGHTNING_PERIOD_MS = 2_600f
+        private const val LIGHTNING_FLASH1_START = 0f
+        private const val LIGHTNING_FLASH2_START = 0.16f
 
         /** Both flashes share this width, as a fraction of the whole cycle - brief either way. */
-        const val LIGHTNING_FLASH_DURATION = 0.10f
-        const val LIGHTNING_GLOW_WIDTH_DP = 11f
-        const val LIGHTNING_CORE_WIDTH_DP = 2.5f
-        const val LIGHTNING_GLOW_ALPHA = 210
+        private const val LIGHTNING_FLASH_DURATION = 0.10f
+        private const val LIGHTNING_GLOW_WIDTH_DP = 11f
+        private const val LIGHTNING_CORE_WIDTH_DP = 2.5f
+        private const val LIGHTNING_GLOW_ALPHA = 210
 
         // --- the radiant border, cycling a full palette rather than
         // breathing between two ---
-        const val RADIANT_HALO_WIDTH_DP = 10f
-        const val RADIANT_HALO_ALPHA = 140
-        const val RADIANT_CORE_WIDTH_DP = 4f
+        private const val RADIANT_HALO_WIDTH_DP = 10f
+        private const val RADIANT_HALO_ALPHA = 140
+        private const val RADIANT_CORE_WIDTH_DP = 4f
 
         /** Full loops of the palette per turn of the shared clock. */
-        const val RADIANT_CYCLES = 1f
+        private const val RADIANT_CYCLES = 1f
     }
 
     private var density = 1f

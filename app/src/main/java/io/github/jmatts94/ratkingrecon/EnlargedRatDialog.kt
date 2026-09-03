@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.content.SharedPreferences
+import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -68,6 +69,33 @@ object EnlargedRatDialog {
         gear1.visibility = if (pet.gearCount >= 1) View.VISIBLE else View.GONE
         gear2.visibility = if (pet.gearCount >= 2) View.VISIBLE else View.GONE
         gear3.visibility = if (pet.gearCount >= 3) View.VISIBLE else View.GONE
+
+        // The equipped Binder frame, if any - the same one item_rat_card.xml's
+        // own grid shows, drawn at this card's larger scale instead. Left as
+        // the plain bg_recon_card_outer brass border declared in the layout
+        // for a rat that owns no cosmetic, matching the Recon Card export's
+        // own default look (ReconCard.kt) rather than the grid's plain
+        // card_border - this card is already a step more premium than a grid
+        // tile before any frame is even equipped.
+        val equippedFrame = Frames.byId(ShopEffects.equippedCosmetic(prefs))
+        val frameAnimator = FrameAnimator()
+        if (equippedFrame != null) {
+            val borderView = dialog.findViewById<View>(R.id.enlargedCardBorder)
+            val density = cardContext.resources.displayMetrics.density
+            borderView.background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = 34f * density
+                // Matches the border's own 5dp padding in dialog_enlarged_rat.xml,
+                // so equipping a frame changes what fills that ring rather than
+                // its thickness - the inner card never shifts.
+                setStroke((5 * density).toInt(), ContextCompat.getColor(cardContext, equippedFrame.strokeColorRes))
+            }
+            if (equippedFrame.style != FrameStyle.STATIC) {
+                val frameOverlay = dialog.findViewById<View>(R.id.enlargedFrameOverlay)
+                frameOverlay.background = FrameOverlayDrawable.forFrame(cardContext, equippedFrame)
+                frameAnimator.attach(frameOverlay)
+            }
+        }
 
         // Read from artKey rather than trusted from pet.name - the one place
         // on this screen that answers "what species is this" regardless of
@@ -186,7 +214,14 @@ object EnlargedRatDialog {
         closeButton.setOnClickListener { dialog.dismiss() }
         dialog.findViewById<View>(R.id.enlargedLayout).setOnClickListener { dialog.dismiss() }
 
-        dialog.setOnDismissListener { onDismiss() }
+        // Only ever attached to one overlay for this one dialog's own
+        // lifetime, so stopping it here rather than on some shared Activity
+        // lifecycle callback is enough - nothing else keeps it alive.
+        dialog.setOnDismissListener {
+            frameAnimator.stop()
+            frameAnimator.clear()
+            onDismiss()
+        }
         dialog.show()
     }
 }

@@ -7,22 +7,35 @@
     android:background="#993A2A12"
     android:gravity="center">
 
-    <LinearLayout
+    <!--
+      A FrameLayout rather than the border LinearLayout being the top-level
+      sibling here, so enlargedFrameOverlay below can sit over the whole
+      card at the same bounds - the same shape item_rat_card.xml's own
+      cardFrameOverlay uses, just without MaterialCardView's clipping,
+      which bg_recon_card_outer's own rounded corners stand in for.
+    -->
+    <FrameLayout
         android:id="@+id/enlargedCard"
         android:layout_width="320dp"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:orientation="vertical"
-        android:background="@drawable/bg_recon_card_outer"
-        android:padding="5dp"
         android:elevation="10dp">
 
         <!--
-          The Recon Card's own cream-to-tan face and brass frame (see
-          ReconCard.kt) - this dialog and that export now read as the same
-          object, since both are a single rat held up to look at, just one
-          on screen and one composited to a PNG.
+          Brass-and-cream by default; overridden per bind when the player has
+          a Binder frame equipped - see EnlargedRatDialog.kt. The default is
+          this card's own identity, matching the Recon Card export
+          (ReconCard.kt) for a rat that owns no cosmetic; equipping one
+          shows the same frame here that the Ledger grid already shows.
         -->
+        <LinearLayout
+            android:id="@+id/enlargedCardBorder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_recon_card_outer"
+            android:padding="5dp">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -254,7 +267,21 @@
                 app:cornerRadius="16dp" />
 
         </LinearLayout>
-    </LinearLayout>
+        </LinearLayout>
+
+        <!--
+          The equipped frame's animation, if it has one - see
+          EnlargedRatDialog.kt and FrameOverlayDrawable. Last child, so it
+          draws over the border and content beneath it without affecting
+          their layout; left with no background unless an animated frame is
+          equipped, in which case it costs nothing, same as
+          item_rat_card.xml's own cardFrameOverlay.
+        -->
+        <View
+            android:id="@+id/enlargedFrameOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
 
     <!--
       A Recon Card export, not a system share of this dialog itself - see
