@@ -274,5 +274,6 @@
         android:contentDescription="@string/btn_share"
         android:padding="10dp"
         android:src="@drawable/ic_share"
+        android:elevation="12dp"
         app:tint="@color/card_white" />
 </RelativeLayout>
