@@ -41,7 +41,18 @@ enum class FrameStyle {
      * included: never dims to a whisper the way [PULSE] does at the bottom
      * of its own breath, always a solid, shifting glow.
      */
-    RADIANT
+    RADIANT,
+
+    /**
+     * A trail of paw prints padding round the border - see
+     * [FrameOverlayDrawable.drawPaws]. Unlike every style above, which
+     * either traces the border exactly ([GEARS]/[PULSE]/[SCARRED]/[RADIANT])
+     * or crosses it once ([LIGHTNING]), this one wanders side to side across
+     * the line as it travels rather than tracking it, and fades out behind
+     * itself rather than staying lit - a courier's own footprints, not a
+     * machine part running a fixed track.
+     */
+    PAWS
 }
 
 /**
@@ -304,23 +315,37 @@ object Frames {
     )
 
     /**
-     * Earned by walking one million lifetime steps - the single hardest
-     * milestone in the game, so the frame is built to match: the one
-     * [FrameStyle.RADIANT] frame, cycling through three golds - brass_bright,
-     * shiny_gold, boiler_glow's hot orange - rather than breathing between
-     * two the way every [FrameStyle.PULSE] frame does, and never dimming to
-     * a whisper the way those do at the bottom of their own breath. Meant to
-     * read as a tier above every other frame in the game, [ARENA_CHAMPION]
-     * included.
+     * Earned by walking 100,000 lifetime steps - see [Achievements.steps]'s
+     * "steps_1m" row, whose id is untouched even though its own target and
+     * this frame's name/look both changed under it (see that row's own
+     * comment on why an id never moves once shipped, and LedgerTasks' M1/M2/
+     * M3 for the same rule already followed once before). Display name is
+     * Maunderer's Catch - renamed once already from Master Courier, which
+     * is why the id and the colour resource names below both still read
+     * "rat_kings_crown"/"master_courier_*"; none of the three are shown to
+     * a player, so none of them chased the name a second time.
+     *
+     * The one [FrameStyle.PAWS] frame: a true black border rather than this
+     * app's usual warm metals, and neon paw prints - both asked for by name
+     * rather than picked to match the rest of the palette. Was the one
+     * [FrameStyle.RADIANT] frame before this, cycling three golds to read as
+     * a tier above every other frame; a courier's own footprints replace
+     * that idea rather than keeping it - see colors.xml's own comment on
+     * master_courier_black/master_courier_paw_green for why both colours
+     * step outside the palette on purpose. No accentAltColorRes here - PAWS
+     * does not blend between two colours the way PULSE does, so this stays
+     * default (equal to accentColorRes) like every other single-colour
+     * style; the outline [FrameOverlayDrawable.pawOutlinePaint] draws
+     * behind every mark is a fixed black of its own rather than a second
+     * frame colour, see that field's own comment.
      */
     val RAT_KINGS_CROWN = CardFrame(
         id = "rat_kings_crown",
         nameRes = R.string.shop_name_frame_rat_king,
         descRes = R.string.shop_desc_frame_rat_king,
-        strokeColorRes = R.color.amber_dark,
-        accentColorRes = R.color.brass_bright,
-        accentAltColorRes = R.color.shiny_gold,
-        style = FrameStyle.RADIANT,
+        strokeColorRes = R.color.master_courier_black,
+        accentColorRes = R.color.master_courier_paw_green,
+        style = FrameStyle.PAWS,
         price = 800,
         baseTier = false,
         sellable = false,

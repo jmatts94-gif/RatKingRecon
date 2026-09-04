@@ -165,4 +165,19 @@
       arena_bg_deep's own comment already ties to the Arena's screens.
     -->
     <color name="scarred_iron">#3A2E22</color>
+
+    <!--
+      Maunderer's Catch (Frames.RAT_KINGS_CROWN, the one FrameStyle.PAWS
+      frame - see FrameOverlayDrawable.drawPaws; renamed once already from
+      Master Courier, which is why these two names still read
+      master_courier_* - see Frames.RAT_KINGS_CROWN's own comment on why).
+      Both colours were asked for by name
+      rather than picked to fit the warm palette every other frame stays
+      inside - a true black border, not scarred_iron's near-black brown, and
+      a genuinely neon green rather than a colour toned down to sit closer to
+      the rest of the app. Deliberately the one frame that steps outside that
+      family on purpose.
+    -->
+    <color name="master_courier_black">#000000</color>
+    <color name="master_courier_paw_green">#39FF14</color>
 </resources>

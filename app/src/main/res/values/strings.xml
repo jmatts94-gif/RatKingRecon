@@ -561,7 +561,7 @@ RARE DROP: %2$s</string>
     <string name="milestone_wayfarer">Wayfarer</string>
     <string name="milestone_trailblazer">Trailblazer</string>
     <string name="milestone_far_walker">Far Walker</string>
-    <string name="milestone_rat_king">Rat King</string>
+    <string name="milestone_rat_king">Maunderer\'s Catch</string>
 
     <!-- Roster milestones -->
     <string name="milestone_nest">A Proper Nest</string>
@@ -711,8 +711,8 @@ RARE DROP: %2$s</string>
     <string name="shop_desc_frame_iron_grip">A steel border with brass gears turning at the edge. Earned by raising one rat to 25 Power and 25 Toughness. Animated.</string>
     <string name="shop_name_frame_compendium">Naturalist\'s Compendium</string>
     <string name="shop_desc_frame_compendium">A gold trim for a finished collection. Earned by finding every species in the roster.</string>
-    <string name="shop_name_frame_rat_king">The Rat King\'s Crown</string>
-    <string name="shop_desc_frame_rat_king">Gold light breathing along the border. Earned by walking one million lifetime steps. Animated.</string>
+    <string name="shop_name_frame_rat_king">Maunderer\'s Catch</string>
+    <string name="shop_desc_frame_rat_king">A black border, neon paw prints padding round it and fading behind. Earned by walking 100,000 lifetime steps. Animated.</string>
 
     <string name="shop_name_frame_chimera">Chimera\'s Weave</string>
     <string name="shop_desc_frame_chimera">A teal glow breathing through the border, mixed like something out of the Fusion Pot. Earned by completing 25 splices. Animated.</string>

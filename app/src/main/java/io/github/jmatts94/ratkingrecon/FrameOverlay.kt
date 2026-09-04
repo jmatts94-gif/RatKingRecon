@@ -16,6 +16,7 @@ import android.view.Choreographer
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sin
 
@@ -229,6 +230,62 @@ class FrameOverlayDrawable(
 
         /** Full loops of the palette per turn of the shared clock. */
         private const val RADIANT_CYCLES = 1f
+
+        // --- the paw print trail, wandering the border rather than tracing it ---
+
+        /** How many prints make up the fading trail, head to tail. */
+        private const val PAW_TRAIL_COUNT = 6
+
+        /** How far apart each trailing print sits, as a fraction of the whole perimeter. */
+        private const val PAW_SPACING = 0.035f
+
+        /**
+         * Laps of the border per turn of the shared clock. Slowed from an
+         * original 1 (a brisk walk, GEARS' own pace) after "make the paw
+         * prints move at a slower rate" - a real walk now, not a jog.
+         */
+        private const val PAW_LAPS = 0.35f
+
+        /**
+         * The trail's own minimum distance inward from the border line -
+         * see [drawPaws]. Never zero: "limit their path to within the
+         * confines of the tile, so they do not move past the black
+         * outline" means the wander has to stay inward of the line at
+         * every point in its cycle, not swing on either side of it the way
+         * an earlier pass did, and this is what keeps even a print's own
+         * outline circle from poking past the border while it does.
+         */
+        private const val PAW_INSET_MIN_DP = 5f
+
+        /** How much further inward, on top of [PAW_INSET_MIN_DP], the wander swings at its peak. */
+        private const val PAW_WANDER_DP = 8f
+
+        /** Side-to-side wobbles per full lap - enough to read as wandering, not a straight march with a shiver on it. */
+        private const val PAW_WANDER_CYCLES = 5f
+
+        // Sizes below are the original pass's own values at 1.5x - "increase
+        // the size of the paw prints by 50%... to start off with" - the pad/
+        // toe gap and spread scaled the same amount so a bigger print still
+        // reads as one shape rather than its toes drifting away from it.
+        private const val PAW_PAD_RADIUS_DP = 4.8f
+        private const val PAW_TOE_RADIUS_DP = 2.4f
+
+        /** Forward distance from the pad's own centre to the row of toes ahead of it. */
+        private const val PAW_PAD_GAP_DP = 6.75f
+
+        /** Sideways spread between the two outer toes. */
+        private const val PAW_TOE_SPREAD_DP = 4.8f
+
+        /**
+         * How much larger than its own fill circle each mark's outline ring
+         * is drawn - see [pawOutlinePaint]. "define the paw prints so they
+         * have more definition" - a dark ring under the bright fill reads
+         * as a distinct mark against any card art, the same halo-then-core
+         * trick every other animated frame in this file already uses, just
+         * a filled ring rather than a stroked one since these are dots, not
+         * a line.
+         */
+        private const val PAW_OUTLINE_EXTRA_DP = 1.2f
     }
 
     private var density = 1f
@@ -253,6 +310,21 @@ class FrameOverlayDrawable(
         style = Paint.Style.FILL
     }
 
+    /**
+     * The dark ring drawn behind every paw mark - see [PAW_OUTLINE_EXTRA_DP].
+     * A fixed black rather than a colour read off [CardFrame], deliberately:
+     * [FrameStyle.PAWS] does not blend between two colours, so giving it a
+     * distinct accentAlt just for this would have broken FramesTest's own
+     * "only a two-colour style carries a second accent" rule for no real
+     * gain - the outline is always this same black regardless of which
+     * frame ever uses this style, the same way the border stroke it sits
+     * inside is always master_courier_black rather than a per-frame colour.
+     */
+    private val pawOutlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.BLACK
+        style = Paint.Style.FILL
+    }
+
     private val borderPath = Path()
     private val borderRect = RectF()
 
@@ -261,6 +333,15 @@ class FrameOverlayDrawable(
     private var blueMotifPaths: List<Path> = emptyList()
     private var lightningPath: Path = Path()
     private var built = false
+
+    /**
+     * PAWS' own walk along [borderPath] - reused via [PathMeasure.setPath]
+     * rather than a fresh [PathMeasure] built per draw, the same
+     * nothing-allocated-in-draw rule the dash effects and crack paths
+     * already follow.
+     */
+    private val pawsMeasure = PathMeasure()
+    private var pawsLength = 0f
 
     /** RADIANT's own palette - accent, accentAlt, and a third stop off secondaryAccent. */
     private val radiantColors: IntArray by lazy { intArrayOf(accent, accentAlt, secondaryAccent ?: accent) }
@@ -288,6 +369,7 @@ class FrameOverlayDrawable(
         buildTrack()
         if (style == FrameStyle.SCARRED) buildCracks()
         if (style == FrameStyle.LIGHTNING) buildLightning()
+        if (style == FrameStyle.PAWS) buildPaws()
         built = true
     }
 
@@ -442,6 +524,12 @@ class FrameOverlayDrawable(
         }
     }
 
+    /** Points [pawsMeasure] at the current [borderPath] and caches its length. */
+    private fun buildPaws() {
+        pawsMeasure.setPath(borderPath, false)
+        pawsLength = pawsMeasure.length
+    }
+
     override fun draw(canvas: Canvas) {
         val b = bounds
         if (b.isEmpty) return
@@ -457,6 +545,7 @@ class FrameOverlayDrawable(
             FrameStyle.SCARRED -> drawScarred(canvas)
             FrameStyle.LIGHTNING -> drawLightning(canvas)
             FrameStyle.RADIANT -> drawRadiant(canvas)
+            FrameStyle.PAWS -> drawPaws(canvas)
         }
     }
 
@@ -537,6 +626,73 @@ class FrameOverlayDrawable(
         pulsePaint.strokeWidth = dp(RADIANT_CORE_WIDTH_DP)
         pulsePaint.alpha = 255
         canvas.drawPath(borderPath, pulsePaint)
+    }
+
+    /**
+     * A trail of paw prints padding round [borderPath] - see
+     * [FrameStyle.PAWS]. Unlike every track-tracing style above, the lead
+     * print's own position gets an extra inward offset ([BorderPoint.nx]/
+     * [ny], the same inward-normal axis [pointAt] already gives every other
+     * style) that swings between [PAW_INSET_MIN_DP] and [PAW_INSET_MIN_DP] +
+     * [PAW_WANDER_DP] as a function of distance travelled - a wander that
+     * stays inside the border line rather than crossing it, since the
+     * offset never goes negative - and each print behind the lead one is
+     * drawn fainter than the last, so the trail reads as fading footprints
+     * rather than a string of identical marks.
+     */
+    private fun drawPaws(canvas: Canvas) {
+        val total = pawsLength
+        if (total <= 0f) return
+
+        val headFraction = FrameClock.phase() * PAW_LAPS
+
+        for (i in 0 until PAW_TRAIL_COUNT) {
+            var fraction = headFraction - i * PAW_SPACING
+            fraction -= floor(fraction)
+
+            val p = pointAt(pawsMeasure, total, fraction)
+            val wave = (sin((fraction * PAW_WANDER_CYCLES * 2f * Math.PI).toFloat()) + 1f) / 2f
+            val inset = dp(PAW_INSET_MIN_DP) + wave * dp(PAW_WANDER_DP)
+
+            val alpha = (255 * (1f - i / PAW_TRAIL_COUNT.toFloat())).toInt().coerceIn(0, 255)
+            steamPaint.alpha = alpha
+            pawOutlinePaint.alpha = alpha
+            drawPawPrint(canvas, p, p.x + p.nx * inset, p.y + p.ny * inset)
+        }
+    }
+
+    /**
+     * One print: a pad, and three toes fanned out ahead of it along [p]'s
+     * own tangent/normal axes - facing the direction of travel rather than
+     * sitting square to the card, since the border this walks has straight
+     * runs on all four sides. Each mark is drawn twice, a slightly larger
+     * [pawOutlinePaint] ring first and the real-sized [steamPaint] fill on
+     * top - the same halo-then-core shape every other animated frame in
+     * this file already draws, just filled dots instead of a stroked line.
+     */
+    private fun drawPawPrint(canvas: Canvas, p: BorderPoint, cx: Float, cy: Float) {
+        val gap = dp(PAW_PAD_GAP_DP)
+        val spread = dp(PAW_TOE_SPREAD_DP)
+        val padRadius = dp(PAW_PAD_RADIUS_DP)
+        val toeRadius = dp(PAW_TOE_RADIUS_DP)
+        val outlineExtra = dp(PAW_OUTLINE_EXTRA_DP)
+
+        val toe1x = cx + p.tx * gap
+        val toe1y = cy + p.ty * gap
+        val toe2x = cx + p.tx * gap * 0.8f + p.nx * spread
+        val toe2y = cy + p.ty * gap * 0.8f + p.ny * spread
+        val toe3x = cx + p.tx * gap * 0.8f - p.nx * spread
+        val toe3y = cy + p.ty * gap * 0.8f - p.ny * spread
+
+        canvas.drawCircle(cx, cy, padRadius + outlineExtra, pawOutlinePaint)
+        canvas.drawCircle(toe1x, toe1y, toeRadius + outlineExtra, pawOutlinePaint)
+        canvas.drawCircle(toe2x, toe2y, toeRadius + outlineExtra, pawOutlinePaint)
+        canvas.drawCircle(toe3x, toe3y, toeRadius + outlineExtra, pawOutlinePaint)
+
+        canvas.drawCircle(cx, cy, padRadius, steamPaint)
+        canvas.drawCircle(toe1x, toe1y, toeRadius, steamPaint)
+        canvas.drawCircle(toe2x, toe2y, toeRadius, steamPaint)
+        canvas.drawCircle(toe3x, toe3y, toeRadius, steamPaint)
     }
 
     /**

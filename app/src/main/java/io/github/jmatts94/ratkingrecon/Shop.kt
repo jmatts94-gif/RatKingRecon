@@ -266,6 +266,7 @@ object Shop {
                     FrameStyle.SCARRED -> R.drawable.ic_power
                     FrameStyle.LIGHTNING -> R.drawable.ic_power
                     FrameStyle.RADIANT -> R.drawable.ic_lantern
+                    FrameStyle.PAWS -> R.drawable.ic_footprint
                 }
             )
         }

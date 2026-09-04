@@ -99,7 +99,11 @@ class AchievementsTest {
     @Test
     fun `the three categories match the brief`() {
         assertEquals(
-            listOf(10_000L, 50_000L, 100_000L, 250_000L, 500_000L, 1_000_000L),
+            // The last two share a target on purpose now - "steps_1m" (Master
+            // Courier's own milestone) was lowered from 1,000,000 to 100,000,
+            // the same target "steps_100k" (Wayfarer) already uses. Both fire
+            // together at 100,000 steps rather than one gating the other.
+            listOf(10_000L, 50_000L, 100_000L, 250_000L, 500_000L, 100_000L),
             Milestones.steps.map { it.target }
         )
         assertEquals(
@@ -145,7 +149,7 @@ class AchievementsTest {
     fun `progress is clamped to a whole percent`() {
         val last = Milestones.steps.last()
         assertEquals(0, Milestones.percentTowards(last, MilestoneProgress(lifetimeSteps = 0L)))
-        assertEquals(50, Milestones.percentTowards(last, MilestoneProgress(lifetimeSteps = 500_000L)))
+        assertEquals(50, Milestones.percentTowards(last, MilestoneProgress(lifetimeSteps = 50_000L)))
         assertEquals(100, Milestones.percentTowards(last, MilestoneProgress(lifetimeSteps = 9_999_999L)))
     }
 
@@ -253,7 +257,9 @@ class AchievementsTest {
 
         assertTrue(Milestones.isEarned(prefs, Milestones.steps[2]))
         assertFalse(Milestones.isEarned(prefs, Milestones.roster[0]))
-        assertEquals(3, Milestones.earnedCount(prefs))
+        // 10k/50k/100k, plus steps_1m - lowered to the same 100k target as
+        // steps_100k, so both latch together here rather than one at a time.
+        assertEquals(4, Milestones.earnedCount(prefs))
     }
 
     @Test

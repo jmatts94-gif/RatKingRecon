@@ -86,7 +86,12 @@ object Milestones {
         Milestone("steps_100k", R.string.milestone_wayfarer, R.drawable.ic_expedition, MilestoneKind.STEPS, 100_000L),
         Milestone("steps_250k", R.string.milestone_trailblazer, R.drawable.ic_expedition, MilestoneKind.STEPS, 250_000L),
         Milestone("steps_500k", R.string.milestone_far_walker, R.drawable.ic_expedition, MilestoneKind.STEPS, 500_000L),
-        Milestone("steps_1m", R.string.milestone_rat_king, R.drawable.ic_star, MilestoneKind.STEPS, 1_000_000L)
+        // Lowered from 1,000,000 - the id stays "steps_1m" regardless, the
+        // same never-move-it-once-shipped rule every other milestone id in
+        // this file already follows. Now the same target steps_100k already
+        // uses; the two unlock together rather than one gating the other,
+        // which is fine - each is still its own latch, its own reward.
+        Milestone("steps_1m", R.string.milestone_rat_king, R.drawable.ic_star, MilestoneKind.STEPS, 100_000L)
     )
 
     val roster: List<Milestone> = listOf(
