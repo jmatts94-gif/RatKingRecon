@@ -1,5 +1,6 @@
 package io.github.jmatts94.ratkingrecon
 
+import android.content.Context
 import android.content.SharedPreferences
 import kotlin.math.roundToInt
 
@@ -234,5 +235,25 @@ object ShopEffects {
 
         prefs.edit().putLong(KEY_EXPEDITION_END, endsAt - remaining / 4).apply()
         return true
+    }
+
+    private const val MINUTE_MS = 60_000L
+    private const val HOUR_MS = 60 * MINUTE_MS
+
+    /**
+     * "3h 12m left" / "40m left" / "Ready" - the same three bands and the
+     * same strings the home screen's own expedition tile already reads, so
+     * a caller with its own "how long is left" question (the enlarged rat
+     * dialog's deploy button, for the specific rat that is the one out)
+     * gets the identical wording rather than a second phrasing of it.
+     */
+    fun expeditionTimeLeftText(context: Context, remainingMs: Long): String = when {
+        remainingMs <= 0L -> context.getString(R.string.tile_expedition_ready)
+        remainingMs >= HOUR_MS -> context.getString(
+            R.string.tile_expedition_hm,
+            remainingMs / HOUR_MS,
+            (remainingMs % HOUR_MS) / MINUTE_MS
+        )
+        else -> context.getString(R.string.tile_expedition_m, remainingMs / MINUTE_MS)
     }
 }

@@ -89,6 +89,27 @@
                     app:tint="@color/cream"
                     android:importantForAccessibility="no" />
             </LinearLayout>
+
+            <!--
+              Out on the Scrap Run - see RatCardAdapter.onBindViewHolder and
+              its own wobbleForever. bottom|start rather than the gears'
+              top|start, so the two badges never fight for the same corner;
+              gone by default, since at most one rat in the whole roster is
+              ever deployed at once.
+            -->
+            <ImageView
+                android:id="@+id/cardTaskBadge"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="4dp"
+                android:background="@drawable/bg_badge_scrim"
+                android:padding="2dp"
+                android:visibility="gone"
+                android:src="@drawable/ic_contract"
+                app:tint="@color/cream"
+                android:contentDescription="@string/card_task_badge_description"
+                tools:visibility="visible" />
         </com.google.android.material.card.MaterialCardView>
 
         <!--

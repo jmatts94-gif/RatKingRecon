@@ -120,6 +120,10 @@
     <string name="tile_expedition_hm">%1$dh %2$dm left</string>
     <!-- minutes, for the last hour -->
     <string name="tile_expedition_m">%1$dm left</string>
+    <!-- The Ledger grid card's own small badge for whichever rat is currently deployed - see RatCardAdapter -->
+    <string name="card_task_badge_description">Out on a Scrap Run</string>
+    <!-- The enlarged rat dialog's deploy button, once this specific rat is the one out - see EnlargedRatDialog -->
+    <string name="enlarged_on_scrap_run">On Scrap Run\n%1$s</string>
     <!-- steps walked today -->
     <string name="tile_steps">%1$d steps</string>
     <!-- today's distance, estimated from an average stride -->

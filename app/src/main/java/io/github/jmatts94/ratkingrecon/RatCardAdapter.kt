@@ -1,5 +1,8 @@
 package io.github.jmatts94.ratkingrecon
 
+import android.animation.Keyframe
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.ColorMatrix
@@ -109,6 +112,7 @@ class RatCardAdapter(
         val gear2: ImageView = view.findViewById(R.id.cardGear2)
         val gear3: ImageView = view.findViewById(R.id.cardGear3)
         val overlay: View = view.findViewById(R.id.cardFrameOverlay)
+        val taskBadge: ImageView = view.findViewById(R.id.cardTaskBadge)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardHolder {
@@ -210,6 +214,67 @@ class RatCardAdapter(
 
         holder.itemView.isEnabled = !disabled
         holder.itemView.setOnClickListener(if (disabled) null else View.OnClickListener { onCardClick(pet) })
+
+        // At most one rat in the whole roster is ever out on a Scrap Run at
+        // once - see ShopEffects.KEY_EXPEDITION_ACTIVE - so this is a plain
+        // prefs check per bind rather than anything the adapter needs to
+        // track itself. "DEPLOYED_RAT_ID" is the same raw key
+        // EnlargedRatDialog/GalleryActivity/SpliceEligibility already read
+        // and write directly, not a typo.
+        val onExpedition = prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false) &&
+            prefs.getLong("DEPLOYED_RAT_ID", -1L) == pet.id
+        if (onExpedition) {
+            holder.taskBadge.visibility = View.VISIBLE
+            // Only ever started once per appearance - a bind that finds the
+            // wobble already running (a stat change redrawing the same
+            // still-deployed card, say) must not restart it and stutter.
+            if (holder.taskBadge.tag == null) {
+                holder.taskBadge.tag = wobbleForever(holder.taskBadge)
+            }
+        } else {
+            (holder.taskBadge.tag as? ObjectAnimator)?.cancel()
+            holder.taskBadge.tag = null
+            holder.taskBadge.rotation = 0f
+            holder.taskBadge.visibility = View.GONE
+        }
+    }
+
+    /**
+     * Settles, twitches, settles again - a small idle animation rather than
+     * a continuous shimmy, so it reads as "this one's doing something" out
+     * of the corner of the eye without the grid feeling restless. 2000ms
+     * per cycle: still for the first 1500ms, then a quick four-beat wobble
+     * and back to rest, repeating for as long as the card stays bound to
+     * this rat - see onBindViewHolder/onViewRecycled for when that ends.
+     */
+    private fun wobbleForever(view: View): ObjectAnimator {
+        val rotation = PropertyValuesHolder.ofKeyframe(
+            View.ROTATION,
+            Keyframe.ofFloat(0f, 0f),
+            Keyframe.ofFloat(0.75f, 0f),
+            Keyframe.ofFloat(0.80f, -10f),
+            Keyframe.ofFloat(0.85f, 9f),
+            Keyframe.ofFloat(0.90f, -5f),
+            Keyframe.ofFloat(0.95f, 2f),
+            Keyframe.ofFloat(1f, 0f)
+        )
+        return ObjectAnimator.ofPropertyValuesHolder(view, rotation).apply {
+            duration = 2000L
+            repeatCount = ObjectAnimator.INFINITE
+            start()
+        }
+    }
+
+    /**
+     * A recycled holder's badge animator would otherwise keep running
+     * against a view RecyclerView is about to hand to a completely
+     * different rat - stopped here rather than relying on the next bind to
+     * get around to it, since a view can sit recycled for a while first.
+     */
+    override fun onViewRecycled(holder: CardHolder) {
+        super.onViewRecycled(holder)
+        (holder.taskBadge.tag as? ObjectAnimator)?.cancel()
+        holder.taskBadge.tag = null
     }
 
     /**

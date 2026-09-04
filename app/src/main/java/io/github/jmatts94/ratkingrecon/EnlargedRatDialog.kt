@@ -71,6 +71,23 @@ object EnlargedRatDialog {
         gear2.visibility = if (pet.gearCount >= 2) View.VISIBLE else View.GONE
         gear3.visibility = if (pet.gearCount >= 3) View.VISIBLE else View.GONE
 
+        // Whether this specific rat - not just "a" rat - is the one out on
+        // the Scrap Run right now. "DEPLOYED_RAT_ID" is the same raw key
+        // the deploy click handler below writes and RatCardAdapter's own
+        // grid badge reads, not a typo - see that adapter's own comment.
+        val onExpedition = prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false) &&
+            prefs.getLong("DEPLOYED_RAT_ID", -1L) == pet.id
+        dialog.findViewById<View>(R.id.enlargedTaskBadge).visibility =
+            if (onExpedition) View.VISIBLE else View.GONE
+        if (onExpedition) {
+            val remaining = prefs.getLong(ShopEffects.KEY_EXPEDITION_END, 0L) - System.currentTimeMillis()
+            deployButton.text = activity.getString(
+                R.string.enlarged_on_scrap_run,
+                ShopEffects.expeditionTimeLeftText(activity, remaining)
+            )
+            deployButton.isEnabled = false
+        }
+
         // The equipped Binder frame, if any - the same one item_rat_card.xml's
         // own grid shows, drawn at this card's larger scale instead. Left as
         // the plain bg_recon_card_outer brass border declared in the layout

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/enlargedLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -142,6 +143,30 @@
                         app:tint="@color/cream"
                         android:importantForAccessibility="no" />
                 </LinearLayout>
+
+                <!--
+                  Out on the Scrap Run - the same badge item_rat_card.xml's
+                  own cardTaskBadge shows on the grid, just static here since
+                  the deploy button right below the portrait already spells
+                  the status out in words - see EnlargedRatDialog.kt.
+                  bottom|start rather than the gears' bottom|end: the same
+                  circular crop that ruled out top|start for the gears (see
+                  that badge's own comment) is symmetric across the middle,
+                  so the opposite bottom corner reads exactly as cleanly.
+                -->
+                <ImageView
+                    android:id="@+id/enlargedTaskBadge"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="bottom|start"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/bg_badge_scrim"
+                    android:padding="4dp"
+                    android:visibility="gone"
+                    android:src="@drawable/ic_contract"
+                    app:tint="@color/cream"
+                    android:contentDescription="@string/card_task_badge_description"
+                    tools:visibility="visible" />
             </FrameLayout>
 
             <LinearLayout
