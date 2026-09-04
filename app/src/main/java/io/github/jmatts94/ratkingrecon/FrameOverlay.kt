@@ -16,6 +16,7 @@ import android.view.Choreographer
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import kotlin.math.atan2
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sin
@@ -233,18 +234,27 @@ class FrameOverlayDrawable(
 
         // --- the paw print trail, wandering the border rather than tracing it ---
 
-        /** How many prints make up the fading trail, head to tail. */
-        private const val PAW_TRAIL_COUNT = 6
+        /** How many prints make up the fading trail, head to tail - three now, down from six. */
+        private const val PAW_TRAIL_COUNT = 3
 
         /** How far apart each trailing print sits, as a fraction of the whole perimeter. */
-        private const val PAW_SPACING = 0.035f
+        private const val PAW_SPACING = 0.05f
 
         /**
-         * Laps of the border per turn of the shared clock. Slowed from an
-         * original 1 (a brisk walk, GEARS' own pace) after "make the paw
-         * prints move at a slower rate" - a real walk now, not a jog.
+         * Its own clock, independent of [FrameClock] - the same reasoning
+         * [LIGHTNING_PERIOD_MS] already gives for a strike not sharing a
+         * gear's rhythm. One full lap of the border takes this long.
+         *
+         * A first pass tried this as a multiplier on [FrameClock.phase()]
+         * instead (a fraction below 1, for "slower than GEARS' own lap").
+         * That was the actual bug behind "the paw prints only go up half
+         * the tile" - phase() is already a sawtooth capped at 1 every
+         * PERIOD_MS, so multiplying it by a fraction just shrinks the range
+         * it ever reaches rather than slowing how long a full 0..1 sweep
+         * takes. A real independent period, the way LIGHTNING already has
+         * one, is what actually walks the whole perimeter.
          */
-        private const val PAW_LAPS = 0.35f
+        private const val PAW_PERIOD_MS = 17_000f
 
         /**
          * The trail's own minimum distance inward from the border line -
@@ -253,7 +263,7 @@ class FrameOverlayDrawable(
          * outline" means the wander has to stay inward of the line at
          * every point in its cycle, not swing on either side of it the way
          * an earlier pass did, and this is what keeps even a print's own
-         * outline circle from poking past the border while it does.
+         * outline poking past the border while it does.
          */
         private const val PAW_INSET_MIN_DP = 5f
 
@@ -263,27 +273,34 @@ class FrameOverlayDrawable(
         /** Side-to-side wobbles per full lap - enough to read as wandering, not a straight march with a shiver on it. */
         private const val PAW_WANDER_CYCLES = 5f
 
-        // Sizes below are the original pass's own values at 1.5x - "increase
-        // the size of the paw prints by 50%... to start off with" - the pad/
-        // toe gap and spread scaled the same amount so a bigger print still
-        // reads as one shape rather than its toes drifting away from it.
+        /**
+         * The pad and four toes below are drawn as ovals in a canvas rotated
+         * to the border's own tangent at each print - see [drawPawPrint] -
+         * rather than as same-sized circles the way a first pass drew them,
+         * after "change the paw print to look more of a paw print... right
+         * now it currently shows as 3 small circles and one large in the
+         * centre." A real paw's toes read as elongated, not round, and
+         * there are four of them fanned above the pad, not three.
+         */
         private const val PAW_PAD_RADIUS_DP = 4.8f
-        private const val PAW_TOE_RADIUS_DP = 2.4f
+
+        /** Each toe's own length, along the direction of travel, and width across it. */
+        private const val PAW_TOE_LENGTH_DP = 5f
+        private const val PAW_TOE_WIDTH_DP = 2.6f
 
         /** Forward distance from the pad's own centre to the row of toes ahead of it. */
         private const val PAW_PAD_GAP_DP = 6.75f
 
-        /** Sideways spread between the two outer toes. */
-        private const val PAW_TOE_SPREAD_DP = 4.8f
+        /** Sideways spacing between each of the four toes and the next. */
+        private const val PAW_TOE_SPREAD_DP = 3.6f
 
         /**
-         * How much larger than its own fill circle each mark's outline ring
-         * is drawn - see [pawOutlinePaint]. "define the paw prints so they
-         * have more definition" - a dark ring under the bright fill reads
-         * as a distinct mark against any card art, the same halo-then-core
+         * How much larger than its own fill each mark's outline is drawn -
+         * see [pawOutlinePaint]. "define the paw prints so they have more
+         * definition" - a dark ring under the bright fill reads as a
+         * distinct mark against any card art, the same halo-then-core
          * trick every other animated frame in this file already uses, just
-         * a filled ring rather than a stroked one since these are dots, not
-         * a line.
+         * filled shapes rather than a stroked line.
          */
         private const val PAW_OUTLINE_EXTRA_DP = 1.2f
     }
@@ -644,7 +661,7 @@ class FrameOverlayDrawable(
         val total = pawsLength
         if (total <= 0f) return
 
-        val headFraction = FrameClock.phase() * PAW_LAPS
+        val headFraction = (SystemClock.uptimeMillis() % PAW_PERIOD_MS.toLong()) / PAW_PERIOD_MS
 
         for (i in 0 until PAW_TRAIL_COUNT) {
             var fraction = headFraction - i * PAW_SPACING
@@ -653,46 +670,72 @@ class FrameOverlayDrawable(
             val p = pointAt(pawsMeasure, total, fraction)
             val wave = (sin((fraction * PAW_WANDER_CYCLES * 2f * Math.PI).toFloat()) + 1f) / 2f
             val inset = dp(PAW_INSET_MIN_DP) + wave * dp(PAW_WANDER_DP)
+            val cx = p.x + p.nx * inset
+            val cy = p.y + p.ny * inset
 
             val alpha = (255 * (1f - i / PAW_TRAIL_COUNT.toFloat())).toInt().coerceIn(0, 255)
             steamPaint.alpha = alpha
             pawOutlinePaint.alpha = alpha
-            drawPawPrint(canvas, p, p.x + p.nx * inset, p.y + p.ny * inset)
+
+            // The angle canvas.rotate needs to turn local "forward" (+x)
+            // to face the same way p.tx/p.ty already does in screen space.
+            val angleDeg = Math.toDegrees(atan2(p.ty.toDouble(), p.tx.toDouble())).toFloat()
+            drawPawPrint(canvas, cx, cy, angleDeg)
         }
     }
 
     /**
-     * One print: a pad, and three toes fanned out ahead of it along [p]'s
-     * own tangent/normal axes - facing the direction of travel rather than
-     * sitting square to the card, since the border this walks has straight
-     * runs on all four sides. Each mark is drawn twice, a slightly larger
-     * [pawOutlinePaint] ring first and the real-sized [steamPaint] fill on
-     * top - the same halo-then-core shape every other animated frame in
-     * this file already draws, just filled dots instead of a stroked line.
+     * One print: a pad, and four toes fanned out ahead of it - a real paw's
+     * shape, asked for by name after a first pass read as "3 small circles
+     * and one large in the centre." Drawn in a canvas rotated to [angleDeg]
+     * around (cx, cy) rather than by offsetting along p.tx/p.ty/p.nx/p.ny
+     * by hand the way every other mark in this file still does, since the
+     * toes are ellipses now (elongated along the direction of travel, not
+     * round) and a rotated canvas draws an axis-aligned oval already facing
+     * the right way for free, instead of four ellipses' own rotated corner
+     * maths written out longhand. Each shape is drawn twice, a slightly
+     * larger [pawOutlinePaint] pass first and the real-sized [steamPaint]
+     * fill on top - the same halo-then-core shape every other animated
+     * frame in this file already draws.
      */
-    private fun drawPawPrint(canvas: Canvas, p: BorderPoint, cx: Float, cy: Float) {
+    private fun drawPawPrint(canvas: Canvas, cx: Float, cy: Float, angleDeg: Float) {
+        val padRadius = dp(PAW_PAD_RADIUS_DP)
+        val toeHalfLen = dp(PAW_TOE_LENGTH_DP) / 2f
+        val toeHalfWidth = dp(PAW_TOE_WIDTH_DP) / 2f
         val gap = dp(PAW_PAD_GAP_DP)
         val spread = dp(PAW_TOE_SPREAD_DP)
-        val padRadius = dp(PAW_PAD_RADIUS_DP)
-        val toeRadius = dp(PAW_TOE_RADIUS_DP)
         val outlineExtra = dp(PAW_OUTLINE_EXTRA_DP)
 
-        val toe1x = cx + p.tx * gap
-        val toe1y = cy + p.ty * gap
-        val toe2x = cx + p.tx * gap * 0.8f + p.nx * spread
-        val toe2y = cy + p.ty * gap * 0.8f + p.ny * spread
-        val toe3x = cx + p.tx * gap * 0.8f - p.nx * spread
-        val toe3y = cy + p.ty * gap * 0.8f - p.ny * spread
+        // Four toes, evenly spaced sideways ahead of the pad - local +x is
+        // "forward" once the canvas below is rotated, local y is lateral.
+        val toeLateralOffsets = floatArrayOf(-1.5f, -0.5f, 0.5f, 1.5f)
 
-        canvas.drawCircle(cx, cy, padRadius + outlineExtra, pawOutlinePaint)
-        canvas.drawCircle(toe1x, toe1y, toeRadius + outlineExtra, pawOutlinePaint)
-        canvas.drawCircle(toe2x, toe2y, toeRadius + outlineExtra, pawOutlinePaint)
-        canvas.drawCircle(toe3x, toe3y, toeRadius + outlineExtra, pawOutlinePaint)
+        canvas.save()
+        canvas.rotate(angleDeg, cx, cy)
 
-        canvas.drawCircle(cx, cy, padRadius, steamPaint)
-        canvas.drawCircle(toe1x, toe1y, toeRadius, steamPaint)
-        canvas.drawCircle(toe2x, toe2y, toeRadius, steamPaint)
-        canvas.drawCircle(toe3x, toe3y, toeRadius, steamPaint)
+        canvas.drawOval(
+            cx - padRadius - outlineExtra, cy - padRadius - outlineExtra,
+            cx + padRadius + outlineExtra, cy + padRadius + outlineExtra,
+            pawOutlinePaint
+        )
+        for (lateral in toeLateralOffsets) {
+            val tx = cx + gap
+            val ty = cy + lateral * spread
+            canvas.drawOval(
+                tx - toeHalfLen - outlineExtra, ty - toeHalfWidth - outlineExtra,
+                tx + toeHalfLen + outlineExtra, ty + toeHalfWidth + outlineExtra,
+                pawOutlinePaint
+            )
+        }
+
+        canvas.drawOval(cx - padRadius, cy - padRadius, cx + padRadius, cy + padRadius, steamPaint)
+        for (lateral in toeLateralOffsets) {
+            val tx = cx + gap
+            val ty = cy + lateral * spread
+            canvas.drawOval(tx - toeHalfLen, ty - toeHalfWidth, tx + toeHalfLen, ty + toeHalfWidth, steamPaint)
+        }
+
+        canvas.restore()
     }
 
     /**
