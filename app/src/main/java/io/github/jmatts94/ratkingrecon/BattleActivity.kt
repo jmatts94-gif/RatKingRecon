@@ -14,7 +14,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,8 +42,8 @@ class BattleActivity : AppCompatActivity() {
     private lateinit var ratDotIcon: ImageView
     private lateinit var ratImage: ImageView
     private lateinit var specialGlyph: ImageView
-    private lateinit var botCard: MaterialCardView
-    private lateinit var ratCard: MaterialCardView
+    private lateinit var botCard: View
+    private lateinit var ratCard: View
     private lateinit var activeBuffBadge: View
     private lateinit var activeBuffIcon: ImageView
     private lateinit var activeBuffLabel: TextView

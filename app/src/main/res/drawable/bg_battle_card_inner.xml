@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The cream panel inside bg_battle_card_outer's brass frame - see
+  drawable-night/bg_battle_card_inner.xml for dark steampunk's own version.
+  Unlike the Recon Card's own inner panel (bg_recon_card_inner), this one is
+  themed rather than fixed: the battle screen follows the player's Dark
+  Steampunk toggle the way the rest of the app does, so text_primary/
+  text_muted drawn on top of this have to be able to flip to their own
+  light-on-dark values without going illegible against a panel that stayed
+  cream regardless.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="270"
+        android:startColor="@color/cream"
+        android:endColor="@color/tan" />
+    <corners android:radius="14dp" />
+</shape>

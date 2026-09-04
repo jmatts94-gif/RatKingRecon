@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The battle screen's own bot/rat info cards - the same brass-to-amber
+  diagonal gradient bg_recon_card_outer uses, just at a corner radius scaled
+  for a short, full-width info row instead of a tall portrait card. Not a
+  reuse of bg_recon_card_outer directly: that one's 34dp radius reads as
+  premium on a 320dp-wide card and as an odd blob on one several times wider
+  and a third as tall.
+
+  No night-mode variant needed - see bg_battle_card_inner.xml. A metal frame
+  is meant to look the same regardless of theme, the same reasoning
+  values-night/colors.xml gives for leaving every Binder frame's own colours
+  untouched there.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="135"
+        android:startColor="@color/brass_bright"
+        android:centerColor="@color/copper"
+        android:endColor="@color/amber_dark" />
+    <corners android:radius="18dp" />
+</shape>

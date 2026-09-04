@@ -25,22 +25,47 @@
             android:textAlignment="center"
             android:layout_marginBottom="16dp" />
 
-        <!-- Rustbot -->
-        <com.google.android.material.card.MaterialCardView
+        <!--
+          Rustbot - a brass-outer/cream-inner nesting in the same family as
+          the Recon Card and the enlarged rat dialog (bg_recon_card_outer/
+          _inner), rather than the plain flat white MaterialCardView this
+          screen drew before: everywhere else a card gets this treatment,
+          the battle screen's own two were the one place still reading as a
+          stock Material card next to it. Its own drawables rather than
+          reusing those directly - see bg_battle_card_outer.xml - since
+          those two are sized for a tall 320dp-wide portrait card, not a
+          short full-width info row, and their inner panel is fixed cream
+          regardless of theme, which is exactly wrong for a screen meant to
+          keep following the player's Dark Steampunk toggle the way the
+          rest of the app does. A plain LinearLayout rather than
+          MaterialCardView, since app:cardBackgroundColor only takes a
+          colour - a gradient background needs a real View background, the
+          same substitution dialog_enlarged_rat.xml's own enlargedCardBorder
+          already made. android:elevation on a shape drawable still casts a
+          real shadow (the default outline comes straight from the
+          drawable's own rounded rect), so nothing about the lift is lost -
+          only its colour changes, to the same warm shadow_warm tone the
+          battle log below already casts rather than Android's default
+          near-black.
+        -->
+        <LinearLayout
             android:id="@+id/botCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_battle_card_outer"
+            android:padding="4dp"
+            android:elevation="2dp"
+            android:outlineAmbientShadowColor="@color/shadow_warm"
+            android:outlineSpotShadowColor="@color/shadow_warm"
+            tools:targetApi="28"
             android:layout_marginBottom="12dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:background="@drawable/bg_battle_card_inner"
                 android:clipChildren="false"
                 android:padding="16dp">
 
@@ -102,18 +127,20 @@
                     android:layout_height="12dp"
                     android:progressDrawable="@drawable/progress_amber" />
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
-        <!-- Your rat -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Your rat - the same brass-outer/cream-inner nesting as botCard above. -->
+        <LinearLayout
             android:id="@+id/ratCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/card_white"
-            app:strokeColor="@color/card_border"
-            app:strokeWidth="1dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            android:orientation="vertical"
+            android:background="@drawable/bg_battle_card_outer"
+            android:padding="4dp"
+            android:elevation="2dp"
+            android:outlineAmbientShadowColor="@color/shadow_warm"
+            android:outlineSpotShadowColor="@color/shadow_warm"
+            tools:targetApi="28"
             android:layout_marginBottom="16dp">
 
             <LinearLayout
@@ -121,6 +148,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:background="@drawable/bg_battle_card_inner"
                 android:clipChildren="false"
                 android:padding="16dp">
 
@@ -251,7 +279,7 @@
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
         <!-- Actions -->
         <com.google.android.material.button.MaterialButton
@@ -330,7 +358,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:background="@drawable/bg_card_white"
+            android:background="@drawable/bg_battle_card_inner"
             android:elevation="4dp"
             android:outlineAmbientShadowColor="@color/shadow_warm"
             android:outlineSpotShadowColor="@color/shadow_warm"
