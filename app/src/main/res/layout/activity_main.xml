@@ -274,29 +274,13 @@
                     android:clickable="true"
                     android:focusable="true">
 
-                    <!--
-                      A small colour chip behind the icon - see
-                      bg_icon_chip_amber.xml's own comment. 28dp so it clears
-                      the 22dp icon by 3dp all round; the icon shrinks to
-                      16dp and switches to a cream tint on top of it, since
-                      its baked-in text_primary fill (see ic_expedition) is
-                      close to invisible against amber_dark at this contrast.
-                    -->
-                    <FrameLayout
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:background="@drawable/bg_icon_chip_amber">
-
-                        <ImageView
-                            android:id="@+id/expeditionIcon"
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_gravity="center"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/ic_expedition"
-                            android:tint="@color/cream"
-                            android:importantForAccessibility="no" />
-                    </FrameLayout>
+                    <ImageView
+                        android:id="@+id/expeditionIcon"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_expedition"
+                        android:importantForAccessibility="no" />
 
                     <TextView
                         android:id="@+id/expeditionStatus"
@@ -334,22 +318,12 @@
                     android:outlineSpotShadowColor="@color/shadow_warm"
                     tools:targetApi="28">
 
-                    <!-- Copper rather than expeditionTile's amber - see
-                         bg_icon_chip_copper.xml's own comment. -->
-                    <FrameLayout
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
-                        android:background="@drawable/bg_icon_chip_copper">
-
-                        <ImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:layout_gravity="center"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/ic_footprint"
-                            android:tint="@color/cream"
-                            android:importantForAccessibility="no" />
-                    </FrameLayout>
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_footprint"
+                        android:importantForAccessibility="no" />
 
                     <LinearLayout
                         android:layout_width="0dp"
