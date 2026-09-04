@@ -189,6 +189,13 @@ class SettingsActivity : AppCompatActivity() {
                 .putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + DEBUG_SCRAP)
                 .apply()
 
+            // Every frame, achievement- and Arena-only ones included - the
+            // Shop already lists all of Frames.all regardless of sellable
+            // (see Shop.kt's cosmetic category comment) and toggles equip on
+            // tap for anything owned, so this is enough to browse and equip
+            // each one from there without earning it for real.
+            Frames.all.forEach { frame -> ShopEffects.grantCosmetic(prefs, frame.id) }
+
             Toast.makeText(
                 this@SettingsActivity,
                 getString(R.string.debug_bundle_granted, DEBUG_SCRAP, minted.size),
