@@ -309,17 +309,18 @@ class FrameOverlayDrawable(
          * sits inside the palm's own silhouette regardless of its angle -
          * "no negative space between toe and palm."
          */
-        private const val PAW_TOE_EMBED_DP = 2f
+        private const val PAW_TOE_EMBED_DP = 1.5f
 
         /**
          * The palm pad's own width (sideways, across the direction of
          * travel) and depth (fore-aft) - "a wide rounded palm pad... a
          * single blobby rounded shape... not a thin base or gap." Wider
          * than it is deep, the same reason a real palm reads as a pad
-         * rather than a heel.
+         * rather than a heel. Trimmed down from an original 10/6 after
+         * "make the back of the paws a little smaller in size."
          */
-        private const val PAW_PALM_WIDE_DP = 10f
-        private const val PAW_PALM_DEEP_DP = 6f
+        private const val PAW_PALM_WIDE_DP = 7.5f
+        private const val PAW_PALM_DEEP_DP = 4.5f
 
         /** The scale a freshly-placed print eases up from, and settles at once fully arrived - see [drawPaws]. */
         private const val PAW_SCALE_MIN = 0.7f
@@ -327,11 +328,24 @@ class FrameOverlayDrawable(
 
         /**
          * How far a print's own alpha dips by the time it reaches the back
-         * of the trail, as a fraction of full opacity - "fading in and
-         * slightly out," not fading all the way to nothing before it
-         * scrolls out of the trail entirely.
+         * of the trail, as a fraction of full opacity. Raised from an
+         * original 0.35 after "make the trailing paws fade out" - a real
+         * fade now, down to a faint trace by the time a step is about to
+         * scroll out of the trail rather than merely dimming to two-thirds.
          */
-        private const val PAW_SETTLE_FADE_FRACTION = 0.35f
+        private const val PAW_SETTLE_FADE_FRACTION = 0.9f
+
+        /**
+         * How far the trailing paws' own colour drifts toward black by the
+         * back of the trail, as a fraction - "a slight colour gradiant." A
+         * blend derived off the frame's own single accent at draw time
+         * rather than a second colour pulled from CardFrame.accentAlt:
+         * giving PAWS a real second accent already broke FramesTest's
+         * "only a two-colour style carries one" rule once, for the
+         * now-removed paw outline - this sidesteps that again by deriving
+         * the shade instead of storing one.
+         */
+        private const val PAW_GRADIENT_STRENGTH = 0.4f
 
         /**
          * The extra scale multiplier alternating steps carry, on top of
@@ -356,6 +370,26 @@ class FrameOverlayDrawable(
             PawToe(angleDeg = 9f, lengthScale = 1f, widthScale = 1f),
             PawToe(angleDeg = 38f, lengthScale = 0.90f, widthScale = 0.95f)
         )
+
+        // --- the glow that travels the border line itself, right behind
+        // the paws - see drawPawGlow. Drawn along pawsMeasure, the exact
+        // same path the footprints themselves walk, which sits at
+        // trackInsetDp inset from the card's own bounds - close enough to
+        // the card's real black stroke that a soft line drawn along it
+        // reads as light sitting on that stroke rather than as a second,
+        // separate mark drifting near it.
+
+        /** How much of the perimeter the glow trail covers, trailing the same head position [drawPaws] walks. */
+        private const val PAW_GLOW_SPAN_FRACTION = 0.07f
+
+        /** How many overlapping strokes approximate the glow's own fade - more than the four footprints get, since a line's fade reads worse in coarse steps than a handful of separate dots do. */
+        private const val PAW_GLOW_SEGMENTS = 14
+
+        /** The glow's own stroke width - wider than the visible border line so it reads as a soft bloom sitting on it, not a second thin overlay. */
+        private const val PAW_GLOW_WIDTH_DP = 5f
+
+        /** Peak alpha, at the head of the glow - "slight," well short of the paws' own full opacity. */
+        private const val PAW_GLOW_MAX_ALPHA = 130
     }
 
     /** One entry in [PAW_TOES] - see that field's own comment. */
@@ -400,6 +434,9 @@ class FrameOverlayDrawable(
      */
     private val pawsMeasure = PathMeasure()
     private var pawsLength = 0f
+
+    /** Scratch path for each of [drawPawGlow]'s own extracted segments - rewound and reused rather than allocated per segment, per frame. */
+    private val pawGlowSegmentPath = Path()
 
     /** RADIANT's own palette - accent, accentAlt, and a third stop off secondaryAccent. */
     private val radiantColors: IntArray by lazy { intArrayOf(accent, accentAlt, secondaryAccent ?: accent) }
@@ -708,6 +745,11 @@ class FrameOverlayDrawable(
         if (total <= 0f) return
 
         val headFraction = (SystemClock.uptimeMillis() % PAW_PERIOD_MS.toLong()) / PAW_PERIOD_MS
+
+        // Drawn before the footprints below, so the paws sit on top of the
+        // glow rather than the glow washing back over them.
+        drawPawGlow(canvas, total, headFraction)
+
         val stepFloat = headFraction / PAW_STEP_SPACING
         val headStep = floor(stepFloat).toInt()
 
@@ -746,16 +788,20 @@ class FrameOverlayDrawable(
             // not just pop into visibility."
             val fadeIn = easeOutCubic(ageInSteps.coerceIn(0f, 1f))
 
-            // Fading (slightly) OUT: once fully arrived, a gentle eased dip
-            // the rest of the way through the trail's own visible span -
-            // never fully to zero before the step scrolls out of the trail
-            // entirely, which is the "slightly" in "fading in and slightly
-            // out."
+            // Fading OUT: once fully arrived, an eased dip the rest of the
+            // way through the trail's own visible span down to a faint
+            // trace by the time a step is about to scroll out of the
+            // trail entirely - "make the trailing paws fade out."
             val settleT = ((ageInSteps - 1f) / (PAW_TRAIL_COUNT - 1f).coerceAtLeast(1f)).coerceIn(0f, 1f)
             val settleFade = 1f - PAW_SETTLE_FADE_FRACTION * easeInCubic(settleT)
 
             val alpha = (255 * fadeIn * settleFade).toInt().coerceIn(0, 255)
             steamPaint.alpha = alpha
+            // "A slight colour gradiant" - the same settleT driving the
+            // fade above also drifts the fill toward black as a step ages,
+            // so the trail reads as darkening as well as dimming rather
+            // than the one flat green at every stage of its life.
+            steamPaint.color = ColorUtils.blendARGB(accent, android.graphics.Color.BLACK, settleT * PAW_GRADIENT_STRENGTH)
 
             val gaitScale = if (isRight) PAW_SIDE_SCALE_RIGHT else PAW_SIDE_SCALE_LEFT
             val scale = (PAW_SCALE_MIN + (PAW_SCALE_MAX - PAW_SCALE_MIN) * fadeIn) * gaitScale
@@ -771,6 +817,56 @@ class FrameOverlayDrawable(
             val baseAngle = Math.toDegrees(atan2(p.ty.toDouble(), p.tx.toDouble())).toFloat()
             val jitter = sin(stepIndex * 12.9898f) * PAW_ROTATION_JITTER_DEG
             drawPawPrint(canvas, cx, cy, baseAngle + jitter, mirror = isRight, scale = scale)
+        }
+    }
+
+    /**
+     * A soft neon glow riding the border line itself, right behind the
+     * lead paw - "a slight neon glow on the black border that follows the
+     * paws... only on the black line." Walks [pawsMeasure] - the exact
+     * path the footprints themselves use, already sitting close against
+     * the card's real stroke - rather than a wash over the card face, so
+     * the glow reads as light sitting on that line specifically.
+     *
+     * [PAW_GLOW_SEGMENTS] short overlapping strokes stand in for a true
+     * alpha gradient along the path's own length, which neither a plain
+     * [Paint] nor a [android.graphics.Shader] can express directly for an
+     * arbitrary curve - the same multi-pass fade every other trail in this
+     * class already builds out of discrete steps (the paw prints
+     * themselves, [SCARRED]'s cracks) rather than one continuously-eased
+     * draw call.
+     */
+    private fun drawPawGlow(canvas: Canvas, total: Float, headFraction: Float) {
+        pulsePaint.color = accent
+        pulsePaint.strokeWidth = dp(PAW_GLOW_WIDTH_DP)
+
+        val segmentSpan = PAW_GLOW_SPAN_FRACTION / PAW_GLOW_SEGMENTS
+        for (s in 0 until PAW_GLOW_SEGMENTS) {
+            val endFraction = headFraction - s * segmentSpan
+            val startFraction = endFraction - segmentSpan
+
+            pulsePaint.alpha = (PAW_GLOW_MAX_ALPHA * (1f - s / PAW_GLOW_SEGMENTS.toFloat())).toInt().coerceIn(0, 255)
+
+            pawGlowSegmentPath.rewind()
+            addWrappedSegment(startFraction, endFraction, total, pawGlowSegmentPath)
+            canvas.drawPath(pawGlowSegmentPath, pulsePaint)
+        }
+    }
+
+    /**
+     * Appends [pawsMeasure]'s own [startFraction]..[endFraction] span to
+     * [dest], each wrapped into 0..1 first - split into two segments when
+     * the span crosses the seam back to 0, which [PathMeasure.getSegment]
+     * cannot express as a single start-less-than-stop call on its own.
+     */
+    private fun addWrappedSegment(startFraction: Float, endFraction: Float, total: Float, dest: Path) {
+        val start = startFraction - floor(startFraction)
+        val end = endFraction - floor(endFraction)
+        if (start <= end) {
+            pawsMeasure.getSegment(start * total, end * total, dest, true)
+        } else {
+            pawsMeasure.getSegment(start * total, total, dest, true)
+            pawsMeasure.getSegment(0f, end * total, dest, false)
         }
     }
 
