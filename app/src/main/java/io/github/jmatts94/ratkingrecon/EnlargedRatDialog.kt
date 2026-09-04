@@ -75,15 +75,25 @@ object EnlargedRatDialog {
         // the Scrap Run right now. "DEPLOYED_RAT_ID" is the same raw key
         // the deploy click handler below writes and RatCardAdapter's own
         // grid badge reads, not a typo - see that adapter's own comment.
-        val onExpedition = prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false) &&
-            prefs.getLong("DEPLOYED_RAT_ID", -1L) == pet.id
-        if (onExpedition) {
-            val remaining = prefs.getLong(ShopEffects.KEY_EXPEDITION_END, 0L) - System.currentTimeMillis()
-            deployButton.text = activity.getString(
-                R.string.enlarged_on_scrap_run,
-                ShopEffects.expeditionTimeLeftText(activity, remaining)
-            )
-            deployButton.isEnabled = false
+        val expeditionActive = prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false)
+        val onExpedition = expeditionActive && prefs.getLong("DEPLOYED_RAT_ID", -1L) == pet.id
+        when {
+            onExpedition -> {
+                val remaining = prefs.getLong(ShopEffects.KEY_EXPEDITION_END, 0L) - System.currentTimeMillis()
+                deployButton.text = activity.getString(
+                    R.string.enlarged_on_scrap_run,
+                    ShopEffects.expeditionTimeLeftText(activity, remaining)
+                )
+                deployButton.isEnabled = false
+            }
+            // A different rat is the one out - only one Scrap Run runs at
+            // once account-wide, so "Send on a Scrap Run" would just be a
+            // button that toasts "already out" on tap. Greyed out and
+            // relabelled instead of left looking like a live action.
+            expeditionActive -> {
+                deployButton.text = activity.getString(R.string.enlarged_scrap_run_busy)
+                deployButton.isEnabled = false
+            }
         }
 
         // A rat can be named on a running Ledger Task slot at the same

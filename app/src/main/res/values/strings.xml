@@ -126,6 +126,8 @@
     <string name="enlarged_on_scrap_run">On Scrap Run\n%1$s</string>
     <!-- The enlarged rat dialog's own status line for a rat named on a running Ledger Task slot - task title, minutes left -->
     <string name="enlarged_on_ledger_task">On Ledger Task: %1$s — %2$dm left</string>
+    <!-- The enlarged rat dialog's deploy button for every rat that is NOT the one currently out - see EnlargedRatDialog -->
+    <string name="enlarged_scrap_run_busy">Scrap Run In Progress</string>
     <!-- steps walked today -->
     <string name="tile_steps">%1$d steps</string>
     <!-- today's distance, estimated from an average stride -->
