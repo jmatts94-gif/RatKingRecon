@@ -132,6 +132,24 @@ object LedgerTasks {
     fun isRunning(prefs: SharedPreferences, tier: LedgerTaskTier): Boolean =
         prefs.getBoolean(activeKey(tier.id), false)
 
+    /**
+     * Which running slot, if any, named [ratId] when it was started - see
+     * [assignedRatKey]. At most one tier can ever name the same rat at once
+     * in practice (the picker only offers a rat once a fresh job is rolled
+     * for a slot already showing "Start Task"), but this is written as a
+     * search rather than assumed, so a save that somehow disagrees still
+     * reports the first slot that actually matches rather than guessing.
+     *
+     * Used by RatCardAdapter's grid badge and EnlargedRatDialog to say
+     * which job a rat is out on - naming a rat for a slot's bonus does not
+     * reserve it (see [assignedRatKey]'s own comment), so this is the one
+     * place either of those asks "is this rat actually the one running it."
+     */
+    fun runningTierFor(prefs: SharedPreferences, ratId: Long): LedgerTaskTier? =
+        all.firstOrNull {
+            isRunning(prefs, it) && prefs.getLong(assignedRatKey(it.id), NO_RAT) == ratId
+        }
+
     /** Reads back whatever is currently on the board for [tier]. */
     fun stored(prefs: SharedPreferences, tier: LedgerTaskTier): LedgerTaskOffer =
         LedgerTaskOffer(

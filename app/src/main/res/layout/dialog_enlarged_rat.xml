@@ -237,6 +237,28 @@
             </LinearLayout>
 
             <!--
+              Whichever Ledger Task slot has this rat's own id named for its
+              bonus and is still running - see EnlargedRatDialog.kt and
+              LedgerTasks.runningTierFor. Separate from the deploy button
+              below: naming a rat for a task's bonus does not reserve it
+              against the Scrap Run (see LedgerTasks.assignedRatKey's own
+              comment), so a rat can show both a task line here and still
+              read "Send on a Scrap Run" on the button beneath it. Gone for
+              every rat not currently named on a running slot.
+            -->
+            <TextView
+                android:id="@+id/enlargedTaskStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/text_muted"
+                android:textSize="13sp"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone"
+                tools:text="On Ledger Task: The Toxic Warehouse — 82m left"
+                tools:visibility="visible" />
+
+            <!--
               The faction effects a splice's parents rolled, if any - see
               EnlargedRatDialog. Empty and gone for every ordinary rat; populated
               and shown only for the one-time reveal right after a splice, since

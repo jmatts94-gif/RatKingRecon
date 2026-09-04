@@ -77,8 +77,6 @@ object EnlargedRatDialog {
         // grid badge reads, not a typo - see that adapter's own comment.
         val onExpedition = prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false) &&
             prefs.getLong("DEPLOYED_RAT_ID", -1L) == pet.id
-        dialog.findViewById<View>(R.id.enlargedTaskBadge).visibility =
-            if (onExpedition) View.VISIBLE else View.GONE
         if (onExpedition) {
             val remaining = prefs.getLong(ShopEffects.KEY_EXPEDITION_END, 0L) - System.currentTimeMillis()
             deployButton.text = activity.getString(
@@ -87,6 +85,29 @@ object EnlargedRatDialog {
             )
             deployButton.isEnabled = false
         }
+
+        // A rat can be named on a running Ledger Task slot at the same
+        // time as being out on the Scrap Run - see LedgerTasks.runningTierFor's
+        // own comment on why naming one for a bonus never reserves it. Its
+        // own status line rather than folded into the deploy button above,
+        // since the two are genuinely independent facts about this rat.
+        val ledgerTier = LedgerTasks.runningTierFor(prefs, pet.id)
+        val taskStatus = dialog.findViewById<TextView>(R.id.enlargedTaskStatus)
+        if (ledgerTier != null) {
+            val minsLeft = ((prefs.getLong(LedgerTasks.endTimeKey(ledgerTier.id), 0L) -
+                System.currentTimeMillis()) / (1000 * 60)).coerceAtLeast(0)
+            taskStatus.text = activity.getString(
+                R.string.enlarged_on_ledger_task,
+                LedgerTasks.stored(prefs, ledgerTier).title.ifBlank {
+                    activity.getString(R.string.task_unknown_sector)
+                },
+                minsLeft
+            )
+            taskStatus.visibility = View.VISIBLE
+        }
+
+        dialog.findViewById<View>(R.id.enlargedTaskBadge).visibility =
+            if (onExpedition || ledgerTier != null) View.VISIBLE else View.GONE
 
         // The equipped Binder frame, if any - the same one item_rat_card.xml's
         // own grid shows, drawn at this card's larger scale instead. Left as

@@ -124,6 +124,8 @@
     <string name="card_task_badge_description">Out on a Scrap Run</string>
     <!-- The enlarged rat dialog's deploy button, once this specific rat is the one out - see EnlargedRatDialog -->
     <string name="enlarged_on_scrap_run">On Scrap Run\n%1$s</string>
+    <!-- The enlarged rat dialog's own status line for a rat named on a running Ledger Task slot - task title, minutes left -->
+    <string name="enlarged_on_ledger_task">On Ledger Task: %1$s — %2$dm left</string>
     <!-- steps walked today -->
     <string name="tile_steps">%1$d steps</string>
     <!-- today's distance, estimated from an average stride -->

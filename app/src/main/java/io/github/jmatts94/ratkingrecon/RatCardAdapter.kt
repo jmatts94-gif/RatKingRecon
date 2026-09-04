@@ -216,14 +216,18 @@ class RatCardAdapter(
         holder.itemView.setOnClickListener(if (disabled) null else View.OnClickListener { onCardClick(pet) })
 
         // At most one rat in the whole roster is ever out on a Scrap Run at
-        // once - see ShopEffects.KEY_EXPEDITION_ACTIVE - so this is a plain
-        // prefs check per bind rather than anything the adapter needs to
-        // track itself. "DEPLOYED_RAT_ID" is the same raw key
-        // EnlargedRatDialog/GalleryActivity/SpliceEligibility already read
-        // and write directly, not a typo.
+        // once - see ShopEffects.KEY_EXPEDITION_ACTIVE - but up to three can
+        // be out on a Ledger Task at the same time, one per M1/M2/M3 slot
+        // (see LedgerTasks.runningTierFor) - naming a rat for a slot's bonus
+        // does not reserve it against the Scrap Run either, so the two are
+        // checked independently and either one alone is enough to badge the
+        // card. "DEPLOYED_RAT_ID" is the same raw key EnlargedRatDialog/
+        // GalleryActivity/SpliceEligibility already read and write directly,
+        // not a typo.
         val onExpedition = prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false) &&
             prefs.getLong("DEPLOYED_RAT_ID", -1L) == pet.id
-        if (onExpedition) {
+        val onLedgerTask = LedgerTasks.runningTierFor(prefs, pet.id) != null
+        if (onExpedition || onLedgerTask) {
             holder.taskBadge.visibility = View.VISIBLE
             // Only ever started once per appearance - a bind that finds the
             // wobble already running (a stat change redrawing the same
@@ -243,18 +247,26 @@ class RatCardAdapter(
      * Settles, twitches, settles again - a small idle animation rather than
      * a continuous shimmy, so it reads as "this one's doing something" out
      * of the corner of the eye without the grid feeling restless. 2000ms
-     * per cycle: still for the first 1500ms, then a quick four-beat wobble
+     * per cycle: still for the first 1300ms, then a wider six-beat wobble
      * and back to rest, repeating for as long as the card stays bound to
      * this rat - see onBindViewHolder/onViewRecycled for when that ends.
+     *
+     * Widened from an original +-10deg/400ms burst after "make the wobble
+     * a little more pronounced" - both the swing (now +-18deg at its peak)
+     * and the window it plays in (700ms instead of 400ms) grew, so it reads
+     * clearly rather than needing a burst of screenshots to catch the way
+     * the first pass did.
      */
     private fun wobbleForever(view: View): ObjectAnimator {
         val rotation = PropertyValuesHolder.ofKeyframe(
             View.ROTATION,
             Keyframe.ofFloat(0f, 0f),
-            Keyframe.ofFloat(0.75f, 0f),
-            Keyframe.ofFloat(0.80f, -10f),
-            Keyframe.ofFloat(0.85f, 9f),
-            Keyframe.ofFloat(0.90f, -5f),
+            Keyframe.ofFloat(0.65f, 0f),
+            Keyframe.ofFloat(0.70f, -18f),
+            Keyframe.ofFloat(0.75f, 16f),
+            Keyframe.ofFloat(0.80f, -12f),
+            Keyframe.ofFloat(0.85f, 8f),
+            Keyframe.ofFloat(0.90f, -4f),
             Keyframe.ofFloat(0.95f, 2f),
             Keyframe.ofFloat(1f, 0f)
         )
