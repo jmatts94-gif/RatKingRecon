@@ -232,13 +232,12 @@ class FrameOverlayDrawable(
         /** Full loops of the palette per turn of the shared clock. */
         private const val RADIANT_CYCLES = 1f
 
-        // --- the paw print track: a rat's own footprint, not a cat/dog
-        // paw-pad icon. Five long, narrow, finger-like toes radiating
-        // asymmetrically from a small irregular base - no round heel pad,
-        // most of the shape's own visual weight sits in the toes.
+        // --- the paw print track: a fleshy silhouette, not a skeletal one.
+        // Four solid rounded toes over a wide palm pad, single flat fill,
+        // no outline - see drawPawShapes.
 
         /** How many footprints make up the fading trail, head to tail. */
-        private const val PAW_TRAIL_COUNT = 3
+        private const val PAW_TRAIL_COUNT = 4
 
         /**
          * How far apart each footstep sits, as a fraction of the whole
@@ -294,88 +293,73 @@ class FrameOverlayDrawable(
         private const val PAW_ROTATION_JITTER_DEG = 7f
 
         /**
-         * How far a toe reaches from its own base, and how wide it is at
-         * that base - a finger, not a pad. Raised from an original 8/2.4
-         * after "increase the size of them as its very hard to see while
-         * on the small tile, and even on the large view."
+         * Each toe's own length and width - "a solid rounded oval/teardrop
+         * (fleshy blob)... roughly 2x as tall as it's wide," drawn as a
+         * plain [android.graphics.Canvas.drawOval] rather than a tapered
+         * Path the way an earlier "finger" pass did - no claw tip, no
+         * taper, just a fat oval.
          */
-        private const val PAW_TOE_LENGTH_DP = 13f
-        private const val PAW_TOE_WIDTH_DP = 3.6f
-
-        /** The small irregular base the toes emerge from - deliberately tiny next to [PAW_TOE_LENGTH_DP]. */
-        private const val PAW_PALM_SIZE_DP = 3.6f
-
-        /** How much larger than its own fill each mark's outline is drawn, as a fraction of that fill's own size. */
-        private const val PAW_OUTLINE_EXTRA_FRACTION = 0.22f
+        private const val PAW_TOE_LENGTH_DP = 10f
+        private const val PAW_TOE_WIDTH_DP = 5f
 
         /**
-         * Five toes, each an angle off "forward" (the direction of travel,
-         * 0deg), how long it reaches relative to [PAW_TOE_LENGTH_DP], how
-         * wide relative to [PAW_TOE_WIDTH_DP], and how far its own base
-         * sits from the palm centre, as a fraction of its own length - a
-         * rat's own asymmetric splay: one toe angled sharply out to the
-         * side like a thumb, the rest fanning toward the front rather than
-         * evenly spaced round a fan. A right footprint mirrors this same
+         * How far a toe's own near edge is embedded back into the palm -
+         * see [drawPawShapes]. Deliberately less than half of both
+         * [PAW_PALM_DEEP_DP] and [PAW_PALM_WIDE_DP], so every toe's base
+         * sits inside the palm's own silhouette regardless of its angle -
+         * "no negative space between toe and palm."
+         */
+        private const val PAW_TOE_EMBED_DP = 2f
+
+        /**
+         * The palm pad's own width (sideways, across the direction of
+         * travel) and depth (fore-aft) - "a wide rounded palm pad... a
+         * single blobby rounded shape... not a thin base or gap." Wider
+         * than it is deep, the same reason a real palm reads as a pad
+         * rather than a heel.
+         */
+        private const val PAW_PALM_WIDE_DP = 10f
+        private const val PAW_PALM_DEEP_DP = 6f
+
+        /** The scale a freshly-placed print eases up from, and settles at once fully arrived - see [drawPaws]. */
+        private const val PAW_SCALE_MIN = 0.7f
+        private const val PAW_SCALE_MAX = 1f
+
+        /**
+         * How far a print's own alpha dips by the time it reaches the back
+         * of the trail, as a fraction of full opacity - "fading in and
+         * slightly out," not fading all the way to nothing before it
+         * scrolls out of the trail entirely.
+         */
+        private const val PAW_SETTLE_FADE_FRACTION = 0.35f
+
+        /**
+         * The extra scale multiplier alternating steps carry, on top of
+         * the fade-in scale above - "alternating scale slightly between
+         * left/right prints to mimic natural gait offset."
+         */
+        private const val PAW_SIDE_SCALE_LEFT = 0.85f
+        private const val PAW_SIDE_SCALE_RIGHT = 1.05f
+
+        /**
+         * Four toes, symmetric this time rather than a rat's own
+         * asymmetric splay an earlier pass drew - "two center toes
+         * pointing mostly forward, two outer toes angled outward left/
+         * right at roughly 30-45deg." A right footprint mirrors this same
          * list across the direction of travel (see [drawPawPrint]) instead
          * of a second list of its own, since a right paw is exactly a left
          * one flipped, not a differently shaped one.
          */
         private val PAW_TOES = listOf(
-            PawToe(angleDeg = -74f, lengthScale = 0.60f, widthScale = 1.05f, baseOffset = 0.05f),
-            PawToe(angleDeg = -34f, lengthScale = 0.92f, widthScale = 0.85f, baseOffset = 0.12f),
-            PawToe(angleDeg = -6f, lengthScale = 1.05f, widthScale = 0.80f, baseOffset = 0.16f),
-            PawToe(angleDeg = 20f, lengthScale = 0.90f, widthScale = 0.85f, baseOffset = 0.12f),
-            PawToe(angleDeg = 46f, lengthScale = 0.60f, widthScale = 0.95f, baseOffset = 0.05f)
+            PawToe(angleDeg = -38f, lengthScale = 0.90f, widthScale = 0.95f),
+            PawToe(angleDeg = -9f, lengthScale = 1f, widthScale = 1f),
+            PawToe(angleDeg = 9f, lengthScale = 1f, widthScale = 1f),
+            PawToe(angleDeg = 38f, lengthScale = 0.90f, widthScale = 0.95f)
         )
-
-        /**
-         * One toe's own unit shape - a tapered finger pointing along local
-         * +x from a base centred on the origin, its tip nudged slightly
-         * off the centreline rather than dead straight, for the "claw tips
-         * offset slightly rather than centred" a machined, symmetric taper
-         * would not have. Built once, shared by every [FrameOverlayDrawable]
-         * instance that ever draws [FrameStyle.PAWS] rather than per card -
-         * it holds no state of its own, so there is nothing per-instance
-         * about it - and scaled/rotated/positioned per toe via the canvas
-         * matrix at draw time rather than rebuilt, the same
-         * nothing-allocated-in-draw rule every other path in this class
-         * already follows.
-         */
-        private val PAW_TOE_TEMPLATE: Path by lazy {
-            Path().apply {
-                moveTo(0f, -0.17f)
-                quadTo(0.28f, -0.16f, 0.58f, -0.08f)
-                lineTo(0.88f, -0.03f)
-                lineTo(1f, 0.04f)
-                lineTo(0.88f, 0.09f)
-                quadTo(0.55f, 0.16f, 0.24f, 0.17f)
-                quadTo(0.08f, 0.175f, 0f, 0.16f)
-                close()
-            }
-        }
-
-        /**
-         * The palm's own unit shape - six points at uneven radii rather
-         * than a circle, so it reads as a small irregular base the toes
-         * emerge from instead of a pad in its own right. See the class
-         * comment on why there is no round heel pad here at all.
-         */
-        private val PAW_PALM_TEMPLATE: Path by lazy {
-            val radii = floatArrayOf(0.60f, 0.88f, 0.55f, 0.80f, 0.58f, 0.92f)
-            Path().apply {
-                radii.forEachIndexed { i, r ->
-                    val angle = (i / radii.size.toFloat()) * 2f * Math.PI.toFloat()
-                    val x = (kotlin.math.cos(angle) * r)
-                    val y = (kotlin.math.sin(angle) * r)
-                    if (i == 0) moveTo(x, y) else lineTo(x, y)
-                }
-                close()
-            }
-        }
     }
 
     /** One entry in [PAW_TOES] - see that field's own comment. */
-    private data class PawToe(val angleDeg: Float, val lengthScale: Float, val widthScale: Float, val baseOffset: Float)
+    private data class PawToe(val angleDeg: Float, val lengthScale: Float, val widthScale: Float)
 
     private var density = 1f
 
@@ -396,21 +380,6 @@ class FrameOverlayDrawable(
 
     private val steamPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = accent
-        style = Paint.Style.FILL
-    }
-
-    /**
-     * The dark ring drawn behind every paw mark - see [PAW_OUTLINE_EXTRA_FRACTION].
-     * A fixed black rather than a colour read off [CardFrame], deliberately:
-     * [FrameStyle.PAWS] does not blend between two colours, so giving it a
-     * distinct accentAlt just for this would have broken FramesTest's own
-     * "only a two-colour style carries a second accent" rule for no real
-     * gain - the outline is always this same black regardless of which
-     * frame ever uses this style, the same way the border stroke it sits
-     * inside is always master_courier_black rather than a per-frame colour.
-     */
-    private val pawOutlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.BLACK
         style = Paint.Style.FILL
     }
 
@@ -728,11 +697,11 @@ class FrameOverlayDrawable(
      * offsets: a slow wander that is a function of position along the
      * path, never past [PAW_INSET_MIN_DP] inward of the line, and a fixed
      * [PAW_STEP_SIDE_DP] kick that alternates side with the step's own
-     * parity - "alternate left/right paw prints." The freshest step fades
-     * in as the walk passes it; every step behind that one is drawn
-     * fainter than the last, the same ageing trail an earlier pass already
-     * had, so together a print fades in newly-stepped and fades out again
-     * as the walk moves on.
+     * parity - "alternate left/right paw prints." Each step's own alpha
+     * and scale ease smoothly through its whole visible life - in as it is
+     * freshly placed, gently out again as it ages toward the back of the
+     * trail - rather than jumping between fixed per-index levels; see
+     * [easeOutCubic]/[easeInCubic].
      */
     private fun drawPaws(canvas: Canvas) {
         val total = pawsLength
@@ -762,11 +731,34 @@ class FrameOverlayDrawable(
             val cx = p.x + p.nx * lateral
             val cy = p.y + p.ny * lateral
 
-            val ageAlpha = 1f - i / PAW_TRAIL_COUNT.toFloat()
-            val freshAlpha = if (i == 0) (stepFloat - headStep).coerceIn(0f, 1f) else 1f
-            val alpha = (255 * ageAlpha * freshAlpha).toInt().coerceIn(0, 255)
+            // How long this exact step has been alive, in step-lengths - 0
+            // the instant it is placed, climbing to PAW_TRAIL_COUNT-ish by
+            // the time it is the oldest one still shown. Continuous rather
+            // than per-index, which is what lets every step ease smoothly
+            // through its own fade/scale envelope instead of snapping
+            // between PAW_TRAIL_COUNT fixed alpha rungs - "do not use
+            // discrete/step-based opacity jumps... use a proper easing
+            // curve."
+            val ageInSteps = stepFloat - stepIndex
+
+            // Fading (and scaling) IN: eased across the step's first full
+            // step-length of life, "fade in while scaling up slightly...
+            // not just pop into visibility."
+            val fadeIn = easeOutCubic(ageInSteps.coerceIn(0f, 1f))
+
+            // Fading (slightly) OUT: once fully arrived, a gentle eased dip
+            // the rest of the way through the trail's own visible span -
+            // never fully to zero before the step scrolls out of the trail
+            // entirely, which is the "slightly" in "fading in and slightly
+            // out."
+            val settleT = ((ageInSteps - 1f) / (PAW_TRAIL_COUNT - 1f).coerceAtLeast(1f)).coerceIn(0f, 1f)
+            val settleFade = 1f - PAW_SETTLE_FADE_FRACTION * easeInCubic(settleT)
+
+            val alpha = (255 * fadeIn * settleFade).toInt().coerceIn(0, 255)
             steamPaint.alpha = alpha
-            pawOutlinePaint.alpha = alpha
+
+            val gaitScale = if (isRight) PAW_SIDE_SCALE_RIGHT else PAW_SIDE_SCALE_LEFT
+            val scale = (PAW_SCALE_MIN + (PAW_SCALE_MAX - PAW_SCALE_MIN) * fadeIn) * gaitScale
 
             // Facing the direction of travel, the same as every style that
             // reads p.tx/p.ty already does, plus a small fixed jitter per
@@ -778,50 +770,68 @@ class FrameOverlayDrawable(
             // trembling in place instead of having simply landed crooked.
             val baseAngle = Math.toDegrees(atan2(p.ty.toDouble(), p.tx.toDouble())).toFloat()
             val jitter = sin(stepIndex * 12.9898f) * PAW_ROTATION_JITTER_DEG
-            drawPawPrint(canvas, cx, cy, baseAngle + jitter, mirror = isRight)
+            drawPawPrint(canvas, cx, cy, baseAngle + jitter, mirror = isRight, scale = scale)
         }
     }
 
     /**
-     * One footprint: [PAW_PALM_TEMPLATE] plus [PAW_TOES], each toe placed,
-     * rotated and sized off its own entry in that list. [mirror] flips the
-     * whole splay across the direction-of-travel axis via a y-scale of -1
-     * rather than a second, hand-mirrored copy of [PAW_TOES] - a right paw
-     * is exactly a left one flipped, and canvas.scale(1f, -1f) says that
-     * directly instead of restating it as data. Every shape is drawn
-     * twice, [pawOutlinePaint] at [PAW_OUTLINE_EXTRA_FRACTION] larger
-     * first and the real-sized [steamPaint] fill on top - the same
-     * halo-then-core shape every other animated frame in this file already
-     * draws.
+     * A fast-then-slow ease, standing in for the CSS cubic-bezier(0.22,
+     * 0.61, 0.36, 1) this style was asked to move like: a plain
+     * ease-out-cubic reads the same way (quick start, gentle finish)
+     * without needing an iterative bezier solve for what is, on screen, an
+     * imperceptible difference in curve shape.
      */
-    private fun drawPawPrint(canvas: Canvas, cx: Float, cy: Float, angleDeg: Float, mirror: Boolean) {
+    private fun easeOutCubic(t: Float): Float {
+        val inv = 1f - t
+        return 1f - inv * inv * inv
+    }
+
+    /** The mirror of [easeOutCubic] - slow start, fast finish - for the gentler back half of [drawPaws]'s own fade. */
+    private fun easeInCubic(t: Float): Float = t * t * t
+
+    /**
+     * One footprint: a wide palm oval, plus [PAW_TOES], each toe its own
+     * plain oval placed and rotated off its own entry in that list -
+     * "solid, chunky silhouette... single flat fill colour, no outlines."
+     * [mirror] flips the whole splay across the direction-of-travel axis
+     * via a y-scale of -1 rather than a second, hand-mirrored copy of
+     * [PAW_TOES] - a right paw is exactly a left one flipped, and
+     * canvas.scale(1f, -1f) says that directly instead of restating it as
+     * data. [scale] carries both the fade-in grow and the left/right gait
+     * alternation from [drawPaws] - see that function's own comment.
+     */
+    private fun drawPawPrint(canvas: Canvas, cx: Float, cy: Float, angleDeg: Float, mirror: Boolean, scale: Float) {
         canvas.save()
         canvas.translate(cx, cy)
         canvas.rotate(angleDeg)
         if (mirror) canvas.scale(1f, -1f)
 
-        drawPawShapes(canvas, 1f + PAW_OUTLINE_EXTRA_FRACTION, pawOutlinePaint)
-        drawPawShapes(canvas, 1f, steamPaint)
+        drawPawShapes(canvas, scale)
 
         canvas.restore()
     }
 
-    /** The palm and all five toes, at [scale] - see [drawPawPrint]. Assumes the canvas is already at the print's own origin, facing forward. */
-    private fun drawPawShapes(canvas: Canvas, scale: Float, paint: Paint) {
-        val palmSize = dp(PAW_PALM_SIZE_DP) * scale
-        canvas.save()
-        canvas.scale(palmSize, palmSize)
-        canvas.drawPath(PAW_PALM_TEMPLATE, paint)
-        canvas.restore()
+    /**
+     * The palm and all four toes - see [drawPawPrint]. Assumes the canvas
+     * is already at the print's own origin, facing forward (local +x).
+     * Every toe's near edge is embedded [PAW_TOE_EMBED_DP] back into the
+     * palm rather than starting at its edge, so the two read as one
+     * connected blob - "no negative space between toe and palm."
+     */
+    private fun drawPawShapes(canvas: Canvas, scale: Float) {
+        val palmWide = dp(PAW_PALM_WIDE_DP) * scale
+        val palmDeep = dp(PAW_PALM_DEEP_DP) * scale
+        canvas.drawOval(-palmDeep / 2f, -palmWide / 2f, palmDeep / 2f, palmWide / 2f, steamPaint)
 
         val toeLen = dp(PAW_TOE_LENGTH_DP) * scale
         val toeWidth = dp(PAW_TOE_WIDTH_DP) * scale
+        val embed = dp(PAW_TOE_EMBED_DP) * scale
         for (toe in PAW_TOES) {
             canvas.save()
             canvas.rotate(toe.angleDeg)
-            canvas.translate(toeLen * toe.lengthScale * toe.baseOffset, 0f)
-            canvas.scale(toeLen * toe.lengthScale, toeWidth * toe.widthScale)
-            canvas.drawPath(PAW_TOE_TEMPLATE, paint)
+            val length = toeLen * toe.lengthScale
+            val width = toeWidth * toe.widthScale
+            canvas.drawOval(-embed, -width / 2f, length - embed, width / 2f, steamPaint)
             canvas.restore()
         }
     }
