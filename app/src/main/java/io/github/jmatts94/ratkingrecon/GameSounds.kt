@@ -31,7 +31,17 @@ object GameSounds {
         /** An egg opening. */
         HATCH(R.raw.sfx_hatch),
 
-        /** A Rustbot beaten, or the Arena's own escalating streak. */
+        /**
+         * A Rustbot beaten, or the Arena's own escalating streak.
+         *
+         * Not one of the five Kenney.nl recordings the class comment
+         * describes - the original steel-drum jingle read as a different
+         * genre from the rest of the game's own brass-and-clockwork sound.
+         * A synthesised three-note bell chime instead: plain FM bell
+         * synthesis (a decaying sine carrier phase-modulated by a
+         * faster-decaying one at a slightly inharmonic ratio), the same
+         * physical idea an actual small bell rings by.
+         */
         VICTORY(R.raw.sfx_victory),
 
         /** Something worth keeping dropping into the tin. */
