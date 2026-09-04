@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A small solid backdrop behind a tile's own icon - the expedition tile's,
+  specifically (see activity_main.xml). One of two colour chips (the other
+  is bg_icon_chip_copper) meant to give each home-screen tile a flash of its
+  own colour rather than every icon sitting on the same cream every other
+  tile already is - part of the same "a little more punch" pass the pill
+  border and the page vignette are.
+
+  Solid amber_dark, not a translucent wash: this sits on a plain cream tile
+  background rather than over art, so there is nothing under it a wash would
+  need to show through, and a flat colour reads as a deliberate chip rather
+  than a smudge. The icon drawn on top needs android:tint="@color/cream" to
+  stay legible against it - see [ic_expedition]'s own fillColor, which is
+  text_primary and would otherwise vanish against amber_dark at this
+  contrast.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/amber_dark" />
+</shape>

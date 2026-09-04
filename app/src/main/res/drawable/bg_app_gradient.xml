@@ -9,9 +9,21 @@
   edges, which is what keeps a white card from floating on a field of the same
   brightness as itself - most of the flatness was contrast, not shadow.
 
-  Warm brown rather than black, at roughly a sixth opacity at the very corners
-  and nothing at all across the centre two-thirds. Text sits in the middle of
-  the screen where the overlay is clear, so readability is untouched.
+  Warm brown rather than black, at roughly a quarter opacity at the very
+  corners and nothing at all across the centre two-thirds. Text sits in the
+  middle of the screen where the overlay is clear, so readability is
+  untouched.
+
+  The corners were a sixth opacity originally, tuned narrowly against the
+  shadow-vs-contrast question this file's own comment above is about. Raised
+  a further step - "the light mode feels a little beige" was this vignette
+  reading as barely there as much as it was any one tile's own border: cream
+  and tan sit only a few percent apart to begin with (see their own comment
+  in colors.xml), so a corner darkening this gently gave the page almost
+  nothing to differentiate its own edges from its own centre. Still nothing
+  across the readable middle, still nowhere near the deliberately harsher
+  Arena screens - this is the same page catching a bit more shade at its
+  corners, not a different design.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -33,8 +45,8 @@
                 android:centerY="0.42"
                 android:gradientRadius="80%p"
                 android:startColor="#004A2F0F"
-                android:centerColor="#0A4A2F0F"
-                android:endColor="#2B4A2F0F" />
+                android:centerColor="#124A2F0F"
+                android:endColor="#404A2F0F" />
         </shape>
     </item>
 

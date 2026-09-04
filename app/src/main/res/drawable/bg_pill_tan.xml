@@ -11,6 +11,16 @@
   The drop shadow is not here. A shape has no shadow of its own; it comes from
   elevation on the view wearing this, whose outline Android takes from these
   corners.
+
+  The stroke is amber_dark now, not card_border - "the light mode feels a
+  little beige" was this hairline pale-on-pale edge as much as it was
+  anything else: a near-white fill on a cream page with only a 1dp border a
+  couple of percent off either one gave every tile and nav button on the home
+  screen almost nothing to visually stand on. Widened to 1.5dp at the same
+  time, so the brass reads as a deliberate trim rather than a slightly bolder
+  hairline - the same accent family bg_battle_card_outer and the Recon Card
+  already draw their own frames from, so this pulls the app's most-seen
+  screen into that language rather than adding a new one.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
@@ -20,7 +30,7 @@
         android:endColor="#F8F0E1"
         android:type="linear" />
     <stroke
-        android:width="1dp"
-        android:color="@color/card_border" />
+        android:width="1.5dp"
+        android:color="@color/amber_dark" />
     <corners android:radius="20dp" />
 </shape>
