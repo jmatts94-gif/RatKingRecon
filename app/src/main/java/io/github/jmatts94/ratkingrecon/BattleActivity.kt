@@ -130,10 +130,22 @@ class BattleActivity : AppCompatActivity() {
 
             val prefs = RatRepository.prefs(this@BattleActivity)
 
+            // Whatever the Shop has armed rides on this fight; EncounterResolver
+            // burns it when the fight settles. An Arena run past fight one
+            // carries the rat's HP in from how the last fight ended - see
+            // ArenaRun - rather than the full heal every other fight gets.
+            val inArena = ArenaRun.isActive(prefs)
+
             // Combat still works without a designation - it just picks the
             // strongest rat, as it always did. Said once, here, because this is
-            // where a player is looking at the consequence of not having chosen.
-            if (!BattleRat.isSet(prefs)) {
+            // where a player is looking at the consequence of not having chosen -
+            // except in the Arena, where there is no Battle Rat to have chosen in
+            // the first place: a run is built around whichever rat was picked at
+            // ArenaSelectActivity, not the account-wide designation, and this
+            // screen reloads in place for every fight of the run (see loadFight's
+            // own doc comment), so without this guard the same toast would have
+            // reopened after fight 2, fight 3, every fight after that.
+            if (!inArena && !BattleRat.isSet(prefs)) {
                 Toast.makeText(
                     this@BattleActivity,
                     R.string.toast_no_battle_rat,
@@ -149,12 +161,6 @@ class BattleActivity : AppCompatActivity() {
                 ShopEffects.powerSurgeArmed(prefs) -> R.drawable.ic_power to R.string.shop_name_surge
                 else -> null
             }
-
-            // Whatever the Shop has armed rides on this fight; EncounterResolver
-            // burns it when the fight settles. An Arena run past fight one
-            // carries the rat's HP in from how the last fight ended - see
-            // ArenaRun - rather than the full heal every other fight gets.
-            val inArena = ArenaRun.isActive(prefs)
             val startingHp = if (inArena) ArenaRun.carriedHpFor(prefs) else null
             battle = encounter.toBattle(
                 rat,
