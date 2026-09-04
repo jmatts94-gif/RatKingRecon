@@ -153,8 +153,9 @@
                   bottom|end: the same circular crop that ruled out
                   top|start for the gears (see that badge's own comment) is
                   symmetric across the middle, so the opposite bottom
-                  corner reads exactly as cleanly. copper rather than
-                  cream, for the same contrast reason cardTaskBadge's own
+                  corner reads exactly as cleanly. brass_bright and
+                  bg_task_badge_chip rather than copper and bg_badge_scrim,
+                  for the same "needs to pop" reason cardTaskBadge's own
                   comment gives - matches it rather than picking its own
                   answer to the same problem.
                 -->
@@ -164,11 +165,11 @@
                     android:layout_height="26dp"
                     android:layout_gravity="bottom|start"
                     android:layout_margin="8dp"
-                    android:background="@drawable/bg_badge_scrim"
+                    android:background="@drawable/bg_task_badge_chip"
                     android:padding="4dp"
                     android:visibility="gone"
                     android:src="@drawable/ic_contract"
-                    app:tint="@color/copper"
+                    app:tint="@color/brass_bright"
                     android:contentDescription="@string/card_task_badge_description"
                     tools:visibility="visible" />
             </FrameLayout>

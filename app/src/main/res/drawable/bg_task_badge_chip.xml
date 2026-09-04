@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The task badge's own backdrop - see item_rat_card.xml's cardTaskBadge and
+  dialog_enlarged_rat.xml's enlargedTaskBadge. Not bg_badge_scrim, which the
+  two of them used at first: that scrim is a 30%-opacity wash, tuned for the
+  gear-rarity badges it was built for - something meant to read as present
+  but quiet. This badge is meant to be noticed, so it gets a solid, opaque
+  chip instead: real contrast for the bright icon sitting on it regardless
+  of how light or busy the art underneath happens to be, rather than a
+  translucent tint that still shows through to whatever colour is behind it.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/shadow_warm" />
+</shape>

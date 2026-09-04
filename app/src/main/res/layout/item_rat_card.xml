@@ -96,13 +96,16 @@
               bottom|start rather than the gears' top|start, so the two
               badges never fight for the same corner; gone by default.
 
-              copper, not cream - the icon read as almost invisible against
-              the warm scrim sitting over busier art, cream-on-cream in
-              effect. copper is the one accent already reused for exactly
-              this "make a label stand out against this cream/white
-              backdrop" job elsewhere - see item_faction_codex.xml's own
-              Task/Boss/Special labels - so this borrows that answer rather
-              than picking a new colour to solve the same problem again.
+              copper still read as too calm once seen live - "it needs to
+              pop, and a little more eye catching." brass_bright now: the
+              one colour this app already reserves for exactly that job -
+              the EXP bar's fill, the Achievements checkmark, every frame's
+              own moving parts (see FrameOverlayDrawable's own comment on
+              why those stand off the border they sit on) all converge on
+              it as "this is the bright, notice-me signal." bg_task_badge_chip
+              in place of bg_badge_scrim too - an opaque dark backdrop
+              instead of a 30%-opacity wash, so the bright icon has real
+              contrast to sit on regardless of what art is underneath it.
             -->
             <ImageView
                 android:id="@+id/cardTaskBadge"
@@ -110,11 +113,11 @@
                 android:layout_height="15dp"
                 android:layout_gravity="bottom|start"
                 android:layout_margin="4dp"
-                android:background="@drawable/bg_badge_scrim"
+                android:background="@drawable/bg_task_badge_chip"
                 android:padding="2dp"
                 android:visibility="gone"
                 android:src="@drawable/ic_contract"
-                app:tint="@color/copper"
+                app:tint="@color/brass_bright"
                 android:contentDescription="@string/card_task_badge_description"
                 tools:visibility="visible" />
         </com.google.android.material.card.MaterialCardView>
