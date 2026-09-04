@@ -1,5 +1,6 @@
 package io.github.jmatts94.ratkingrecon
 
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -40,6 +42,9 @@ class BattleActivity : AppCompatActivity() {
     private lateinit var ratHpBar: ProgressBar
     private lateinit var ratDotIcon: ImageView
     private lateinit var ratImage: ImageView
+    private lateinit var specialGlyph: ImageView
+    private lateinit var botCard: MaterialCardView
+    private lateinit var ratCard: MaterialCardView
     private lateinit var activeBuffBadge: View
     private lateinit var activeBuffIcon: ImageView
     private lateinit var activeBuffLabel: TextView
@@ -70,6 +75,9 @@ class BattleActivity : AppCompatActivity() {
         ratHpBar = findViewById(R.id.ratHpBar)
         ratDotIcon = findViewById(R.id.ratDotIcon)
         ratImage = findViewById(R.id.ratImage)
+        specialGlyph = findViewById(R.id.specialGlyph)
+        botCard = findViewById(R.id.botCard)
+        ratCard = findViewById(R.id.ratCard)
         activeBuffBadge = findViewById(R.id.activeBuffBadge)
         activeBuffIcon = findViewById(R.id.activeBuffIcon)
         activeBuffLabel = findViewById(R.id.activeBuffLabel)
@@ -269,8 +277,69 @@ class BattleActivity : AppCompatActivity() {
         val result = battle.advance(action, item)
         lines += describe(result)
         render()
+        animateRound(result)
 
         if (battle.outcome != BattleOutcome.ONGOING) finishBattle()
+    }
+
+    /**
+     * The battle screen's only concession to motion: the rat's faction
+     * glyph popping over its own portrait when Special fires, and a shake
+     * on whichever card just took a hit. Purely cosmetic - reads [r] but
+     * never feeds back into [battle], so a skipped or double-fired call
+     * here could never change how a fight actually plays out.
+     */
+    private fun animateRound(r: RoundResult) {
+        if (r.action == BattleAction.SPECIAL) flashFactionSpecial()
+        if (r.damageDealt > 0) shake(botCard)
+        if (r.damageTaken > 0) shake(ratCard)
+    }
+
+    /**
+     * The rat's own faction glyph - the same icon [CardIcons.faction] draws
+     * beside its name everywhere else - popped over its portrait and faded
+     * back out. A faction with no glyph (shouldn't happen for a roster rat,
+     * but [CardIcons.factionIconRes] can still say so) simply skips the
+     * animation rather than showing an empty chip.
+     */
+    private fun flashFactionSpecial() {
+        val resId = CardIcons.factionIconRes(rat.faction) ?: return
+
+        specialGlyph.animate().cancel()
+        specialGlyph.setImageResource(resId)
+        specialGlyph.imageTintList = ContextCompat.getColorStateList(this, R.color.brass_bright)
+        specialGlyph.alpha = 0f
+        specialGlyph.scaleX = 0.4f
+        specialGlyph.scaleY = 0.4f
+        specialGlyph.visibility = View.VISIBLE
+        specialGlyph.animate()
+            .alpha(1f)
+            .scaleX(1.15f)
+            .scaleY(1.15f)
+            .setDuration(180)
+            .withEndAction {
+                specialGlyph.animate()
+                    .alpha(0f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setStartDelay(260)
+                    .setDuration(260)
+                    .withEndAction { specialGlyph.visibility = View.GONE }
+                    .start()
+            }
+            .start()
+    }
+
+    /** A quick side-to-side rattle on whichever card's rat/bot just took a hit. */
+    private fun shake(view: View) {
+        val amplitude = 8 * resources.displayMetrics.density
+        ObjectAnimator.ofFloat(
+            view, View.TRANSLATION_X,
+            0f, -amplitude, amplitude, -amplitude * 0.6f, amplitude * 0.6f, 0f
+        ).apply {
+            duration = 320
+            start()
+        }
     }
 
     /**

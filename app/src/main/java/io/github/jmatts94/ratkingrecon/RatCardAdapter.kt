@@ -34,16 +34,22 @@ object CardIcons {
      * entirely rather than falling back to a placeholder, the same way
      * [battle] omits itself for a rat that isn't on duty.
      */
-    fun faction(context: Context, sizeDp: Int, faction: String?): Drawable? {
-        val resId = when (faction) {
-            Roster.SMUGGLERS -> R.drawable.ic_faction_smugglers
-            Roster.SCAVENGERS -> R.drawable.ic_faction_scavengers
-            Roster.TINKERERS -> R.drawable.ic_faction_tinkerers
-            Roster.BRAWLERS -> R.drawable.ic_faction_brawlers
-            Roster.FOUNDRY_BORN -> R.drawable.ic_faction_foundry_born
-            else -> return null
-        }
-        return sized(context, resId, sizeDp)
+    fun faction(context: Context, sizeDp: Int, faction: String?): Drawable? =
+        factionIconRes(faction)?.let { sized(context, it, sizeDp) }
+
+    /**
+     * The drawable resource behind [faction], shared with [faction] above -
+     * BattleActivity's own Special glyph needs the raw resource id to hand
+     * an ImageView rather than a pre-sized Drawable, so this is the one
+     * place either caller has to know the faction-to-icon mapping.
+     */
+    fun factionIconRes(faction: String?): Int? = when (faction) {
+        Roster.SMUGGLERS -> R.drawable.ic_faction_smugglers
+        Roster.SCAVENGERS -> R.drawable.ic_faction_scavengers
+        Roster.TINKERERS -> R.drawable.ic_faction_tinkerers
+        Roster.BRAWLERS -> R.drawable.ic_faction_brawlers
+        Roster.FOUNDRY_BORN -> R.drawable.ic_faction_foundry_born
+        else -> null
     }
 
     private fun sized(context: Context, resId: Int, sizeDp: Int): Drawable? {

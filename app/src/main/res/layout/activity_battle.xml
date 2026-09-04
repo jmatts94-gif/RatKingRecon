@@ -27,6 +27,7 @@
 
         <!-- Rustbot -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/botCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/card_white"
@@ -105,6 +106,7 @@
 
         <!-- Your rat -->
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/ratCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/card_white"
@@ -119,15 +121,45 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:clipChildren="false"
                 android:padding="16dp">
 
-                <ImageView
-                    android:id="@+id/ratImage"
+                <FrameLayout
                     android:layout_width="64dp"
                     android:layout_height="64dp"
-                    android:scaleType="centerCrop"
                     android:layout_marginEnd="14dp"
-                    android:contentDescription="@string/battle_title" />
+                    android:clipChildren="false">
+
+                    <ImageView
+                        android:id="@+id/ratImage"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="@string/battle_title" />
+
+                    <!--
+                      The faction's own glyph - the same one CardIcons.faction
+                      draws beside a rat's name everywhere else - popped over
+                      the portrait for the moment a Special fires, then faded
+                      back out. See BattleActivity.flashFactionSpecial.
+                      Invisible and untouched otherwise: this never carries a
+                      background or click target of its own, so it costs
+                      nothing on every round that isn't a Special.
+                    -->
+                    <ImageView
+                        android:id="@+id/specialGlyph"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_badge_scrim"
+                        android:padding="6dp"
+                        android:alpha="0"
+                        android:visibility="gone"
+                        android:importantForAccessibility="no"
+                        tools:src="@drawable/ic_faction_brawlers"
+                        tools:tint="@color/brass_bright"
+                        tools:visibility="visible" />
+                </FrameLayout>
 
                 <LinearLayout
                     android:layout_width="0dp"
