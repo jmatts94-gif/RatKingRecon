@@ -14,13 +14,44 @@ import com.google.android.material.button.MaterialButton
  * rest of the app's warm-on-cream look, meant to be the one "end game" moment
  * the game builds towards. Owns no Arena rules of its own; it only leads to
  * [ArenaSelectActivity], which picks the rat a run is actually built around.
+ *
+ * Shown exactly once - see [KEY_LANDING_SEEN]. It is a first-visit splash,
+ * not a status screen: a second look at "Fifteen fights, no safety net" adds
+ * nothing a returning player does not already know, and worse, gave every
+ * later trip through here the same "Select a Champion" button whether or not
+ * a run was already in progress, which read as an offer to start over.
  */
 class ArenaLandingActivity : AppCompatActivity() {
+
+    private companion object {
+        const val KEY_LANDING_SEEN = "ARENA_LANDING_SEEN"
+    }
 
     private val gearAnimators = mutableListOf<ObjectAnimator>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val prefs = RatRepository.prefs(this)
+
+        // Seen once already: straight to wherever this trip actually belongs
+        // rather than the splash again - the fight already in progress if one
+        // is, [ArenaSelectActivity]'s own picker otherwise. That picker still
+        // carries its own isActive redirect (see ArenaSelectActivity), so
+        // this is only ever a shortcut past this screen, never a second place
+        // that same check has to be kept right.
+        if (prefs.getBoolean(KEY_LANDING_SEEN, false)) {
+            startActivity(
+                Intent(
+                    this,
+                    if (ArenaRun.isActive(prefs)) BattleActivity::class.java else ArenaSelectActivity::class.java
+                )
+            )
+            finish()
+            return
+        }
+        prefs.edit().putBoolean(KEY_LANDING_SEEN, true).apply()
+
         setContentView(R.layout.activity_arena_landing)
         EdgeToEdge.apply(this)
 
