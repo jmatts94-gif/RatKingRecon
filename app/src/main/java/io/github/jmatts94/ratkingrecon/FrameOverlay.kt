@@ -336,18 +336,6 @@ class FrameOverlayDrawable(
         private const val PAW_SETTLE_FADE_FRACTION = 0.9f
 
         /**
-         * How far the trailing paws' own colour drifts toward black by the
-         * back of the trail, as a fraction - "a slight colour gradiant." A
-         * blend derived off the frame's own single accent at draw time
-         * rather than a second colour pulled from CardFrame.accentAlt:
-         * giving PAWS a real second accent already broke FramesTest's
-         * "only a two-colour style carries one" rule once, for the
-         * now-removed paw outline - this sidesteps that again by deriving
-         * the shade instead of storing one.
-         */
-        private const val PAW_GRADIENT_STRENGTH = 0.4f
-
-        /**
          * The extra scale multiplier alternating steps carry, on top of
          * the fade-in scale above - "alternating scale slightly between
          * left/right prints to mimic natural gait offset."
@@ -795,13 +783,12 @@ class FrameOverlayDrawable(
             val settleT = ((ageInSteps - 1f) / (PAW_TRAIL_COUNT - 1f).coerceAtLeast(1f)).coerceIn(0f, 1f)
             val settleFade = 1f - PAW_SETTLE_FADE_FRACTION * easeInCubic(settleT)
 
+            // "As they fade to nothing, rather than darker" - alpha only,
+            // steamPaint.color stays the one accent every step draws in,
+            // the same pure-alpha fade drawPawGlow's own trail already
+            // uses rather than a colour drifting toward black.
             val alpha = (255 * fadeIn * settleFade).toInt().coerceIn(0, 255)
             steamPaint.alpha = alpha
-            // "A slight colour gradiant" - the same settleT driving the
-            // fade above also drifts the fill toward black as a step ages,
-            // so the trail reads as darkening as well as dimming rather
-            // than the one flat green at every stage of its life.
-            steamPaint.color = ColorUtils.blendARGB(accent, android.graphics.Color.BLACK, settleT * PAW_GRADIENT_STRENGTH)
 
             val gaitScale = if (isRight) PAW_SIDE_SCALE_RIGHT else PAW_SIDE_SCALE_LEFT
             val scale = (PAW_SCALE_MIN + (PAW_SCALE_MAX - PAW_SCALE_MIN) * fadeIn) * gaitScale
