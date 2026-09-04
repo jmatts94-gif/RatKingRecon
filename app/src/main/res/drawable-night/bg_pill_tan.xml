@@ -11,60 +11,21 @@
   percent off card_white in the same direction the light version's own stop
   is, just darker rather than lighter - and, unlike app_bg_end, not close
   enough to the page itself to undercut the pill's own contrast against it.
-  That is the only layer this file needs of its own - every ring above it is
-  copied verbatim from the light version, since shadow_warm is already
-  themed and copper/copper_shadow/brass_bright/cream deliberately are not
-  (see values-night/colors.xml's own comment on that). See the light
-  version's own comment for what the rings are and why they exist at all -
-  a small brass pipe's own cross-section traced around the tile, the same
-  five-tone recipe hatch_tunnel.xml renders its actual pipe with.
+
+  The stroke follows the light version's own brass-not-neutral swap too -
+  amber rather than card_border, at the same 1.5dp - so a pill reads as
+  trimmed in brass in both themes rather than only once the player turns
+  Dark Steampunk on.
 -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item>
-        <shape android:shape="rectangle">
-            <gradient
-                android:angle="270"
-                android:startColor="@color/card_white"
-                android:endColor="@color/panel_shade"
-                android:type="linear" />
-            <corners android:radius="20dp" />
-        </shape>
-    </item>
-
-    <item>
-        <shape android:shape="rectangle">
-            <stroke android:width="3.4dp" android:color="@color/shadow_warm" />
-            <corners android:radius="20dp" />
-        </shape>
-    </item>
-
-    <item>
-        <shape android:shape="rectangle">
-            <stroke android:width="2.6dp" android:color="@color/copper_shadow" />
-            <corners android:radius="20dp" />
-        </shape>
-    </item>
-
-    <item>
-        <shape android:shape="rectangle">
-            <stroke android:width="1.8dp" android:color="@color/copper" />
-            <corners android:radius="20dp" />
-        </shape>
-    </item>
-
-    <item>
-        <shape android:shape="rectangle">
-            <stroke android:width="0.9dp" android:color="@color/brass_bright" />
-            <corners android:radius="20dp" />
-        </shape>
-    </item>
-
-    <item>
-        <shape android:shape="rectangle">
-            <stroke android:width="0.5dp" android:color="@color/cream" />
-            <corners android:radius="20dp" />
-        </shape>
-    </item>
-
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@color/card_white"
+        android:endColor="@color/panel_shade"
+        android:type="linear" />
+    <stroke
+        android:width="1.5dp"
+        android:color="@color/amber" />
+    <corners android:radius="20dp" />
+</shape>
