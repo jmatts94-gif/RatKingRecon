@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnLayout
 
 /**
  * The full-screen "look at this rat" card - species, faction, stats, and the
@@ -99,6 +100,7 @@ object EnlargedRatDialog {
                 setStroke((cardStrokeDp * density).toInt(), ContextCompat.getColor(cardContext, equippedFrame.strokeColorRes))
             }
             if (equippedFrame.style != FrameStyle.STATIC) {
+                val enlargedCard = dialog.findViewById<View>(R.id.enlargedCard)
                 val frameOverlay = dialog.findViewById<View>(R.id.enlargedFrameOverlay)
                 frameOverlay.background = FrameOverlayDrawable.forFrame(
                     cardContext,
@@ -110,6 +112,22 @@ object EnlargedRatDialog {
                     trackCornerDp = cardCornerDp - cardStrokeDp / 2,
                     trackInsetDp = cardStrokeDp / 2
                 )
+
+                // The overlay is declared GONE in the layout - see its own
+                // XML comment - so it contributes nothing to enlargedCard's
+                // wrap_content measurement until this fires with the
+                // border's real size in hand: only then is it sized to
+                // match and switched to VISIBLE, rather than claiming
+                // match_parent (or even wrap_content, which does not save
+                // it either - see the XML comment) and inflating
+                // enlargedCard's own wrap_content height to the full screen.
+                enlargedCard.doOnLayout {
+                    val params = frameOverlay.layoutParams
+                    params.width = enlargedCard.width
+                    params.height = enlargedCard.height
+                    frameOverlay.layoutParams = params
+                    frameOverlay.visibility = View.VISIBLE
+                }
                 frameAnimator.attach(frameOverlay)
             }
         }

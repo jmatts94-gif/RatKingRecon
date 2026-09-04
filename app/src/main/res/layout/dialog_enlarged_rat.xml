@@ -277,10 +277,27 @@
           equipped, in which case it costs nothing, same as
           item_rat_card.xml's own cardFrameOverlay.
         -->
+        <!--
+          gone, not just wrap_content - see EnlargedRatDialog.kt's
+          doOnLayout sync. wrap_content alone does not save this View: a
+          plain View has no onMeasure override, and View.getDefaultSize
+          returns the offered specSize for AT_MOST too, not min(content,
+          specSize) - so even declared wrap_content it still claims
+          whatever near-screen-height AT_MOST bound this wrap_content
+          FrameLayout parent is passing down while it measures its own
+          children, inflating enlargedCard to screen height with its real
+          content default-gravity top-aligned inside it, pinning this whole
+          card to the top of the screen instead of centering it. GONE is
+          the one state a parent's wrap_content measurement truly ignores;
+          the doOnLayout sync below flips it to VISIBLE only once the
+          border's own real size is known and the overlay has been told to
+          match it exactly.
+        -->
         <View
             android:id="@+id/enlargedFrameOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
     </FrameLayout>
 
     <!--
