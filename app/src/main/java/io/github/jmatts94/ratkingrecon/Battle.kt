@@ -63,6 +63,20 @@ data class Loadout(
     fun powerFor(basePower: Int): Int = max(1, (basePower * powerMultiplier).roundToInt())
 
     fun maxHpFor(baseMaxHp: Int): Int = max(1, (baseMaxHp * hpMultiplier).roundToInt())
+
+    /**
+     * Stacks this Loadout with [other] by multiplying both fields, rather
+     * than either replacing the other - a Shop one-shot buff (Power Surge,
+     * the Golden Wrench) and an equipped TOOL gear bonus (see
+     * [GearEffects.combatLoadoutFor]) are two independent sources that
+     * should both apply to the same fight, not have the second overwrite
+     * the first the way [ShopEffects.loadoutFor]'s own internal Wrench-vs-
+     * Surge resolution deliberately does.
+     */
+    fun combinedWith(other: Loadout): Loadout = Loadout(
+        powerMultiplier = powerMultiplier * other.powerMultiplier,
+        hpMultiplier = hpMultiplier * other.hpMultiplier
+    )
 }
 
 /** What one round did, enough to drive both a UI log and a result summary. */
@@ -156,7 +170,20 @@ class Battle(
      * Protective Bubble's outright negation, so it only ever helps on top of
      * whatever those already did rather than replacing them.
      */
-    private val incomingDamageReduction: Double = 0.0
+    private val incomingDamageReduction: Double = 0.0,
+    /**
+     * Brawler's Knuckles' own bonus onto [FactionSpecials.multiplierFor] -
+     * see [GearEffects.combatLoadoutFor]. Zero for every faction but
+     * Brawlers, which is the only one [specialDamage] reads this against;
+     * Brawlers have no secondary Special roll the way the other four
+     * factions do (see [FactionSpecials]'s own doc comment), so their gear
+     * bonus strengthens the one lever they actually have instead.
+     */
+    private val specialMultiplierBonus: Double = 0.0,
+    /** Smuggler's Lockpick's own bonus onto [FactionSpecials.SMUGGLER_WINDFALL_CHANCE]. Zero until equipped. */
+    private val windfallChanceBonus: Double = 0.0,
+    /** Tinkerer's Loupe's own bonus onto [FactionSpecials.TINKERER_BLOCK_CHANCE]. Zero until equipped. */
+    private val blockChanceBonus: Double = 0.0
 ) {
 
     companion object {
@@ -293,7 +320,7 @@ class Battle(
      * of the whole fight.
      */
     fun specialDamage(): Int {
-        val base = (ratPower * FactionSpecials.multiplierFor(ratFaction)).roundToInt()
+        val base = (ratPower * (FactionSpecials.multiplierFor(ratFaction) + specialMultiplierBonus)).roundToInt()
         return if (ratSpecialBonusApplies()) (base * BossMoves.BONUS_MULTIPLIER).roundToInt() else base
     }
 
@@ -442,7 +469,7 @@ class Battle(
         if (action == BattleAction.SPECIAL) {
             when {
                 FactionSpecials.isSmuggler(ratFaction) && !windfallProcced &&
-                    Math.random() < FactionSpecials.SMUGGLER_WINDFALL_CHANCE -> {
+                    Math.random() < FactionSpecials.SMUGGLER_WINDFALL_CHANCE + windfallChanceBonus -> {
                     windfallProcced = true
                     windfallBonusFraction = FactionSpecials.SMUGGLER_WINDFALL_BONUS
                     specialWindfall = true
@@ -460,7 +487,7 @@ class Battle(
                 }
 
                 FactionSpecials.isTinkerer(ratFaction) &&
-                    Math.random() < FactionSpecials.TINKERER_BLOCK_CHANCE -> {
+                    Math.random() < FactionSpecials.TINKERER_BLOCK_CHANCE + blockChanceBonus -> {
                     bubbleActive = true
                     specialArmedBlock = true
                 }

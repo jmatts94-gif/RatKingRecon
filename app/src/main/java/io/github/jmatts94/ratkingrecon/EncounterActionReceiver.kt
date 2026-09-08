@@ -58,14 +58,22 @@ class EncounterActionReceiver : BroadcastReceiver() {
         // active - the manual screen would apply, so both paths fight the
         // same fight. See BattleActivity.loadFight and ArenaRun.
         val inArena = ArenaRun.isActive(prefs)
+        // Same gear stacking BattleActivity.loadFight does, so an
+        // auto-resolved fight cannot disagree with a manually played one
+        // over what a TOOL/TRINKET is worth.
+        val loadout = ShopEffects.loadoutFor(prefs).combinedWith(GearEffects.combatLoadoutFor(prefs))
+        val gearFactionBonuses = GearEffects.factionBonusesFor(prefs, rat.faction)
         val battle = AutoResolver.resolve(
             encounter.toBattle(
                 rat,
-                ShopEffects.loadoutFor(prefs),
+                loadout,
                 bonusPower = if (inArena) ArenaRun.arenaPowerBonusFor(rat) else 0,
                 bonusMaxHp = if (inArena) ArenaRun.arenaMaxHpBonusFor(rat) else 0,
                 lifestealFraction = PermanentBuffs.lifestealFractionFor(prefs),
-                incomingDamageReduction = if (inArena) PermanentBuffs.arenaDamageReductionFor(prefs) else 0.0
+                incomingDamageReduction = if (inArena) PermanentBuffs.arenaDamageReductionFor(prefs) else 0.0,
+                specialMultiplierBonus = gearFactionBonuses.specialMultiplierBonus,
+                windfallChanceBonus = gearFactionBonuses.windfallChanceBonus,
+                blockChanceBonus = gearFactionBonuses.blockChanceBonus
             )
         )
         val resolution = EncounterResolver.apply(app, encounter, rat, battle)

@@ -49,6 +49,9 @@ class RelicTraderActivity : AppCompatActivity() {
         countRow = findViewById(R.id.relicCountRow)
 
         findViewById<MaterialButton>(R.id.traderBackButton).setOnClickListener { finish() }
+        findViewById<MaterialButton>(R.id.traderWorkshopButton).setOnClickListener {
+            startActivity(android.content.Intent(this, GearWorkshopActivity::class.java))
+        }
 
         buildCounts()
         buildExchanges()

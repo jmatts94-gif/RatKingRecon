@@ -239,12 +239,20 @@ object DailyQuest {
      * Which relics a streak of [streak] days has earned.
      *
      * Indexed off [Relics.ALL] rather than named, so a relic added to that list
-     * joins the top tier by default rather than silently never being given.
+     * joins the top tier by default rather than silently never being given -
+     * Worn Cog excepted, filtered back out the same way [Relics.rollFor]
+     * excludes it from its own pool. A day's quest can be any [QuestType],
+     * not only [QuestType.STEPS], so this reward has no more claim to hand
+     * out the one relic that is supposed to come from walking specifically
+     * than a Ledger Task or the Scrap Run do.
      */
-    fun eligibleRelics(streak: Int): List<Relic> = when {
-        streak >= STREAK_TOP_TIER -> Relics.ALL
-        streak >= STREAK_MID_TIER -> Relics.ALL.take(3)
-        else -> Relics.ALL.take(1)
+    fun eligibleRelics(streak: Int): List<Relic> {
+        val pool = Relics.ALL.filterNot { it.id == "worn_cog" }
+        return when {
+            streak >= STREAK_TOP_TIER -> pool
+            streak >= STREAK_MID_TIER -> pool.take(3)
+            else -> pool.take(1)
+        }
     }
 
     // ---- description ---------------------------------------------------------

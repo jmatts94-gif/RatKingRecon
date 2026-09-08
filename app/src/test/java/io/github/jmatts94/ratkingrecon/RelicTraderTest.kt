@@ -38,8 +38,10 @@ class RelicTraderTest {
             assertEquals(3, exchange.cost)
         }
         assertEquals(
-            "one exchange per relic kind",
-            Relics.ALL.map { it.id },
+            // Worn Cog excepted - it spends at the Gear Workshop, not here.
+            // See Relics.ALL's own comment on why it exists at all.
+            "one exchange per relic kind but Worn Cog",
+            Relics.ALL.map { it.id } - "worn_cog",
             RelicTrader.exchanges.map { it.relic.id }
         )
     }

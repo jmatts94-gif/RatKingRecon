@@ -162,14 +162,22 @@ class BattleActivity : AppCompatActivity() {
                 else -> null
             }
             val startingHp = if (inArena) ArenaRun.carriedHpFor(prefs) else null
+            // Gear's own flat Power/HP bonus stacks with whatever the Shop
+            // already armed, rather than replacing it - see
+            // Loadout.combinedWith's own comment.
+            val loadout = ShopEffects.loadoutFor(prefs).combinedWith(GearEffects.combatLoadoutFor(prefs))
+            val gearFactionBonuses = GearEffects.factionBonusesFor(prefs, rat.faction)
             battle = encounter.toBattle(
                 rat,
-                ShopEffects.loadoutFor(prefs),
+                loadout,
                 startingHp,
                 bonusPower = if (inArena) ArenaRun.arenaPowerBonusFor(rat) else 0,
                 bonusMaxHp = if (inArena) ArenaRun.arenaMaxHpBonusFor(rat) else 0,
                 lifestealFraction = PermanentBuffs.lifestealFractionFor(prefs),
-                incomingDamageReduction = if (inArena) PermanentBuffs.arenaDamageReductionFor(prefs) else 0.0
+                incomingDamageReduction = if (inArena) PermanentBuffs.arenaDamageReductionFor(prefs) else 0.0,
+                specialMultiplierBonus = gearFactionBonuses.specialMultiplierBonus,
+                windfallChanceBonus = gearFactionBonuses.windfallChanceBonus,
+                blockChanceBonus = gearFactionBonuses.blockChanceBonus
             )
 
             // Cleared rather than left standing - reloaded in place, this is

@@ -400,7 +400,11 @@ object ArenaRun {
             // so this reads as a partial heal, not a licence to overheal
             // through a Golden Wrench.
             val carried = if (fightJustCleared % RELIEF_EVERY_N_FIGHTS == 0 && fighter != null) {
-                val relief = (fighter.effectiveMaxHp * ARENA_RELIEF_FRACTION).roundToInt()
+                // Cracked Vial's own passive heal tops up on top of the
+                // relief every rat already gets, the same additive layering
+                // Compass Charm/EnlargedRatDialog use for the Scrap Run.
+                val reliefFraction = ARENA_RELIEF_FRACTION + GearEffects.passiveHealFractionFor(prefs)
+                val relief = (fighter.effectiveMaxHp * reliefFraction).roundToInt()
                 min(fighter.effectiveMaxHp, ratHpAfterFight + relief)
             } else {
                 ratHpAfterFight

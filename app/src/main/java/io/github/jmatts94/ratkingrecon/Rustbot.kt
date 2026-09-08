@@ -300,7 +300,10 @@ data class Encounter(
         bonusPower: Int = 0,
         bonusMaxHp: Int = 0,
         lifestealFraction: Double = 0.0,
-        incomingDamageReduction: Double = 0.0
+        incomingDamageReduction: Double = 0.0,
+        specialMultiplierBonus: Double = 0.0,
+        windfallChanceBonus: Double = 0.0,
+        blockChanceBonus: Double = 0.0
     ): Battle {
         val maxHp = loadout.maxHpFor(rat.effectiveMaxHp) + bonusMaxHp
         return Battle(
@@ -317,7 +320,10 @@ data class Encounter(
             // this fight's max allows.
             startingRatHp = startingRatHp?.coerceIn(1, maxHp) ?: maxHp,
             lifestealFraction = lifestealFraction,
-            incomingDamageReduction = incomingDamageReduction
+            incomingDamageReduction = incomingDamageReduction,
+            specialMultiplierBonus = specialMultiplierBonus,
+            windfallChanceBonus = windfallChanceBonus,
+            blockChanceBonus = blockChanceBonus
         )
     }
 }

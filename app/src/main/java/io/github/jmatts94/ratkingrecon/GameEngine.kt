@@ -221,18 +221,31 @@ object GameEngine {
 
         // Same steps, a separate bucket that empties at midnight. Kept apart from
         // the lifetime total above on purpose - see [DailySteps].
+        val stepsBeforeToday = DailySteps.today(prefs, System.currentTimeMillis())
         val stepsToday = DailySteps.add(prefs, editor, gained)
+
+        // Worn Cog: earned from today's own walking, not from `gained`'s
+        // other two jobs (the lifetime total above, the encounter/boss
+        // rolls below) - see DailySteps.wornCogsEarnedBetween's own comment
+        // on why this reads no differently from an ordinary relic grant.
+        val wornCogsEarned = DailySteps.wornCogsEarnedBetween(stepsBeforeToday, stepsToday)
+        if (wornCogsEarned > 0) {
+            Relics.grant(prefs, editor, Relics.byId("worn_cog")!!, wornCogsEarned)
+        }
 
         // Read before resolving, because resolving clears the contract and the
         // alert wants to name what paid.
         val contractName = ActiveContract.load(prefs)?.name
         val bounty = resolveBounty(prefs, editor, totalSteps)
 
-        // Steadfast Momentum multiplies the EXP these steps bank, not `gained`
-        // itself - that value also drives the daily step total, the lifetime
-        // total above, and the encounter/boss rolls below, none of which this
-        // buff is meant to touch.
-        val boostedExp = (gained * PermanentBuffs.stepRewardMultiplierFor(prefs)).roundToInt()
+        // Steadfast Momentum and an equipped Worn Pedometer both multiply the
+        // EXP these steps bank, not `gained` itself - that value also drives
+        // the daily step total, the lifetime total above, and the
+        // encounter/boss rolls below, none of which either buff is meant to
+        // touch. Multiplied together rather than added, the same way
+        // Loadout.combinedWith stacks two independent combat sources.
+        val stepExpMultiplier = PermanentBuffs.stepRewardMultiplierFor(prefs) * GearEffects.stepExpMultiplierFor(prefs)
+        val boostedExp = (gained * stepExpMultiplier).roundToInt()
         val banked = bankExp(dao, prefs, editor, boostedExp)
         val hatched = banked.hatched
         val level = banked.level

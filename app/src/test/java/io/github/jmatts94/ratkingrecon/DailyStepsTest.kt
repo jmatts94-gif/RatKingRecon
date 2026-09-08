@@ -128,4 +128,50 @@ class DailyStepsTest {
         assertEquals(25, DailySteps.today(prefs))
         assertEquals(25L, GameEngine.lifetimeStepsOf(prefs))
     }
+
+    // ---- Worn Cog --------------------------------------------------------------
+
+    @Test
+    fun `no cog until the first threshold is crossed`() {
+        assertEquals(0, DailySteps.wornCogsEarnedBetween(0, DailySteps.STEPS_PER_WORN_COG - 1))
+    }
+
+    @Test
+    fun `exactly one cog on crossing the threshold`() {
+        assertEquals(1, DailySteps.wornCogsEarnedBetween(0, DailySteps.STEPS_PER_WORN_COG))
+    }
+
+    @Test
+    fun `a batch big enough to cross several thresholds earns several cogs`() {
+        assertEquals(3, DailySteps.wornCogsEarnedBetween(0, DailySteps.STEPS_PER_WORN_COG * 3))
+    }
+
+    @Test
+    fun `already-passed thresholds do not re-earn a cog`() {
+        assertEquals(0, DailySteps.wornCogsEarnedBetween(DailySteps.STEPS_PER_WORN_COG, DailySteps.STEPS_PER_WORN_COG + 5))
+    }
+
+    @Test
+    fun `walking a big batch through GameEngine grants Worn Cog but never touches lifetime steps or Milestones`() {
+        val prefs = FakePrefs()
+        val dao = FakeRatDao()
+        val cog = Relics.byId("worn_cog")!!
+
+        GameEngine.onSteps(dao, prefs, 0f)
+        val before = GameEngine.lifetimeStepsOf(prefs)
+        GameEngine.onSteps(dao, prefs, DailySteps.STEPS_PER_WORN_COG.toFloat())
+
+        assertEquals(1, Relics.countOf(prefs, cog))
+        // Lifetime steps still banked the walk itself - Worn Cog rides on
+        // top of that, it does not replace or inflate it.
+        assertEquals(before + DailySteps.STEPS_PER_WORN_COG, GameEngine.lifetimeStepsOf(prefs))
+        // The milestone this exact total could otherwise brush against
+        // (steps_1m, now 100,000) must still read as unmet unless the walk
+        // itself actually reached it - Worn Cog's own grant must not have
+        // nudged it.
+        assertEquals(
+            DailySteps.STEPS_PER_WORN_COG.toLong() >= 100_000L,
+            Milestones.isEarned(prefs, Milestones.steps.first { it.id == "steps_1m" })
+        )
+    }
 }

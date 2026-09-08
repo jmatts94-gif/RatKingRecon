@@ -94,4 +94,27 @@ object DailySteps {
         editor.putInt(KEY_DAY, dayStamp(now)).putInt(KEY_STEPS, updated)
         return updated
     }
+
+    /** Steps between one Worn Cog drop and the next - see [wornCogsEarnedBetween]. */
+    const val STEPS_PER_WORN_COG = 2_000
+
+    /**
+     * How many Worn Cog thresholds [before]..[after] crossed - see
+     * [GameEngine.onSteps], which calls this around the same [add] call
+     * above with today's total before and after this batch.
+     *
+     * Derived from the daily total alone rather than a running counter of
+     * its own: [today] already rolls over to zero at this object's own day
+     * boundary, so a threshold count read straight off it resets for free
+     * with nothing extra to keep in step. A batch big enough to cross more
+     * than one threshold in one call - the same kind of jump a debug
+     * "force encounter"-style tool might produce - correctly earns more
+     * than one Worn Cog rather than being capped at one per call.
+     *
+     * Deliberately independent of [GameEngine.KEY_LIFETIME_STEPS] and
+     * [Milestones] - this relic is earned from a day's own walking, not
+     * from the lifetime total those badges are the player's own number on.
+     */
+    fun wornCogsEarnedBetween(before: Int, after: Int): Int =
+        after / STEPS_PER_WORN_COG - before / STEPS_PER_WORN_COG
 }

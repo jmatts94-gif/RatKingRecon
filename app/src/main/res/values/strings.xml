@@ -722,6 +722,7 @@ RARE DROP: %2$s</string>
     <string name="relic_glowing_vial">🧪 Glowing Vial</string>
     <string name="relic_tattered_blueprint">📜 Tattered Blueprint</string>
     <string name="relic_heavy_wrench">🔧 Heavy Wrench</string>
+    <string name="relic_worn_cog">👟 Worn Cog</string>
 
     <!-- Relic Trader -->
     <string name="shop_name_relic_trader">Relic Trader</string>
@@ -763,6 +764,41 @@ RARE DROP: %2$s</string>
     <!-- needed, relic name, held -->
     <string name="trade_not_enough">Needs %1$d × %2$s. You hold %3$d.</string>
     <string name="trade_items_all_full">You already hold the most of every combat item.</string>
+
+    <!-- Gear Workshop. Own prefix (gear_workshop_, not workshop_) - that
+         name already means the home screen throughout this app. -->
+    <string name="gear_workshop_title">Gear Workshop</string>
+    <string name="gear_workshop_subtitle">Craft from relics. One Tool and one Trinket worn at a time, account-wide.</string>
+    <string name="gear_workshop_open">Gear Workshop</string>
+    <string name="gear_workshop_slot_tool">Tool</string>
+    <string name="gear_workshop_slot_trinket">Trinket</string>
+    <string name="gear_workshop_craft">Craft</string>
+    <string name="gear_workshop_equip">Equip</string>
+    <string name="gear_workshop_equipped">Equipped</string>
+    <!-- relic cost line: e.g. "Costs 4 × ⚙️ Rusted Gear" -->
+    <string name="gear_workshop_cost_line">Costs %1$d × %2$s</string>
+    <!-- joins several gear_workshop_cost_line entries for a multi-relic recipe -->
+    <string name="gear_workshop_cost_join">  +  </string>
+    <string name="gear_workshop_craft_done">Crafted: %1$s</string>
+    <!-- needed, relic name, held -->
+    <string name="gear_workshop_not_enough">Needs %1$d × %2$s. You hold %3$d.</string>
+
+    <string name="gear_name_rusted_gauntlet">Rusted Gauntlet</string>
+    <string name="gear_desc_rusted_gauntlet">+8% Power in battle.</string>
+    <string name="gear_name_reinforced_plating">Reinforced Plating</string>
+    <string name="gear_desc_reinforced_plating">+8% Toughness in battle.</string>
+    <string name="gear_name_smugglers_lockpick">Smuggler\'s Lockpick</string>
+    <string name="gear_desc_smugglers_lockpick">Smugglers\' own windfall chance +5pp.</string>
+    <string name="gear_name_brawlers_knuckles">Brawler\'s Knuckles</string>
+    <string name="gear_desc_brawlers_knuckles">Brawlers\' own Special hits harder still.</string>
+    <string name="gear_name_compass_charm">Compass Charm</string>
+    <string name="gear_desc_compass_charm">Scrap Run duration −10%.</string>
+    <string name="gear_name_worn_pedometer">Worn Pedometer</string>
+    <string name="gear_desc_worn_pedometer">Steps bank 5% more EXP toward your level. Never changes the steps themselves.</string>
+    <string name="gear_name_cracked_vial">Cracked Vial</string>
+    <string name="gear_desc_cracked_vial">A small extra top-up on the Arena\'s own breather between fights.</string>
+    <string name="gear_name_tinkerers_loupe">Tinkerer\'s Loupe</string>
+    <string name="gear_desc_tinkerers_loupe">Tinkerers\' own block chance +5pp.</string>
 
     <!--
       Combat flavour. One line opens each fight. Every string takes the

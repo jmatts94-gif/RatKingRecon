@@ -90,6 +90,11 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".GearWorkshopActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".AchievementsActivity"
             android:exported="false"
             android:screenOrientation="portrait" />

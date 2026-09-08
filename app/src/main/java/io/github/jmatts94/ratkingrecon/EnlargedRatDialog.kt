@@ -276,7 +276,12 @@ object EnlargedRatDialog {
             // outright for a Brawler's instant-complete - see TaskBonuses.
             // Rolled once, here, rather than re-checked on every later look at
             // the tile: the outcome is decided the moment the rat is sent out.
-            val msToAdd = 4 * 60 * 60 * 1000L
+            // Compass Charm's own multiplier is folded in before the faction
+            // bonus, the same layering order TaskBonuses.durationFor already
+            // scales a Scavenger's own base duration from - the two multiply
+            // together rather than either overriding the other.
+            val baseMsToAdd = 4 * 60 * 60 * 1000L
+            val msToAdd = (baseMsToAdd * GearEffects.scrapRunDurationMultiplierFor(prefs)).toLong()
             val startTime = System.currentTimeMillis()
             val endTime = TaskBonuses.endTimeFor(startTime, msToAdd, pet.faction)
 

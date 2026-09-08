@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  One gear piece's own row - the same shape view_relic_exchange.xml already
+  uses (title/body/cost/button), plus a slot line, since a gear row has one
+  more state a relic exchange never needed: owned-but-not-worn, between
+  Craft and Equipped.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card_white"
+    android:elevation="4dp"
+    android:outlineAmbientShadowColor="@color/shadow_warm"
+    android:outlineSpotShadowColor="@color/shadow_warm"
+    tools:targetApi="28"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/gearPieceIcon"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="8dp"
+            app:tint="@color/text_primary"
+            android:importantForAccessibility="no"
+            tools:src="@drawable/ic_power" />
+
+        <TextView
+            android:id="@+id/gearPieceTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            tools:text="Rusted Gauntlet" />
+
+        <TextView
+            android:id="@+id/gearPieceSlot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill_tan"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_muted"
+            tools:text="Tool" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/gearPieceBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textSize="14sp"
+        android:textColor="@color/text_muted"
+        tools:text="+8% Power in battle." />
+
+    <!-- Cost line: hidden once owned - a piece already crafted has nothing left to cost. -->
+    <TextView
+        android:id="@+id/gearPieceCost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        tools:text="Costs 4 × ⚙️ Rusted Gear   ·   you hold 2" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/gearPieceButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="@color/text_primary"
+        app:cornerRadius="12dp"
+        tools:text="Craft" />
+</LinearLayout>

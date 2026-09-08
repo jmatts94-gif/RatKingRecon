@@ -34,7 +34,15 @@ object Relics {
         Relic("rusted_gear", R.string.relic_rusted_gear, "⚙️ Rusted Gear"),
         Relic("glowing_vial", R.string.relic_glowing_vial, "🧪 Glowing Vial"),
         Relic("tattered_blueprint", R.string.relic_tattered_blueprint, "📜 Tattered Blueprint"),
-        Relic("heavy_wrench", R.string.relic_heavy_wrench, "🔧 Heavy Wrench")
+        Relic("heavy_wrench", R.string.relic_heavy_wrench, "🔧 Heavy Wrench"),
+        // Earned by walking, not by fighting or a task board - see
+        // GameEngine.checkWornCogDrop. Kept out of every combat/task relic
+        // roll (this file's own rollFor, Ledger Tasks, the Scrap Run), so
+        // this stays the one relic a player only ever sees from steps. No
+        // legacy name: this relic postdates the Set<String> scheme
+        // migrateIfNeeded exists to convert, so there is nothing old to
+        // recognise.
+        Relic("worn_cog", R.string.relic_worn_cog, "")
     )
 
     private const val KEY_PREFIX = "RELIC_"
@@ -130,6 +138,18 @@ object Relics {
     // ---- drops ---------------------------------------------------------------
 
     /**
+     * The pool [rollFor] and [DailyQuest.eligibleRelics] both draw from -
+     * every relic but Worn Cog, which only ever drops from
+     * [GameEngine.checkWornCogDrop]. Without this exclusion, appending Worn
+     * Cog to [ALL] (needed so [RelicTrader]'s own index lookups and
+     * [GearPieces]' craft costs can name it the same way every other relic
+     * is named) would silently leak it into every combat/task relic roll
+     * too, which is exactly the "not just combat" split this relic exists
+     * to make.
+     */
+    private val COMBAT_TASK_POOL: List<Relic> = ALL.filterNot { it.id == "worn_cog" }
+
+    /**
      * Rolls a relic drop at [chance], or null.
      *
      * Takes the chance directly rather than a [LedgerTaskTier] - a Ledger Task
@@ -141,8 +161,8 @@ object Relics {
      * not after.
      *
      * Which relic drops is still uniform - the caller decides how often, not
-     * what.
+     * what - but only ever among [COMBAT_TASK_POOL], not [ALL].
      */
     fun rollFor(chance: Double): Relic? =
-        if (Math.random() < chance) ALL.random() else null
+        if (Math.random() < chance) COMBAT_TASK_POOL.random() else null
 }

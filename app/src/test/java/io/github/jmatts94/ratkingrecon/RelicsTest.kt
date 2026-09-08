@@ -2,6 +2,7 @@ package io.github.jmatts94.ratkingrecon
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -147,7 +148,7 @@ class RelicsTest {
     @Test
     fun `relic ids and save keys are the ones that shipped`() {
         assertEquals(
-            listOf("rusted_gear", "glowing_vial", "tattered_blueprint", "heavy_wrench"),
+            listOf("rusted_gear", "glowing_vial", "tattered_blueprint", "heavy_wrench", "worn_cog"),
             Relics.ALL.map { it.id }
         )
         assertEquals("RELIC_rusted_gear", Relics.countKey(gear))
@@ -179,6 +180,13 @@ class RelicsTest {
     fun `a roll only ever returns a relic from the roster`() {
         repeat(500) {
             Relics.rollFor(LedgerTasks.M3.relicChance)?.let { assertTrue(it in Relics.ALL) }
+        }
+    }
+
+    @Test
+    fun `a combat-task roll never returns Worn Cog`() {
+        repeat(500) {
+            assertNotEquals("worn_cog", Relics.rollFor(1.0)?.id)
         }
     }
 }

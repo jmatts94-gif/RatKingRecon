@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -114,6 +115,22 @@
     </ScrollView>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/traderWorkshopButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/gear_workshop_open"
+        app:icon="@drawable/ic_settings"
+        app:iconGravity="textStart"
+        app:iconPadding="10dp"
+        app:iconTint="@color/text_primary"
+        android:textColor="@color/text_primary"
+        android:backgroundTint="@color/amber"
+        app:cornerRadius="14dp"
+        app:elevation="4dp" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/traderBackButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -122,6 +139,5 @@
         android:textColor="@color/text_primary"
         android:backgroundTint="@color/card_white"
         app:cornerRadius="14dp"
-        app:elevation="4dp"
-        xmlns:app="http://schemas.android.com/apk/res-auto" />
+        app:elevation="4dp" />
 </LinearLayout>

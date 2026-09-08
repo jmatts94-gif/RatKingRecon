@@ -886,4 +886,48 @@ class BattleTest {
         assertTrue(r.ratWeaknessBonusApplied)
         assertEquals(20, r.damageDealt)
     }
+
+    // --- gear's own combat bonuses - see GearEffects -------------------------
+
+    @Test
+    fun `Loadout combinedWith multiplies both fields rather than replacing either`() {
+        val shopBuff = Loadout(powerMultiplier = 1.5, hpMultiplier = 1.0)
+        val gearBonus = Loadout(powerMultiplier = 1.08, hpMultiplier = 1.08)
+
+        val combined = shopBuff.combinedWith(gearBonus)
+
+        assertEquals(1.5 * 1.08, combined.powerMultiplier, 0.0001)
+        assertEquals(1.08, combined.hpMultiplier, 0.0001)
+    }
+
+    @Test
+    fun `combinedWith is order-independent`() {
+        val a = Loadout(powerMultiplier = 1.5, hpMultiplier = 1.2)
+        val b = Loadout(powerMultiplier = 1.08, hpMultiplier = 1.0)
+
+        assertEquals(a.combinedWith(b), b.combinedWith(a))
+    }
+
+    @Test
+    fun `Brawler's Knuckles' specialMultiplierBonus stacks onto the 1_8x Brawler multiplier`() {
+        val b = Battle(
+            "Rat", 10, 5000, "Bot", 1, 5000,
+            ratFaction = Roster.BRAWLERS, specialMultiplierBonus = 0.1
+        )
+        val r = b.advance(BattleAction.SPECIAL)
+
+        // 10 * (1.8 + 0.1) = 19.
+        assertEquals(19, r.damageDealt)
+    }
+
+    @Test
+    fun `windfallChanceBonus and blockChanceBonus default to zero and change nothing on their own`() {
+        val brawler = Battle("Rat", 10, 5000, "Bot", 1, 5000, ratFaction = Roster.BRAWLERS)
+        val plain = Battle(
+            "Rat", 10, 5000, "Bot", 1, 5000,
+            ratFaction = Roster.BRAWLERS, windfallChanceBonus = 0.0, blockChanceBonus = 0.0
+        )
+
+        assertEquals(brawler.advance(BattleAction.SPECIAL).damageDealt, plain.advance(BattleAction.SPECIAL).damageDealt)
+    }
 }

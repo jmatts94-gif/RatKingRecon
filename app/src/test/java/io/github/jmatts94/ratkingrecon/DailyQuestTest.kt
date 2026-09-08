@@ -202,21 +202,26 @@ class DailyQuestTest {
 
     // ---- reward tiers --------------------------------------------------------
 
+    // Worn Cog only ever drops from walking - see Relics.ALL's own comment -
+    // so it never joins this reward regardless of streak length, even at
+    // the top tier that otherwise hands out everything in Relics.ALL.
+    private val combatTaskRelics = Relics.ALL.filterNot { it.id == "worn_cog" }
+
     @Test
     fun `relic eligibility widens with the streak`() {
-        assertEquals(listOf(Relics.ALL[0]), DailyQuest.eligibleRelics(0))
-        assertEquals(listOf(Relics.ALL[0]), DailyQuest.eligibleRelics(6))
+        assertEquals(listOf(combatTaskRelics[0]), DailyQuest.eligibleRelics(0))
+        assertEquals(listOf(combatTaskRelics[0]), DailyQuest.eligibleRelics(6))
 
-        assertEquals(Relics.ALL.take(3), DailyQuest.eligibleRelics(7))
-        assertEquals(Relics.ALL.take(3), DailyQuest.eligibleRelics(13))
+        assertEquals(combatTaskRelics.take(3), DailyQuest.eligibleRelics(7))
+        assertEquals(combatTaskRelics.take(3), DailyQuest.eligibleRelics(13))
 
-        assertEquals(Relics.ALL, DailyQuest.eligibleRelics(14))
-        assertEquals(Relics.ALL, DailyQuest.eligibleRelics(400))
+        assertEquals(combatTaskRelics, DailyQuest.eligibleRelics(14))
+        assertEquals(combatTaskRelics, DailyQuest.eligibleRelics(400))
     }
 
     @Test
     fun `the top relic is only ever a fourteen day prize`() {
-        val wrench = Relics.ALL.last()
+        val wrench = combatTaskRelics.last()
         for (streak in 0..13) {
             assertFalse(
                 "streak $streak should not reach ${wrench.id}",
@@ -224,6 +229,16 @@ class DailyQuestTest {
             )
         }
         assertTrue(wrench in DailyQuest.eligibleRelics(14))
+    }
+
+    @Test
+    fun `Worn Cog never turns up as a daily quest reward, at any streak`() {
+        for (streak in listOf(0, 6, 7, 13, 14, 400)) {
+            assertFalse(
+                "streak $streak should never offer worn_cog",
+                DailyQuest.eligibleRelics(streak).any { it.id == "worn_cog" }
+            )
+        }
     }
 
     /**
