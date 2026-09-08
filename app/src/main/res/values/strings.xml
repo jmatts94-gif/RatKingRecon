@@ -728,7 +728,7 @@ RARE DROP: %2$s</string>
     <string name="shop_name_relic_trader">Relic Trader</string>
     <string name="shop_desc_relic_trader">Trades in relics rather than Scrap. Bring three of a kind.</string>
     <string name="tooltip_trader_title">Relic Trader</string>
-    <string name="tooltip_trader_body">Relics drop from Ledger Tasks — rarely from the short ones, often from the long. Three of a kind buys something here.</string>
+    <string name="tooltip_trader_body">Relics drop from Ledger Tasks, Arena wins, and Quest streaks — Worn Cog only from walking. Three of a kind buys something here.</string>
     <string name="shop_open">Open</string>
     <!-- description, discount in Scrap -->
     <string name="shop_voucher_applied">%1$s  ·  Voucher: %2$d Scrap off</string>
@@ -737,7 +737,7 @@ RARE DROP: %2$s</string>
          not borrow btn_back_to_workshop like everything else does. -->
     <string name="btn_back_to_shop">Back to Shop</string>
     <string name="trader_title">Relic Trader</string>
-    <string name="trader_subtitle">Three of a kind for each trade. Relics come from Ledger Tasks.</string>
+    <string name="trader_subtitle">Three of a kind for each trade. Relics come from Tasks, the Arena, and Quest streaks — Worn Cog from walking alone.</string>
     <!-- total relics held -->
     <string name="trader_total">%1$d held</string>
     <!-- relic name, how many held -->
@@ -832,7 +832,7 @@ RARE DROP: %2$s</string>
     <string name="ledger_empty_title">No rats yet — go for a walk!</string>
     <string name="ledger_empty_body">Every step fills the egg on the workshop bench. The first one to hatch is yours.</string>
     <string name="trader_empty_title">The bench is bare.</string>
-    <string name="trader_empty_body">Relics turn up when a Ledger Task is claimed — the longer the job, the better the odds.</string>
+    <string name="trader_empty_body">Relics turn up from Ledger Tasks, Arena wins, and Quest streaks. Worn Cog only comes from walking.</string>
 
     <!-- Daily quest and streak -->
     <string name="quest_steps_title">Walk %1$d steps</string>
