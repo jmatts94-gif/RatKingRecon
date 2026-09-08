@@ -199,10 +199,16 @@ class RatCardAdapter(
         holder.name.compoundDrawablePadding = (3 * density).toInt()
 
         // The frame's own border, unless a selection needs to stand out over
-        // it - the same amber the rest of the app uses for a highlighted
-        // choice, thickened so it reads at a glance in a grid this small.
+        // it. teal_fill rather than amber - amber sat too close to Brass/
+        // Ember/Riveted Copper/Clockwork's own warm amber-and-copper
+        // borders to tell a selected card apart from an equipped frame at
+        // a glance (worse still for the app's partially colour-blind
+        // owner - see teal_fill's own comment in colors.xml, the same
+        // "read as a different signal by anyone" reasoning Power Surge and
+        // the Golden Wrench already lean on). Thickened so it reads at a
+        // glance in a grid this small.
         if (selected) {
-            holder.card.strokeColor = ContextCompat.getColor(context, R.color.amber)
+            holder.card.strokeColor = ContextCompat.getColor(context, R.color.teal_fill)
             holder.card.strokeWidth = (3 * density).toInt()
         } else {
             holder.card.strokeColor = ContextCompat.getColor(
