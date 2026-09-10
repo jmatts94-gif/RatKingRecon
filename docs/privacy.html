@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rat King Recon — Privacy Policy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FBF3E7;
+    --panel: #FFF8EC;
+    --brass: #C08A3E;
+    --brass-dark: #9C6C2A;
+    --rust: #B8592E;
+    --ink: #3A2A1E;
+    --ink-soft: #6B5744;
+    --mint: #6FA576;
+    --line: #E4D3B8;
+    --shadow: 0 4px 0 rgba(58, 42, 30, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Nunito', sans-serif;
+    line-height: 1.6;
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(192,138,62,0.06) 0%, transparent 45%),
+      radial-gradient(circle at 85% 75%, rgba(184,89,46,0.06) 0%, transparent 45%);
+  }
+
+  h1, h2, .display {
+    font-family: 'Baloo 2', sans-serif;
+    color: var(--ink);
+  }
+
+  a { color: var(--rust); }
+
+  .wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(251, 243, 231, 0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 3px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--rust);
+    text-decoration: none;
+  }
+  .brand .gear { font-size: 1.1rem; }
+  .nav-links {
+    display: flex;
+    gap: 22px;
+    list-style: none;
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--ink-soft);
+    padding: 6px 2px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .nav-links a:hover { color: var(--rust); border-color: var(--rust); }
+
+  header.hero {
+    padding: 56px 0 8px;
+    text-align: center;
+  }
+  header.hero .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    color: var(--rust);
+    font-weight: 800;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    border-radius: 999px;
+    margin-bottom: 22px;
+  }
+  header.hero h1 {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+  header.hero p.sub {
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .rivet-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 30px 0;
+    opacity: 0.85;
+  }
+  .rivet-divider .track {
+    flex: 1;
+    max-width: 220px;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--brass) 0 8px, transparent 8px 14px);
+    border-radius: 2px;
+  }
+  .rivet-divider .cog {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brass-dark);
+    font-size: 1.3rem;
+    animation: spin 14s linear infinite;
+  }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .rivet-divider .cog { animation: none; }
+  }
+
+  .policy {
+    padding: 8px 0 70px;
+  }
+  .policy .panel {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 18px;
+    padding: 26px 28px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .policy .panel::before, .policy .panel::after {
+    content: '';
+    position: absolute;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--brass);
+    box-shadow: 0 0 0 2px var(--cream);
+    top: 10px;
+  }
+  .policy .panel::before { left: 10px; }
+  .policy .panel::after { right: 10px; }
+  .policy h2 {
+    font-size: 1.15rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .policy p, .policy li {
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-size: 0.96rem;
+    margin-bottom: 8px;
+  }
+  .policy p:last-child, .policy li:last-child { margin-bottom: 0; }
+  .policy ul { padding-left: 20px; }
+  .policy strong { color: var(--ink); }
+
+  .updated {
+    text-align: center;
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin: 6px 0 34px;
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px 24px 60px;
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+  footer .gear { color: var(--brass); }
+
+  ::selection { background: var(--rust); color: #fff; }
+  a:focus-visible { outline: 3px solid var(--rust); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="gear">⚙️</span> Rat King Recon</a>
+    <ul class="nav-links">
+      <li><a href="index.html#home">Home</a></li>
+      <li><a href="index.html#download">Download</a></li>
+      <li><a href="index.html#feedback">Feedback</a></li>
+      <li><a href="privacy.html">Privacy</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero wrap" id="home">
+  <div class="eyebrow">Legal</div>
+  <h1>Privacy Policy</h1>
+  <p class="sub">Short version: your walking data never leaves your phone, and there's nothing to sign up for.</p>
+</header>
+
+<div class="wrap">
+  <div class="rivet-divider">
+    <div class="track"></div>
+    <div class="cog">⚙️</div>
+    <div class="track"></div>
+  </div>
+</div>
+<p class="updated wrap">Last updated September 10, 2026</p>
+
+<main class="policy wrap">
+
+  <div class="panel">
+    <h2>🐀 Who this covers</h2>
+    <p>This policy covers <strong>Rat King Recon</strong>, an Android game developed by an independent developer (contact below). It applies to the app itself and this website.</p>
+  </div>
+
+  <div class="panel">
+    <h2>🚶 Step &amp; activity data</h2>
+    <p>Rat King Recon reads your device's step counter (Android's <strong>Activity Recognition</strong> permission) to turn real steps into in-game progress — Scrap, hatching, and EXP.</p>
+    <ul>
+      <li>Step counts are read directly from your device's sensor.</li>
+      <li>All of it is processed and stored <strong>only on your device</strong>, in the app's local save data.</li>
+      <li>Nothing about your steps, location, or movement is ever sent off your device, to us or anyone else.</li>
+      <li>Uninstalling the app deletes this data. There is no cloud save and no account to recover it from.</li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h2>📊 Crash &amp; diagnostic data</h2>
+    <p>The app uses <strong>Firebase Crashlytics</strong> (a Google service) to automatically report crashes, so bugs can get fixed. If the app crashes, Crashlytics may send Google:</p>
+    <ul>
+      <li>A crash log / stack trace of what the app was doing.</li>
+      <li>Basic device info — model, Android version, app version.</li>
+      <li>A random, non-identifying installation ID (not your name, email, or account — there is no account).</li>
+    </ul>
+    <p>This is the only data that ever leaves your device. See <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase's privacy policy</a> for how Google handles it.</p>
+  </div>
+
+  <div class="panel">
+    <h2>🚫 What this app does not do</h2>
+    <ul>
+      <li>No account, login, or sign-up of any kind.</li>
+      <li>No ads and no ad-tracking SDKs.</li>
+      <li>No in-app purchases or payment data — nothing to buy, nothing to pay with.</li>
+      <li>No selling, renting, or sharing of any data with third parties, beyond the crash reporting above.</li>
+      <li>No location tracking (the step counter reports a count, not GPS position).</li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h2>🧒 Children's privacy</h2>
+    <p>Rat King Recon isn't directed at children under 13, and the app doesn't knowingly collect personal information from anyone, regardless of age — see above, there's nothing to collect in the first place.</p>
+  </div>
+
+  <div class="panel">
+    <h2>✉️ Contact</h2>
+    <p>Questions about this policy, or about the app in general? Reach out at <a href="mailto:jmatts94@gmail.com">jmatts94@gmail.com</a>.</p>
+  </div>
+
+  <div class="panel">
+    <h2>🔧 Changes to this policy</h2>
+    <p>If this policy changes — for example, if a future update adds a new service — this page will be updated and the "Last updated" date above will change.</p>
+  </div>
+
+</main>
+
+<footer>
+  <span class="gear">⚙</span> Rat King Recon — built one step at a time <span class="gear">⚙</span>
+</footer>
+
+</body>
+</html>
