@@ -23,6 +23,9 @@ sealed interface RelicReward {
 
     /** Waives the Scrap cost of the player's next Arena entry. */
     data object ArenaEntryVoucher : RelicReward
+
+    /** Doubles the EXP the player's next batch of steps banks - see ShopEffects.KEY_TRAIL_RATIONS. */
+    data object TrailRations : RelicReward
 }
 
 /**
@@ -61,10 +64,11 @@ data class RelicExchange(
  * Kept out of the Activity in the way [Bounties] and [LedgerTasks] are, so the
  * one rule that matters can be tested: an exchange that cannot deliver must not
  * take the relics. That is the same guarantee the Shop already makes about
- * Scrap - nothing leaves until the effect has been accepted - and it is easy to
- * get wrong here, because the item voucher can be unavailable for a reason
- * that has nothing to do with what the player is holding: every combat item
- * already sitting at the Shop's own hold cap.
+ * Scrap - nothing leaves until the effect has been accepted. No exchange below
+ * grants [RelicReward.ItemVoucher] any more, but the type - and the refusal it
+ * can hand back when every combat item already sits at the Shop's own hold cap
+ * - stays live: [availableItemChoices] backs [AchievementRewards.SalvageCache]
+ * directly, the same cap either path would hit.
  */
 object RelicTrader {
 
@@ -92,10 +96,10 @@ object RelicTrader {
             bodyRes = R.string.trade_vial_body
         ),
         RelicExchange(
-            id = "blueprint_item",
+            id = "blueprint_rations",
             relic = Relics.ALL[2],
             cost = COST,
-            reward = RelicReward.ItemVoucher,
+            reward = RelicReward.TrailRations,
             titleRes = R.string.trade_blueprint_title,
             bodyRes = R.string.trade_blueprint_body
         ),
@@ -188,6 +192,9 @@ object RelicTrader {
 
             is RelicReward.ArenaEntryVoucher ->
                 ShopEffects.addCharge(prefs, ShopEffects.KEY_ARENA_ENTRY_VOUCHER)
+
+            is RelicReward.TrailRations ->
+                prefs.edit().putBoolean(ShopEffects.KEY_TRAIL_RATIONS, true).apply()
         }
 
         Relics.spend(prefs, exchange.relic, exchange.cost)

@@ -2,6 +2,7 @@ package io.github.jmatts94.ratkingrecon
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -61,7 +62,7 @@ class GearWorkshopActivity : AppCompatActivity() {
         refresh()
     }
 
-    /** One pill per relic kind - the same row RelicTraderActivity.buildCounts already draws. */
+    /** One pill per relic kind - the same icon-and-count row RelicTraderActivity.buildCounts already draws. */
     private fun buildCounts() {
         for (relic in Relics.ALL) {
             val pill = TextView(this).apply {
@@ -71,11 +72,20 @@ class GearWorkshopActivity : AppCompatActivity() {
                 textSize = 13f
                 setPadding(8, 12, 8, 12)
                 tag = relic.id
+                setCompoundDrawablesWithIntrinsicBounds(sizedIcon(relic.iconRes, 16), null, null, null)
+                compoundDrawablePadding = 6
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                     .apply { marginStart = 4; marginEnd = 4 }
             }
             countRow.addView(pill)
         }
+    }
+
+    private fun sizedIcon(resId: Int, sizeDp: Int): Drawable? {
+        val icon = ContextCompat.getDrawable(this, resId) ?: return null
+        val size = (sizeDp * resources.displayMetrics.density).toInt()
+        icon.setBounds(0, 0, size, size)
+        return icon
     }
 
     private fun buildPieces() {
@@ -144,7 +154,9 @@ class GearWorkshopActivity : AppCompatActivity() {
     private fun refresh() {
         for (relic in Relics.ALL) {
             val pill = countRow.findViewWithTag<TextView>(relic.id) ?: continue
-            pill.text = getString(R.string.trader_count_pill, getString(relic.nameRes), Relics.countOf(prefs, relic))
+            val held = Relics.countOf(prefs, relic)
+            pill.text = held.toString()
+            pill.contentDescription = getString(R.string.trader_count_pill_description, getString(relic.nameRes), held)
         }
 
         for (row in rows) {

@@ -57,6 +57,20 @@ object ShopEffects {
         prefs.getBoolean(KEY_GOLDEN_WRENCH, false)
 
     /**
+     * Set by the Relic Trader's Trail Rations, read and cleared by the next
+     * batch of steps that banks EXP - see GameEngine.onSteps. The same
+     * one-shot shape as a Power Surge or Golden Wrench, just armed by a relic
+     * trade instead of a Shop purchase, and spent by a walk instead of a fight.
+     */
+    const val KEY_TRAIL_RATIONS = "TRAIL_RATIONS_ACTIVE"
+
+    /** What Trail Rations multiplies the next steps batch's banked EXP by. */
+    const val TRAIL_RATIONS_MULTIPLIER = 2.0
+
+    fun trailRationsArmed(prefs: SharedPreferences): Boolean =
+        prefs.getBoolean(KEY_TRAIL_RATIONS, false)
+
+    /**
      * A multiplier as the percentage its description quotes: 1.5 reads as 50.
      *
      * The Shop sells both of these on a "+50%" that used to be typed into the
@@ -248,7 +262,7 @@ object ShopEffects {
      * gets the identical wording rather than a second phrasing of it.
      */
     fun expeditionTimeLeftText(context: Context, remainingMs: Long): String = when {
-        remainingMs <= 0L -> context.getString(R.string.tile_expedition_ready)
+        remainingMs <= 0L -> context.getString(R.string.tile_expedition_collect)
         remainingMs >= HOUR_MS -> context.getString(
             R.string.tile_expedition_hm,
             remainingMs / HOUR_MS,

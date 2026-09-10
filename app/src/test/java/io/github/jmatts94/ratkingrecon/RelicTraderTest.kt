@@ -10,16 +10,17 @@ import org.junit.Test
  * The Relic Trader's rules.
  *
  * One thing matters more than the rest: an exchange that cannot deliver must not
- * take the relics. That is the same promise the Shop makes about Scrap, and it
- * is easier to break here, because the item voucher can be unavailable for a
- * reason that has nothing to do with what the player is holding - every combat
- * item already at the Shop's own cap.
+ * take the relics. That is the same promise the Shop makes about Scrap. The
+ * item-voucher refusal this used to guard - every combat item already at the
+ * Shop's own cap - now only reaches through AchievementRewards.SalvageCache,
+ * covered in AchievementRewardsTest; no exchange here grants ItemVoucher any
+ * more, see RelicTrader.exchanges.
  */
 class RelicTraderTest {
 
     private val gearTrade = RelicTrader.exchanges[0]
     private val reviveTrade = RelicTrader.exchanges[1]
-    private val itemTrade = RelicTrader.exchanges[2]
+    private val rationsTrade = RelicTrader.exchanges[2]
     private val entryTrade = RelicTrader.exchanges[3]
 
     private fun prefsHolding(exchange: RelicExchange, amount: Int): FakePrefs {
@@ -84,49 +85,14 @@ class RelicTraderTest {
     }
 
     @Test
-    fun `the blueprint trade grants whichever item was chosen`() {
-        val prefs = prefsHolding(itemTrade, 3)
+    fun `the blueprint trade arms Trail Rations and takes exactly three`() {
+        val prefs = prefsHolding(rationsTrade, 3)
 
-        assertNull(RelicTrader.trade(prefs, itemTrade, BattleItem.CLEANSE.name))
+        assertFalse(ShopEffects.trailRationsArmed(prefs))
+        assertNull(RelicTrader.trade(prefs, rationsTrade))
 
-        assertEquals(1, ShopEffects.charges(prefs, ShopEffects.KEY_CLEANSE))
-        assertEquals(0, ShopEffects.charges(prefs, ShopEffects.KEY_HP_TONIC))
-        assertEquals(0, Relics.countOf(prefs, itemTrade.relic))
-    }
-
-    @Test
-    fun `an item already at the shop's own cap is not offered, and falls back to one that isn't`() {
-        val prefs = prefsHolding(itemTrade, 3)
-        repeat(ShopEffects.ITEM_CHARGE_CAP) { ShopEffects.addCharge(prefs, ShopEffects.KEY_CLEANSE) }
-
-        assertFalse(BattleItem.CLEANSE in RelicTrader.availableItemChoices(prefs))
-
-        // Asking for the one already at cap falls through to one that is not.
-        assertNull(RelicTrader.trade(prefs, itemTrade, BattleItem.CLEANSE.name))
-        assertEquals(
-            "the capped item must not have gone over",
-            ShopEffects.ITEM_CHARGE_CAP,
-            ShopEffects.charges(prefs, ShopEffects.KEY_CLEANSE)
-        )
-    }
-
-    @Test
-    fun `every item at cap refuses the trade and keeps the relics`() {
-        val prefs = prefsHolding(itemTrade, 3)
-        for (item in BattleItem.entries) {
-            val key = when (item) {
-                BattleItem.HP_TONIC -> ShopEffects.KEY_HP_TONIC
-                BattleItem.CORROSIVE_CHARGE -> ShopEffects.KEY_CORROSIVE_CHARGE
-                BattleItem.REINFORCED_PLATING -> ShopEffects.KEY_REINFORCED_PLATING
-                BattleItem.CLEANSE -> ShopEffects.KEY_CLEANSE
-            }
-            repeat(ShopEffects.ITEM_CHARGE_CAP) { ShopEffects.addCharge(prefs, key) }
-        }
-
-        val refusal = RelicTrader.trade(prefs, itemTrade, BattleItem.CLEANSE.name)
-
-        assertEquals(RelicRefusal.EveryItemFull, refusal)
-        assertEquals(3, Relics.countOf(prefs, itemTrade.relic))
+        assertTrue(ShopEffects.trailRationsArmed(prefs))
+        assertEquals(0, Relics.countOf(prefs, rationsTrade.relic))
     }
 
     @Test

@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import java.util.Calendar
@@ -173,5 +174,32 @@ class DailyStepsTest {
             DailySteps.STEPS_PER_WORN_COG.toLong() >= 100_000L,
             Milestones.isEarned(prefs, Milestones.steps.first { it.id == "steps_1m" })
         )
+    }
+
+    // ---- Trail Rations ----------------------------------------------------------
+
+    @Test
+    fun `Trail Rations doubles the next steps batch's banked EXP, then clears itself`() {
+        val prefs = FakePrefs()
+        val dao = FakeRatDao()
+
+        GameEngine.onSteps(dao, prefs, 0f)
+        prefs.edit().putBoolean(ShopEffects.KEY_TRAIL_RATIONS, true).apply()
+
+        GameEngine.onSteps(dao, prefs, 40f)
+
+        assertEquals(80, GameEngine.expOf(prefs))
+        assertFalse("spent by the batch it doubled", ShopEffects.trailRationsArmed(prefs))
+    }
+
+    @Test
+    fun `a batch with nothing armed banks EXP at the ordinary rate`() {
+        val prefs = FakePrefs()
+        val dao = FakeRatDao()
+
+        GameEngine.onSteps(dao, prefs, 0f)
+        GameEngine.onSteps(dao, prefs, 40f)
+
+        assertEquals(40, GameEngine.expOf(prefs))
     }
 }

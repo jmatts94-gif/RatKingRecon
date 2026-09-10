@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.content.SharedPreferences
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 
 /**
@@ -13,11 +14,16 @@ import androidx.annotation.StringRes
  * Moving the display text into a resource is the point of the split: the old
  * scheme stored the name, so the name could never be corrected or translated
  * without orphaning what players already held.
+ *
+ * [iconRes] is a real vector icon rather than the emoji [legacyName] carries -
+ * the Relic Trader's own icon tiles used to fall back on that emoji baked into
+ * [nameRes]'s text, which read as flat next to every other icon in the game.
  */
 data class Relic(
     val id: String,
     @param:StringRes val nameRes: Int,
-    val legacyName: String
+    val legacyName: String,
+    @param:DrawableRes val iconRes: Int
 )
 
 /**
@@ -31,18 +37,19 @@ data class Relic(
 object Relics {
 
     val ALL: List<Relic> = listOf(
-        Relic("rusted_gear", R.string.relic_rusted_gear, "⚙️ Rusted Gear"),
-        Relic("glowing_vial", R.string.relic_glowing_vial, "🧪 Glowing Vial"),
-        Relic("tattered_blueprint", R.string.relic_tattered_blueprint, "📜 Tattered Blueprint"),
-        Relic("heavy_wrench", R.string.relic_heavy_wrench, "🔧 Heavy Wrench"),
+        Relic("rusted_gear", R.string.relic_rusted_gear, "⚙️ Rusted Gear", R.drawable.ic_gear_double),
+        Relic("glowing_vial", R.string.relic_glowing_vial, "🧪 Glowing Vial", R.drawable.ic_flask),
+        Relic("tattered_blueprint", R.string.relic_tattered_blueprint, "📜 Tattered Blueprint", R.drawable.ic_contract),
+        Relic("heavy_wrench", R.string.relic_heavy_wrench, "🔧 Heavy Wrench", R.drawable.ic_settings),
         // Earned by walking, not by fighting or a task board - see
         // GameEngine.checkWornCogDrop. Kept out of every combat/task relic
         // roll (this file's own rollFor, Ledger Tasks, the Scrap Run), so
         // this stays the one relic a player only ever sees from steps. No
         // legacy name: this relic postdates the Set<String> scheme
         // migrateIfNeeded exists to convert, so there is nothing old to
-        // recognise.
-        Relic("worn_cog", R.string.relic_worn_cog, "")
+        // recognise. Shares Worn Pedometer's own icon - both are the same
+        // "earned by walking" idea.
+        Relic("worn_cog", R.string.relic_worn_cog, "", R.drawable.ic_footprint)
     )
 
     private const val KEY_PREFIX = "RELIC_"

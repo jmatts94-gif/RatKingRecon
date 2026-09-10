@@ -244,8 +244,15 @@ object GameEngine {
         // encounter/boss rolls below, none of which either buff is meant to
         // touch. Multiplied together rather than added, the same way
         // Loadout.combinedWith stacks two independent combat sources.
-        val stepExpMultiplier = PermanentBuffs.stepRewardMultiplierFor(prefs) * GearEffects.stepExpMultiplierFor(prefs)
+        val trailRationsArmed = ShopEffects.trailRationsArmed(prefs)
+        val trailRationsMultiplier = if (trailRationsArmed) ShopEffects.TRAIL_RATIONS_MULTIPLIER else 1.0
+        val stepExpMultiplier =
+            PermanentBuffs.stepRewardMultiplierFor(prefs) * GearEffects.stepExpMultiplierFor(prefs) * trailRationsMultiplier
         val boostedExp = (gained * stepExpMultiplier).roundToInt()
+        // Spent by this very batch, whatever it banks - the same "armed until
+        // the next resolution, win or lose" rule ShopEffects.clearOneShotBuffs
+        // applies to a fight's own Power Surge or Golden Wrench.
+        if (trailRationsArmed) editor.putBoolean(ShopEffects.KEY_TRAIL_RATIONS, false)
         val banked = bankExp(dao, prefs, editor, boostedExp)
         val hatched = banked.hatched
         val level = banked.level

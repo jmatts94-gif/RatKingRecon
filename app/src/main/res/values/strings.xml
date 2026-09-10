@@ -114,8 +114,8 @@
       them decides anything.
     -->
     <string name="tile_expedition_idle">Idle</string>
-    <!-- An expedition past its end time, waiting to be collected on the Ledger -->
-    <string name="tile_expedition_ready">Ready</string>
+    <!-- A finished expedition, waiting for the tile to be tapped and its reward collected -->
+    <string name="tile_expedition_collect">Collect</string>
     <!-- hours, minutes -->
     <string name="tile_expedition_hm">%1$dh %2$dm left</string>
     <!-- minutes, for the last hour -->
@@ -718,11 +718,11 @@ RARE DROP: %2$s</string>
     <string name="shop_desc_frame_chimera">A teal glow breathing through the border, mixed like something out of the Fusion Pot. Earned by completing 25 splices. Animated.</string>
 
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
-    <string name="relic_rusted_gear">⚙️ Rusted Gear</string>
-    <string name="relic_glowing_vial">🧪 Glowing Vial</string>
-    <string name="relic_tattered_blueprint">📜 Tattered Blueprint</string>
-    <string name="relic_heavy_wrench">🔧 Heavy Wrench</string>
-    <string name="relic_worn_cog">👟 Worn Cog</string>
+    <string name="relic_rusted_gear">Rusted Gear</string>
+    <string name="relic_glowing_vial">Glowing Vial</string>
+    <string name="relic_tattered_blueprint">Tattered Blueprint</string>
+    <string name="relic_heavy_wrench">Heavy Wrench</string>
+    <string name="relic_worn_cog">Worn Cog</string>
 
     <!-- Relic Trader -->
     <string name="shop_name_relic_trader">Relic Trader</string>
@@ -740,16 +740,16 @@ RARE DROP: %2$s</string>
     <string name="trader_subtitle">Three of a kind for each trade. Relics come from Tasks, the Arena, and Quest streaks — Worn Cog from walking alone.</string>
     <!-- total relics held -->
     <string name="trader_total">%1$d held</string>
-    <!-- relic name, how many held -->
-    <string name="trader_count_pill">%1$s\n%2$d</string>
+    <!-- accessibility label for an icon-only relic pill: relic name, how many held -->
+    <string name="trader_count_pill_description">%1$s: %2$d held</string>
 
     <string name="trade_gear_title">Scrap Buyout</string>
     <!-- lowest and highest payout, from RelicTrader.SCRAP_PAYOUT -->
     <string name="trade_gear_body">A fair price for a bag of gears. Pays %1$d–%2$d Scrap.</string>
     <string name="trade_vial_title">Revive Token</string>
-    <string name="trade_vial_body">One Revive Token, added to the stack the Shop sells - skip a knockout\'s wait next time your rat falls.</string>
-    <string name="trade_blueprint_title">Battle Item Voucher</string>
-    <string name="trade_blueprint_body">Your pick of one combat item, added to your held inventory.</string>
+    <string name="trade_vial_body">One Revive Token - skip a knockout\'s wait next time your rat falls.</string>
+    <string name="trade_blueprint_title">Trail Rations</string>
+    <string name="trade_blueprint_body">Doubles the EXP your next batch of steps banks toward your level.</string>
     <string name="trade_wrench_title">Arena Free Entry</string>
     <string name="trade_wrench_body">Waives the Scrap cost of your next Battle Arena entry.</string>
 

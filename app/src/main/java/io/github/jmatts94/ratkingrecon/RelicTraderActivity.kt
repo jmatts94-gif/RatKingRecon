@@ -2,6 +2,7 @@ package io.github.jmatts94.ratkingrecon
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -64,7 +65,13 @@ class RelicTraderActivity : AppCompatActivity() {
         refresh()
     }
 
-    /** One pill per relic kind, so the player can see what they are holding. */
+    /**
+     * One pill per relic kind, so the player can see what they are holding.
+     *
+     * Icon and count only, the same shape the header's own Scrap/step pills
+     * already use - a name label read as flat next to a real drawable, and
+     * five of them side by side left no room for one anyway.
+     */
     private fun buildCounts() {
         for (relic in Relics.ALL) {
             val pill = TextView(this).apply {
@@ -72,8 +79,11 @@ class RelicTraderActivity : AppCompatActivity() {
                 setTextColor(ContextCompat.getColor(this@RelicTraderActivity, R.color.text_primary))
                 gravity = Gravity.CENTER
                 textSize = 13f
+                textAlignment = View.TEXT_ALIGNMENT_CENTER
                 setPadding(8, 12, 8, 12)
                 tag = relic.id
+                setCompoundDrawablesWithIntrinsicBounds(sizedIcon(relic.iconRes, 16), null, null, null)
+                compoundDrawablePadding = 6
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
                     .apply { marginStart = 4; marginEnd = 4 }
             }
@@ -88,6 +98,7 @@ class RelicTraderActivity : AppCompatActivity() {
         for (exchange in RelicTrader.exchanges) {
             val view = inflater.inflate(R.layout.view_relic_exchange, container, false)
 
+            view.findViewById<ImageView>(R.id.exchangeIcon).setImageResource(rewardIconFor(exchange))
             view.findViewById<TextView>(R.id.exchangeTitle).setText(exchange.titleRes)
             view.findViewById<TextView>(R.id.exchangeBody).text =
                 getString(exchange.bodyRes, *exchange.bodyArgs.toTypedArray())
@@ -98,6 +109,22 @@ class RelicTraderActivity : AppCompatActivity() {
             rows += Row(exchange, button, view.findViewById(R.id.exchangeCost))
             container.addView(view)
         }
+    }
+
+    /** What each exchange's own icon shows - the reward it hands back, not the relic it costs. */
+    private fun rewardIconFor(exchange: RelicExchange): Int = when (exchange.id) {
+        "gear_scrap" -> R.drawable.ic_scrap
+        "vial_revive" -> R.drawable.ic_pets
+        "blueprint_rations" -> R.drawable.ic_sparkle
+        "wrench_arena_entry" -> R.drawable.ic_hexagon
+        else -> R.drawable.ic_star
+    }
+
+    private fun sizedIcon(resId: Int, sizeDp: Int): Drawable? {
+        val icon = ContextCompat.getDrawable(this, resId) ?: return null
+        val size = (sizeDp * resources.displayMetrics.density).toInt()
+        icon.setBounds(0, 0, size, size)
+        return icon
     }
 
     // ---- trading -------------------------------------------------------------
@@ -208,11 +235,9 @@ class RelicTraderActivity : AppCompatActivity() {
 
         for (relic in Relics.ALL) {
             val pill = countRow.findViewWithTag<TextView>(relic.id) ?: continue
-            pill.text = getString(
-                R.string.trader_count_pill,
-                getString(relic.nameRes),
-                Relics.countOf(prefs, relic)
-            )
+            val held = Relics.countOf(prefs, relic)
+            pill.text = held.toString()
+            pill.contentDescription = getString(R.string.trader_count_pill_description, getString(relic.nameRes), held)
         }
 
         for (row in rows) {

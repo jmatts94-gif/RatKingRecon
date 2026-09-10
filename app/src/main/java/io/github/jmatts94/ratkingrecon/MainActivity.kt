@@ -708,7 +708,7 @@ class MainActivity : AppCompatActivity() {
         icon.alpha = 1f
         val remaining = expeditionEndTime - System.currentTimeMillis()
         status.text = when {
-            remaining <= 0L -> getString(R.string.tile_expedition_ready)
+            remaining <= 0L -> getString(R.string.tile_expedition_collect)
             remaining >= HOUR_MS -> getString(
                 R.string.tile_expedition_hm,
                 remaining / HOUR_MS,
