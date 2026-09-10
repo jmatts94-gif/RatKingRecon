@@ -281,7 +281,7 @@
     <string name="toast_expedition_complete_relic">Expedition Complete! Your rat brought back %1$d Scrap!
 RARE DROP: %2$s</string>
     <!-- minutes remaining -->
-    <string name="toast_expedition_running">Rat is still scavenging... %1$d minutes left.</string>
+    <string name="toast_expedition_running">Rat is still scavenging… %1$d minutes left.</string>
     <string name="toast_rat_already_out">You already have a rat in the Scrapyard!</string>
     <!-- rat name -->
     <string name="toast_rat_deployed">%1$s deployed! Check the Home Screen later.</string>
@@ -421,7 +421,6 @@ RARE DROP: %2$s</string>
     <string name="battle_use">Use</string>
     <!-- item name, number held -->
     <string name="battle_item_row">%1$s (%2$d held)</string>
-    <string name="battle_item_none_held">None held — buy more from the Shop.</string>
     <string name="battle_used_hp_tonic">%1$s drinks a Regenerative Tonic and recovers HP</string>
     <string name="battle_used_corrosive_charge">%1$s hurls a Corrosive Charge at %2$s</string>
     <string name="battle_used_reinforced_plating">%1$s raises a Protective Bubble</string>
