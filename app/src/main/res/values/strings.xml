@@ -38,8 +38,8 @@
 
     <!-- What each faction is worth to a Scrap Run or Ledger Task, shown beside
          the faction line above and in the Ledger Task rat picker. See TaskBonuses. -->
-    <string name="task_bonus_smugglers">+15% Scrap on completion</string>
-    <string name="task_bonus_scavengers">10% shorter jobs</string>
+    <string name="task_bonus_smugglers">+15%% Scrap on completion</string>
+    <string name="task_bonus_scavengers">10%% shorter jobs</string>
     <string name="task_bonus_tinkerers">+8% relic chance</string>
     <string name="task_bonus_brawlers">small chance to finish instantly</string>
     <string name="task_bonus_foundry_born">a little bonus EXP</string>
@@ -605,7 +605,7 @@ RARE DROP: %2$s</string>
     <string name="buff_collectors_instinct_name">Collector\'s Instinct</string>
     <string name="buff_collectors_instinct_effect">+10% Rare/Legendary odds at the Fusion Pot</string>
     <string name="buff_steadfast_momentum_name">Steadfast Momentum</string>
-    <string name="buff_steadfast_momentum_effect">+15% Scrap and EXP from walking</string>
+    <string name="buff_steadfast_momentum_effect">+15%% Scrap and EXP from walking</string>
     <string name="buff_rusted_fang_name">Rusted Fang</string>
     <string name="buff_rusted_fang_effect">10% of damage dealt healed back in every fight</string>
     <string name="buff_iron_boots_name">Iron Boots</string>
