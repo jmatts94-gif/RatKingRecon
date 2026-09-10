@@ -37,10 +37,17 @@ data class Relic(
 object Relics {
 
     val ALL: List<Relic> = listOf(
-        Relic("rusted_gear", R.string.relic_rusted_gear, "⚙️ Rusted Gear", R.drawable.ic_gear_double),
+        // ic_settings rather than ic_gear_double/ic_gear_triple: those two are
+        // Arena win-streak achievement badges, composed as several gears
+        // scattered outside center on purpose for a bigger badge context -
+        // shrunk into a pill they read as clipped. A single centered gear
+        // fits both the pill and the name.
+        Relic("rusted_gear", R.string.relic_rusted_gear, "⚙️ Rusted Gear", R.drawable.ic_settings),
         Relic("glowing_vial", R.string.relic_glowing_vial, "🧪 Glowing Vial", R.drawable.ic_flask),
         Relic("tattered_blueprint", R.string.relic_tattered_blueprint, "📜 Tattered Blueprint", R.drawable.ic_contract),
-        Relic("heavy_wrench", R.string.relic_heavy_wrench, "🔧 Heavy Wrench", R.drawable.ic_settings),
+        // Shares Compass Charm's own icon - Compass Charm is the one gear
+        // piece this relic actually crafts.
+        Relic("heavy_wrench", R.string.relic_heavy_wrench, "🔧 Heavy Wrench", R.drawable.ic_expedition),
         // Earned by walking, not by fighting or a task board - see
         // GameEngine.checkWornCogDrop. Kept out of every combat/task relic
         // roll (this file's own rollFor, Ledger Tasks, the Scrap Run), so
