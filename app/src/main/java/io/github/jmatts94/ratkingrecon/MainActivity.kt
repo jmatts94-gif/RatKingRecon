@@ -408,6 +408,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun celebrateHatch(artKey: String, name: String) {
         petImage.setImageResource(RatArt.resId(artKey))
+        petImage.contentDescription = getString(R.string.hatch_reveal_description, name)
         revealUntil = System.currentTimeMillis() + REVEAL_MS
         Toast.makeText(this, getString(R.string.toast_hatch_joined, name), Toast.LENGTH_LONG).show()
 

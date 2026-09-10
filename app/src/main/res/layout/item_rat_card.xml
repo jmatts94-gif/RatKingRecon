@@ -41,11 +41,14 @@
             app:cardBackgroundColor="@color/tan"
             app:cardElevation="0dp">
 
+            <!-- cardName above already reads the rat's name; a description
+                 here would just repeat it. -->
             <ImageView
                 android:id="@+id/cardImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
+                android:importantForAccessibility="no"
                 android:src="@drawable/newwegg_pic" />
 
             <!--

@@ -310,6 +310,8 @@ RARE DROP: %2$s</string>
     <string name="splice_effect_scavenger">♻️ Scavenger instinct! %1$d Scrap refunded</string>
     <!-- rat name -->
     <string name="toast_hatch_joined">%1$s hatched and joined the Ledger!</string>
+    <!-- rat name; read by the hatch reveal image once the toast above has dismissed -->
+    <string name="hatch_reveal_description">%1$s, freshly hatched</string>
 
     <!-- Ledger Tasks (timed roster jobs). mission_checking_roster is shared with
          the Contract Board dialog, so it keeps its original name. -->
