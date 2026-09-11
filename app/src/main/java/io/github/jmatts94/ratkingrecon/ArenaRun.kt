@@ -186,17 +186,26 @@ object ArenaRun {
      * The Rustbot for [fight], scaled by [ratioFor] - plus [BOSS_RATIO_BONUS]
      * on a milestone fight.
      *
-     * Power is sized off the rat's own Power *and* Toughness averaged
-     * together, not Power alone - actually playing a full run (not just
-     * simulating one) surfaced why that mattered: HP scales as Toughness×10
+     * Power is sized off whichever of the rat's own Power and Toughness is
+     * higher, not Power alone - actually playing full runs (not just
+     * simulating them) surfaced why that mattered: HP scales as Toughness×10
      * with no cap, but a Rustbot's own Power had only ever answered the
      * rat's Power stat, so Toughness bought pure survival margin for free.
      * A 5/6 rat and a 6/2 rat cost the same to raise, but the 5/6 rat's
      * 80 HP absorbed a hit that took over a third of the 6/2 rat's 40 - the
      * exact same fight read as a coin flip for one and barely a threat for
-     * the other. Averaging the two stats means the bot a tankier rat meets
-     * hits closer to as hard as the one a glass cannon already did, rather
-     * than rewarding whichever stat happened to roll high.
+     * the other.
+     *
+     * `max`, not an average of the two: averaging was tried first and
+     * quietly broke the other direction - a 6/2 rat's own bot dropped from
+     * Power 6 to Power 4, since its low Toughness dragged the average down,
+     * and most rats lean toward Power over Toughness on an ordinary hatch.
+     * That is precisely what surfaced as "the stats don't seem to matter" -
+     * a Power-led rat had quietly gotten *safer*, not harder, cancelling out
+     * the fix for the Toughness-led rat it was aimed at. `max` can only ever
+     * raise this above the old Power-only figure, never lower it, so a
+     * Power-led rat's own difficulty is completely untouched and only a
+     * Toughness-led one pays the difference.
      *
      * Uncapped on both Power and HP - the same treatment [Bosses.rustbotFor]
      * gives a boss, and for the same reason: past the curve's midpoint this is
@@ -207,7 +216,7 @@ object ArenaRun {
         val ratio = ratioFor(fight) + if (bossIdFor(fight) != null) BOSS_RATIO_BONUS else 0.0
         return Rustbot(
             name = RustbotFactory.randomVariantName(),
-            power = max(1, ((rat.power + rat.toughness) / 2.0 * ratio).roundToInt()),
+            power = max(1, (max(rat.power, rat.toughness) * ratio).roundToInt()),
             maxHp = max(1, (rat.maxHp * ratio).roundToInt())
         )
     }
