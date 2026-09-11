@@ -68,6 +68,20 @@ class AchievementRewardsTest {
     }
 
     @Test
+    fun `Rustbringer's victory pays both a Revive Token and its own frame`() {
+        val prefs = FakePrefs()
+        AchievementRewards.grant(prefs, AchievementReward.RustbringerVictory)
+
+        assertEquals(1, ShopEffects.charges(prefs, ShopEffects.KEY_REVIVE_TOKENS))
+        assertTrue(ShopEffects.ownsCosmetic(prefs, Frames.RUSTBRINGERS_SEAL.id))
+    }
+
+    @Test
+    fun `the Rustbringer badge is the one combat reward that is not a plain reward`() {
+        assertEquals(AchievementReward.RustbringerVictory, AchievementRewards.forBoss("rustbringer"))
+    }
+
+    @Test
     fun `every combat badge maps to a reward`() {
         for (boss in Bosses.all) {
             assertTrue("no reward mapped for ${boss.id}", AchievementRewards.forBoss(boss.id) != null)
@@ -103,6 +117,7 @@ class AchievementRewardsTest {
         assertFalse(Frames.NATURALISTS_COMPENDIUM.arenaPool)
         assertFalse(Frames.RAT_KINGS_CROWN.arenaPool)
         assertFalse(Frames.CHIMERAS_WEAVE.arenaPool)
+        assertFalse(Frames.RUSTBRINGERS_SEAL.arenaPool)
         assertTrue("the Arena's own flagship frame must stay in its own pool", Frames.ARENA_CHAMPION.arenaPool)
     }
 

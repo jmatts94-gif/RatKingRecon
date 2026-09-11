@@ -380,9 +380,41 @@ object Frames {
         arenaPool = false
     )
 
+    /**
+     * Earned by beating the Rustbringer - see [AchievementRewards]. The one
+     * [FrameStyle.RADIANT] frame: that style has sat reserved and unused
+     * since [RAT_KINGS_CROWN] moved off it onto [FrameStyle.PAWS] (see that
+     * frame's own comment), described from the day it was written as "the
+     * one frame in the game meant to read as a tier above every other" -
+     * which is exactly what the open-ended final boss's own badge needed and
+     * none of the other four combat badges do, being the one rung on that
+     * ladder worth coming back to for the rest of the game.
+     *
+     * Cycles dark scarred iron into a pale aether glow into RADIANT's own
+     * fixed boiler_glow third stop - the Rustbringer's own shell going dark,
+     * then arcing, then flaring, rather than any single warm metal a lesser
+     * badge already wears. copper stands still as the resting border so the
+     * cycle reads as something happening to a real seal, not as the whole
+     * frame.
+     */
+    val RUSTBRINGERS_SEAL = CardFrame(
+        id = "rustbringers_seal",
+        nameRes = R.string.shop_name_frame_rustbringer,
+        descRes = R.string.shop_desc_frame_rustbringer,
+        strokeColorRes = R.color.copper,
+        accentColorRes = R.color.scarred_iron,
+        accentAltColorRes = R.color.aether_glow,
+        style = FrameStyle.RADIANT,
+        price = 900,
+        baseTier = false,
+        sellable = false,
+        arenaPool = false
+    )
+
     val all: List<CardFrame> = listOf(
         BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL,
-        ARENA_CHAMPION, IRON_GRIP, NATURALISTS_COMPENDIUM, RAT_KINGS_CROWN, CHIMERAS_WEAVE
+        ARENA_CHAMPION, IRON_GRIP, NATURALISTS_COMPENDIUM, RAT_KINGS_CROWN, CHIMERAS_WEAVE,
+        RUSTBRINGERS_SEAL
     )
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }

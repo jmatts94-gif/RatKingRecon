@@ -49,6 +49,7 @@ object EnlargedRatDialog {
 
         // 1. Hook up the UI Elements
         val enlargedImage = dialog.findViewById<ImageView>(R.id.enlargedRatImage)
+        val enlargedShinyFoil = dialog.findViewById<View>(R.id.enlargedShinyFoil)
         val nameText = dialog.findViewById<TextView>(R.id.enlargedRatName)
         val speciesText = dialog.findViewById<TextView>(R.id.enlargedRatSpecies)
         val factionText = dialog.findViewById<TextView>(R.id.enlargedRatFaction)
@@ -65,6 +66,7 @@ object EnlargedRatDialog {
 
         // 2. Set the Visuals and Stats
         enlargedImage.setImageResource(pet.imageRes)
+        enlargedShinyFoil.visibility = if (pet.shiny) View.VISIBLE else View.GONE
         powerText.text = pet.effectivePower.toString()
         toughnessText.text = pet.effectiveToughness.toString()
         gear1.visibility = if (pet.gearCount >= 1) View.VISIBLE else View.GONE

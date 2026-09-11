@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The "slight foil effect" a shiny rat's card gets that an ordinary rat's
+  does not - see RatCardAdapter.onBindViewHolder and EnlargedRatDialog.kt.
+  Static rather than animated, on purpose: shiny was previously marked by
+  gold name text alone, nothing on the art itself, and a full animated
+  overlay in the FrameOverlayDrawable style would compete with an equipped
+  Binder frame's own moving parts on the very same card rather than reading
+  as a separate signal.
+
+  Two crossed diagonal gradients rather than one - warm shiny_gold at 45°,
+  cool aether_glow at 135° - so this reads as a real foil card catching two
+  different lights rather than a single flat glare. Both fully transparent
+  at each end, so the sheen sits brightest across the middle of the card and
+  never dulls a corner the gears or task badge are drawn in.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="45"
+                android:startColor="#00D9A425"
+                android:centerColor="#4DD9A425"
+                android:endColor="#00D9A425"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="135"
+                android:startColor="#00D6EEFF"
+                android:centerColor="#40D6EEFF"
+                android:endColor="#00D6EEFF"
+                android:type="linear" />
+        </shape>
+    </item>
+</layer-list>

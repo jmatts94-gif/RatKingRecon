@@ -608,6 +608,7 @@ RARE DROP: %2$s</string>
     <string name="achievement_reward_mutagen">A free Tinkerer\'s Serum, armed for your next hatch</string>
     <string name="achievement_reward_salvage">A Salvage Cache — one random combat item</string>
     <string name="achievement_reward_revive">1 free Revive Token</string>
+    <string name="achievement_reward_rustbringer">1 free Revive Token, and a new frame: Rustbringer\'s Seal</string>
     <string name="achievement_reward_timetail">TimeTail joins your Ledger</string>
     <!-- frame name -->
     <string name="achievement_reward_cosmetic">New frame: %1$s</string>
@@ -729,6 +730,9 @@ RARE DROP: %2$s</string>
 
     <string name="shop_name_frame_chimera">Chimera\'s Weave</string>
     <string name="shop_desc_frame_chimera">A teal glow breathing through the border, mixed like something out of the Fusion Pot. Earned by completing 25 splices. Animated.</string>
+
+    <string name="shop_name_frame_rustbringer">Rustbringer\'s Seal</string>
+    <string name="shop_desc_frame_rustbringer">A copper border cycling through scarred iron, aether blue and a hot flare, like the boss itself still sparking. Earned by defeating the Rustbringer. Animated.</string>
 
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
     <string name="relic_rusted_gear">Rusted Gear</string>

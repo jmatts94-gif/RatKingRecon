@@ -102,6 +102,26 @@
                     app:strokeColor="@color/card_white"
                     app:strokeWidth="4dp" />
 
+                <!--
+                  Shiny only - see bg_shiny_foil's own comment and
+                  EnlargedRatDialog.kt. A ShapeableImageView of its own,
+                  same size and the same circular shape as enlargedRatImage
+                  right above it, rather than a plain View - a plain
+                  background is never clipped to that circle, and this sheen
+                  spilling into square corners past the portrait ring would
+                  be worse than no sheen at all.
+                -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/enlargedShinyFoil"
+                    android:layout_width="204dp"
+                    android:layout_height="204dp"
+                    android:layout_gravity="center"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/bg_shiny_foil"
+                    android:visibility="gone"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.RatKing.Circle"
+                    android:importantForAccessibility="no" />
+
                 <!-- Rarity - see bg_recon_stat_pill's sibling bg_badge_scrim
                      comment for why this reads against any art underneath
                      it; bottom|end rather than the grid card's top|start
@@ -354,18 +374,23 @@
 
     <!--
       A Recon Card export, not a system share of this dialog itself - see
-      ReconCard.kt. Pinned to the card's own top-end corner rather than sat
+      ReconCard.kt. Pinned to the card's own top-start corner rather than sat
       inside it as a fourth action button, since sharing is a side action on
-      the rat, not a peer of Battle Rat / Scrap Run / Close.
+      the rat, not a peer of Battle Rat / Scrap Run / Close. Deliberately
+      top-start rather than top-end: top-end is where every close/X control
+      in the rest of this app - and in most apps - sits, and a floating
+      circular icon button there reads as "close" before it reads as
+      anything else. The real Close button lives at the bottom of the card,
+      so this corner has no such reading to compete with.
     -->
     <ImageButton
         android:id="@+id/enlargedShareButton"
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:layout_alignTop="@id/enlargedCard"
-        android:layout_alignEnd="@id/enlargedCard"
+        android:layout_alignStart="@id/enlargedCard"
         android:layout_marginTop="-10dp"
-        android:layout_marginEnd="-10dp"
+        android:layout_marginStart="-10dp"
         android:background="@drawable/bg_recon_card_outer"
         android:contentDescription="@string/btn_share"
         android:padding="10dp"

@@ -113,6 +113,7 @@ class RatCardAdapter(
         val gear3: ImageView = view.findViewById(R.id.cardGear3)
         val overlay: View = view.findViewById(R.id.cardFrameOverlay)
         val taskBadge: ImageView = view.findViewById(R.id.cardTaskBadge)
+        val shinyFoil: View = view.findViewById(R.id.cardShinyFoil)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardHolder {
@@ -148,6 +149,7 @@ class RatCardAdapter(
         holder.image.setImageResource(pet.imageRes)
         holder.power.text = pet.effectivePower.toString()
         holder.toughness.text = pet.effectiveToughness.toString()
+        holder.shinyFoil.visibility = if (pet.shiny) View.VISIBLE else View.GONE
 
         // The star is part of the name text itself rather than a compound
         // drawable, so it reads left-to-right as "Name ☆" - Battle Rat stays

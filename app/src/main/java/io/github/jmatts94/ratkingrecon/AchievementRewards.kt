@@ -33,6 +33,16 @@ sealed interface AchievementReward {
      * is the only place in this file that takes a [RatDao].
      */
     data object TimeTail : AchievementReward
+
+    /**
+     * The Rustbringer's own reward: the Revive Token every combat badge below
+     * it also pays - see [ReviveToken] - plus Rustbringer's Seal, the one
+     * frame nothing else can grant. The open-ended final boss is the single
+     * rung on the ladder still worth returning to for the rest of the game,
+     * which is why it is the one combat badge paying two things rather than
+     * the one every badge below it pays.
+     */
+    data object RustbringerVictory : AchievementReward
 }
 
 /**
@@ -88,8 +98,9 @@ object AchievementRewards {
         // The last, hardest boss on the level-gated ladder pays the one
         // reward every other badge here does not: a Revive Token, so the
         // rat that just proved it can beat the Rustbringer is covered the
-        // next time a fight this hard goes the other way.
-        "rustbringer" to AchievementReward.ReviveToken
+        // next time a fight this hard goes the other way - plus
+        // Rustbringer's Seal, the one frame that fight alone can grant.
+        "rustbringer" to AchievementReward.RustbringerVictory
     )
 
     private val secret = mapOf(
@@ -152,6 +163,11 @@ object AchievementRewards {
                     )
                 )
             }
+
+            AchievementReward.RustbringerVictory -> {
+                ShopEffects.addCharge(prefs, ShopEffects.KEY_REVIVE_TOKENS)
+                ShopEffects.grantCosmetic(prefs, Frames.RUSTBRINGERS_SEAL.id)
+            }
         }
     }
 
@@ -166,6 +182,7 @@ object AchievementRewards {
             context.getString(requireNotNull(Frames.byId(reward.frameId)) { "unknown frame ${reward.frameId}" }.nameRes)
         )
         AchievementReward.TimeTail -> context.getString(R.string.achievement_reward_timetail)
+        AchievementReward.RustbringerVictory -> context.getString(R.string.achievement_reward_rustbringer)
     }
 
     /** Same key [BattleItem]'s charge lives under everywhere else - see [ShopEffects]/[RelicTrader]. */
