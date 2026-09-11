@@ -99,4 +99,17 @@ data class RatEntity(
 
     /** Gears the rarity badge draws: one for Common, two for Rare, three for Legendary. */
     val gearCount: Int get() = Roster.gearCountFor(rarity)
+
+    /**
+     * Whether this card draws [ShinyFoilDrawable] - a real shiny roll, or
+     * TimeTail (see [Roster.SECRET]), who gets the same treatment on his own
+     * merits rather than the RNG's. Deliberately not read off [shiny] itself:
+     * that column feeds [RatDao.ownsShiny] and the Ledger Task shiny
+     * requirement (see [TaskRatPickerActivity.REQUIRES_SHINY]), neither of
+     * which TimeTail should silently satisfy just to borrow the card art.
+     *
+     * Scoped to the art alone - his name stays plain and his gold comes from
+     * [gearCount]/the Achievements screen already, not from this.
+     */
+    val showsFoil: Boolean get() = shiny || rarity.equals(Roster.SECRET, ignoreCase = true)
 }

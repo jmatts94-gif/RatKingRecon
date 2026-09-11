@@ -103,13 +103,15 @@
                     app:strokeWidth="4dp" />
 
                 <!--
-                  Shiny only - see bg_shiny_foil's own comment and
-                  EnlargedRatDialog.kt. A ShapeableImageView of its own,
-                  same size and the same circular shape as enlargedRatImage
-                  right above it, rather than a plain View - a plain
-                  background is never clipped to that circle, and this sheen
-                  spilling into square corners past the portrait ring would
-                  be worse than no sheen at all.
+                  Shiny only - see ShinyFoilDrawable's own comment and
+                  EnlargedRatDialog.kt, which sets this ImageView's drawable
+                  in code rather than here: it animates, which a static src
+                  cannot. A ShapeableImageView of its own, same size and the
+                  same circular shape as enlargedRatImage right above it,
+                  rather than a plain View - a plain background is never
+                  clipped to that circle, and this sheen spilling into
+                  square corners past the portrait ring would be worse than
+                  no sheen at all.
                 -->
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/enlargedShinyFoil"
@@ -117,7 +119,6 @@
                     android:layout_height="204dp"
                     android:layout_gravity="center"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/bg_shiny_foil"
                     android:visibility="gone"
                     app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.RatKing.Circle"
                     android:importantForAccessibility="no" />

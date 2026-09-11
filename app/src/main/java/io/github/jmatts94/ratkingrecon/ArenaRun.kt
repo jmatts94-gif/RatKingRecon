@@ -119,11 +119,20 @@ object ArenaRun {
     /**
      * Where the curve ends, at fight 15.
      *
-     * Anchored to [RustbotFactory.MAX_RATIO]'s own documented simulation data
-     * rather than picked fresh: that ratio wins 53% of pairings, and 1.20 wins
-     * 27% - the "no safety net" finish this run is meant to earn.
+     * [RustbotFactory.MAX_RATIO]'s own documented sweep only runs to 1.20 (27%
+     * win rate), and playtesting past that ceiling confirmed why it was too
+     * low for the Arena specifically: fight 15 is fought on the rat's
+     * *effective* stats (rarity bonus, any Shop Loadout) against a bot still
+     * sized off the ratio alone, and every fight in between hands back 30% of
+     * max HP (see [ARENA_RELIEF_FRACTION]) - both deliberately, but together
+     * they left a well-prepared rat with real runway left at 1.20. Past that
+     * documented data now, but the win rate fell smoothly rather than in
+     * cliffs all the way out to 1.20, so 1.35 is a continuation of the same
+     * curve rather than a guess in the dark - meant to make the last fight a
+     * genuine coin flip even for a rat carrying every edge the mode gives it,
+     * not just the average pairing the old ceiling was tuned against.
      */
-    private const val MAX_RATIO = 1.20
+    private const val MAX_RATIO = 1.35
 
     /**
      * How close to - or past - the rat's own stats [fight] gets.

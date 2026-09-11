@@ -180,7 +180,31 @@ class SettingsActivity : AppCompatActivity() {
 
             val minted = withContext(Dispatchers.IO) {
                 val dao = RatRepository.dao(this@SettingsActivity)
-                List(DEBUG_RATS) { GameEngine.mintRat(dao, prefs) }
+                val newRats = List(DEBUG_RATS) { GameEngine.mintRat(dao, prefs) }
+
+                // TimeTail is excluded from GameEngine.mintRat's own roll on
+                // purpose - see Roster.hatchable - so this bundle grants him
+                // separately, through the same one-time reward path a real
+                // "TimeTail Found" latch would pay - see AchievementRewards.
+                // Left out of DEBUG_RATS itself for the same reason: a plain
+                // mint must never be able to produce him, cheat or not.
+                //
+                // Only once, unlike the frames below: those are re-granted
+                // on every use of this cheat with no consequence
+                // (ShopEffects.grantCosmetic just re-sets an already-true
+                // flag), but a second dao.insert here would leave a
+                // duplicate TimeTail sitting in the Ledger for nothing. This
+                // does not touch the boss-defeated flags or the "TimeTail
+                // Found" milestone itself - only the rat lands early, the
+                // achievement stays honestly unearned until the boss ladder
+                // actually is.
+                if (newRats.none { it.artKey == "timetail_pic" } &&
+                    dao.all().none { it.artKey == "timetail_pic" }
+                ) {
+                    AchievementRewards.grant(prefs, AchievementReward.TimeTail, dao)
+                }
+
+                newRats
             }
 
             // Re-read rather than captured before the inserts: a bounty or a

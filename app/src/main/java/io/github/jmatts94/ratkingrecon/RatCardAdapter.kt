@@ -114,6 +114,9 @@ class RatCardAdapter(
         val overlay: View = view.findViewById(R.id.cardFrameOverlay)
         val taskBadge: ImageView = view.findViewById(R.id.cardTaskBadge)
         val shinyFoil: View = view.findViewById(R.id.cardShinyFoil)
+
+        /** Set on every bind, read by onViewAttachedToWindow - see RatEntity.showsFoil. */
+        var showsFoil: Boolean = false
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardHolder {
@@ -135,6 +138,11 @@ class RatCardAdapter(
             }
         }
 
+        // Built once per holder for the same reason the frame overlay above
+        // is: nothing about it varies between rats, only whether it is shown
+        // - see onBindViewHolder's visibility toggle.
+        holder.shinyFoil.background = ShinyFoilDrawable.create(parent.context)
+
         return holder
     }
 
@@ -149,7 +157,8 @@ class RatCardAdapter(
         holder.image.setImageResource(pet.imageRes)
         holder.power.text = pet.effectivePower.toString()
         holder.toughness.text = pet.effectiveToughness.toString()
-        holder.shinyFoil.visibility = if (pet.shiny) View.VISIBLE else View.GONE
+        holder.shinyFoil.visibility = if (pet.showsFoil) View.VISIBLE else View.GONE
+        holder.showsFoil = pet.showsFoil
 
         // The star is part of the name text itself rather than a compound
         // drawable, so it reads left-to-right as "Name ☆" - Battle Rat stays
@@ -310,10 +319,17 @@ class RatCardAdapter(
         if (equippedFrame?.style?.let { it != FrameStyle.STATIC } == true) {
             animator.attach(holder.overlay)
         }
+        // Independent of the check above: a shiny rat's foil ticks whether
+        // or not the equipped Binder frame is itself animated - see
+        // ShinyFoilDrawable.
+        if (holder.showsFoil) {
+            animator.attach(holder.shinyFoil)
+        }
     }
 
     override fun onViewDetachedFromWindow(holder: CardHolder) {
         super.onViewDetachedFromWindow(holder)
         animator.detach(holder.overlay)
+        animator.detach(holder.shinyFoil)
     }
 }

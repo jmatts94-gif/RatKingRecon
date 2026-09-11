@@ -52,17 +52,19 @@
                 android:src="@drawable/newwegg_pic" />
 
             <!--
-              Shiny only - see bg_shiny_foil's own comment and
-              RatCardAdapter.onBindViewHolder. Sits directly over the art and
-              under every badge below, so the gears and task badge are never
-              dulled by it. Gone by default rather than drawn at zero alpha,
-              so an ordinary rat's card costs nothing extra to draw.
+              Shiny only - see ShinyFoilDrawable's own comment and
+              RatCardAdapter.onCreateViewHolder/onBindViewHolder, which sets
+              this View's background in code rather than here: the drawable
+              animates, which a static XML background cannot. Sits directly
+              over the art and under every badge below, so the gears and
+              task badge are never dulled by it. Gone by default rather than
+              drawn at zero alpha, so an ordinary rat's card costs nothing
+              extra to draw.
             -->
             <View
                 android:id="@+id/cardShinyFoil"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_shiny_foil"
                 android:visibility="gone"
                 android:importantForAccessibility="no" />
 

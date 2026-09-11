@@ -49,7 +49,7 @@ object EnlargedRatDialog {
 
         // 1. Hook up the UI Elements
         val enlargedImage = dialog.findViewById<ImageView>(R.id.enlargedRatImage)
-        val enlargedShinyFoil = dialog.findViewById<View>(R.id.enlargedShinyFoil)
+        val enlargedShinyFoil = dialog.findViewById<ImageView>(R.id.enlargedShinyFoil)
         val nameText = dialog.findViewById<TextView>(R.id.enlargedRatName)
         val speciesText = dialog.findViewById<TextView>(R.id.enlargedRatSpecies)
         val factionText = dialog.findViewById<TextView>(R.id.enlargedRatFaction)
@@ -66,7 +66,12 @@ object EnlargedRatDialog {
 
         // 2. Set the Visuals and Stats
         enlargedImage.setImageResource(pet.imageRes)
-        enlargedShinyFoil.visibility = if (pet.shiny) View.VISIBLE else View.GONE
+        if (pet.showsFoil) {
+            enlargedShinyFoil.setImageDrawable(ShinyFoilDrawable.create(cardContext))
+            enlargedShinyFoil.visibility = View.VISIBLE
+        } else {
+            enlargedShinyFoil.visibility = View.GONE
+        }
         powerText.text = pet.effectivePower.toString()
         toughnessText.text = pet.effectiveToughness.toString()
         gear1.visibility = if (pet.gearCount >= 1) View.VISIBLE else View.GONE
@@ -130,6 +135,15 @@ object EnlargedRatDialog {
         // tile before any frame is even equipped.
         val equippedFrame = Frames.byId(ShopEffects.equippedCosmetic(prefs))
         val frameAnimator = FrameAnimator()
+
+        // Independent of the equipped frame below: a shiny rat's foil - or
+        // TimeTail's, see RatEntity.showsFoil - ticks whether or not a
+        // Binder frame is even equipped, let alone animated - see
+        // ShinyFoilDrawable.
+        if (pet.showsFoil) {
+            frameAnimator.attach(enlargedShinyFoil)
+        }
+
         if (equippedFrame != null) {
             // This card's own corner radius and stroke width - bg_recon_card_outer's
             // declared 34dp radius, and the border's 5dp padding in
