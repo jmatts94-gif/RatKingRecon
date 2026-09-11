@@ -205,12 +205,14 @@ class FramesTest {
     // ---- the Shop shelf ------------------------------------------------------
 
     /**
-     * Every frame is on the shelf to be seen, sellable or not - see
-     * Shop.cosmetic's own doc comment. What [CardFrame.sellable] gates is
-     * the price button, not the listing.
+     * Every frame but the Supporter Pack's own is on the shelf to be seen,
+     * sellable or not - see Shop.cosmetic's own doc comment. What
+     * [CardFrame.sellable] gates is the price button, not the listing;
+     * [CardFrame.iapOnly] is the one flag that keeps a frame off this list
+     * entirely, since it is never priced in Scrap at all - see the next test.
      */
     @Test
-    fun `every frame is on the shelf at the price it declares`() {
+    fun `every non-IAP frame is on the shelf at the price it declares`() {
         val cosmeticRows = Shop.categories
             .flatMap { it.items }
             .mapNotNull { item ->
@@ -218,10 +220,28 @@ class FramesTest {
             }
             .toMap()
 
-        assertEquals(Frames.all.size, cosmeticRows.size)
-        for (frame in Frames.all) {
+        val shelved = Frames.all.filterNot { it.iapOnly }
+        assertEquals(shelved.size, cosmeticRows.size)
+        for (frame in shelved) {
             assertEquals("${frame.id} on the shelf", frame.price, cosmeticRows[frame.id])
         }
+    }
+
+    /**
+     * The one frame kept off the Scrap shelf entirely - it is granted by the
+     * Supporter Pack's own real-money row (see [ShopEffect.RealMoneyPurchase]),
+     * never bought with Scrap, so it must never appear as a [ShopEffect.Cosmetic]
+     * row a player could otherwise try to buy there.
+     */
+    @Test
+    fun `the Supporter Pack frame is not on the Scrap shelf`() {
+        val cosmeticIds = Shop.categories
+            .flatMap { it.items }
+            .mapNotNull { (it.effect as? ShopEffect.Cosmetic)?.id }
+
+        assertFalse(Frames.SUPPORTERS_MARK.id in cosmeticIds)
+        assertTrue(Frames.SUPPORTERS_MARK.iapOnly)
+        assertFalse(Frames.SUPPORTERS_MARK.sellable)
     }
 
     /** Listed, but never a buyable row - ShopActivity swaps its price for "Arena Reward Only". */

@@ -64,9 +64,25 @@
     <string name="shop_cat_cosmetic_sub">Looks only. Nothing here changes a stat.</string>
     <string name="shop_cat_featured">Featured</string>
     <string name="shop_cat_featured_sub">Event stock will appear here.</string>
+    <string name="shop_cat_support">Support</string>
+    <string name="shop_cat_support_sub">Free Scrap for your time, or a one-time thank-you for your money.</string>
 
     <string name="shop_name_hatchery">The Masterwork Hatchery</string>
     <string name="shop_desc_hatchery">Hatch a guaranteed shiny on the spot, without walking for it.</string>
+
+    <string name="shop_name_watch_ad">Watch an Ad</string>
+    <string name="shop_desc_watch_ad">A short ad for %1$d–%2$d Scrap. Up to three a day.</string>
+    <string name="shop_watch_ad_btn">Watch Ad (%1$d/%2$d)</string>
+    <string name="shop_ad_limit_btn">Come Back Tomorrow</string>
+    <string name="shop_ad_loading">Loading…</string>
+    <string name="shop_ad_limit_reached">You\'ve watched all your ads for today — come back tomorrow.</string>
+    <string name="shop_ad_reward">+%1$d Scrap!</string>
+
+    <string name="shop_name_supporter_pack">Supporter Pack</string>
+    <string name="shop_desc_supporter_pack">A one-time thank-you: %1$d Scrap and the exclusive Supporter\'s Mark frame, yours forever. Purely cosmetic — nothing here is a shortcut.</string>
+    <string name="shop_supporter_price_fallback">$2.99</string>
+    <string name="shop_purchased">Purchased</string>
+    <string name="shop_supporter_thanks">Thank you for supporting Rat King Recon!</string>
     <string name="shop_name_revive">Revive Token</string>
     <string name="shop_desc_revive">Held in reserve. Brings a rat straight back the next time one is beaten.</string>
     <string name="shop_name_surge">Power Surge</string>
@@ -733,6 +749,9 @@ RARE DROP: %2$s</string>
 
     <string name="shop_name_frame_rustbringer">Rustbringer\'s Seal</string>
     <string name="shop_desc_frame_rustbringer">A copper border cycling through scarred iron, aether blue and a hot flare, like the boss itself still sparking. Earned by defeating the Rustbringer. Animated.</string>
+
+    <string name="shop_name_frame_supporter">Supporter\'s Mark</string>
+    <string name="shop_desc_frame_supporter">A warm gold border breathing into cream, for the ones who chipped in to keep the game going. Purely a thank-you. Animated.</string>
 
     <!-- Relics. The ids are what reach the save, so these may be edited freely. -->
     <string name="relic_rusted_gear">Rusted Gear</string>

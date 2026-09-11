@@ -122,6 +122,22 @@ data class CardFrame(
     val arenaPool: Boolean = true,
 
     /**
+     * Whether this frame is granted only by the real-money Supporter Pack
+     * (see [Shop.support], [ShopActivity]'s billing handling) rather than by
+     * anything Scrap can buy.
+     *
+     * [sellable] and [arenaPool] both already mean "not for Scrap," but
+     * neither means "for money instead" - filtering the Shop's own cosmetic
+     * grid (built straight from [Frames.all]) on either would just show this
+     * frame with a price it does not have, or hide it from [Frames.all]
+     * entirely and break equipping it. This is the one flag [Shop.cosmetic]
+     * itself filters on, so the frame still lives in [Frames.all] - and so
+     * can still be looked up, equipped and drawn everywhere a frame already
+     * is - without ever appearing as a Scrap row.
+     */
+    val iapOnly: Boolean = false,
+
+    /**
      * Whether [FrameOverlayDrawable] draws a soft pulsing halo behind
      * whatever [style] already draws - see [FrameOverlayDrawable.drawGlow].
      * False for every frame that shipped before this existed, [IRON_GRIP]
@@ -411,10 +427,38 @@ object Frames {
         arenaPool = false
     )
 
+    /**
+     * Granted once, by the one-time Supporter Pack purchase - see
+     * [Shop.support] and [ShopActivity]'s billing handling. Gold and cream
+     * rather than any pairing already spoken for: [RUSTBRINGERS_SEAL] already
+     * carries this app's "reads as a tier above every other" idea (see that
+     * frame's own comment), and a real-money purchase earning the same
+     * reading as the hardest in-game achievement would cheapen it - this is
+     * meant to read as a distinct thank-you, not a bought shortcut past it.
+     * shiny_gold/cream is otherwise reserved for [NATURALISTS_COMPENDIUM]'s
+     * own strike, but that frame is a static amber_dark border the rest of
+     * the time; breathing between the two here is what keeps this from
+     * reading as the same badge.
+     */
+    val SUPPORTERS_MARK = CardFrame(
+        id = "supporters_mark",
+        nameRes = R.string.shop_name_frame_supporter,
+        descRes = R.string.shop_desc_frame_supporter,
+        strokeColorRes = R.color.amber_dark,
+        accentColorRes = R.color.shiny_gold,
+        accentAltColorRes = R.color.cream,
+        style = FrameStyle.PULSE,
+        price = 950,
+        baseTier = false,
+        sellable = false,
+        arenaPool = false,
+        iapOnly = true
+    )
+
     val all: List<CardFrame> = listOf(
         BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL,
         ARENA_CHAMPION, IRON_GRIP, NATURALISTS_COMPENDIUM, RAT_KINGS_CROWN, CHIMERAS_WEAVE,
-        RUSTBRINGERS_SEAL
+        RUSTBRINGERS_SEAL, SUPPORTERS_MARK
     )
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }

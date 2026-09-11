@@ -4,9 +4,11 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatDelegate
+import com.google.android.gms.ads.MobileAds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Tracks whether any of our screens is currently in front.
@@ -70,6 +72,13 @@ class RatKingApp : Application() {
         // the moment a cue is wanted - otherwise the first hatch of a session,
         // the one most worth hearing, is the one that makes no sound.
         GameSounds.warmUp(this)
+
+        // AdMob's own init call blocks on a network round trip; off the main
+        // thread so a slow connection cannot stall the very first frame. A
+        // rewarded ad requested before this finishes just fails to load - see
+        // RewardedAds.showRewardedAd - rather than crashing, so there is
+        // nothing here to gate on.
+        AppScope.launch { MobileAds.initialize(this@RatKingApp) }
 
         // Counting started/stopped rather than resumed/paused means a dialog or a
         // transient overlay does not read as "the app went away".

@@ -29,6 +29,10 @@ class ShopActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
     private lateinit var scrapText: TextView
+    private lateinit var billing: BillingManager
+
+    /** Guards the Watch Ad button against a second tap while one is already loading/showing. */
+    private var adBusy = false
 
     /** A drawn row, kept so [refresh] can restate its price, state and count. */
     private class Row(
@@ -55,6 +59,12 @@ class ShopActivity : AppCompatActivity() {
 
         findViewById<MaterialButton>(R.id.shopBackButton).setOnClickListener { finish() }
 
+        // Scoped to this screen's own lifecycle rather than the Application -
+        // see BillingManager's own doc comment on why a single non-consumable
+        // product does not need a connection held open anywhere else.
+        billing = BillingManager(this) { runOnUiThread(::grantSupporterPack) }
+        billing.connect()
+
         buildCatalogue()
     }
 
@@ -63,6 +73,11 @@ class ShopActivity : AppCompatActivity() {
         // Steps banked while this screen was open can hatch a rat or settle a
         // fight, both of which spend things bought here.
         refresh()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        billing.disconnect()
     }
 
     private fun buildCatalogue() {
@@ -160,6 +175,20 @@ class ShopActivity : AppCompatActivity() {
             return
         }
 
+        if (effect is ShopEffect.WatchAd) {
+            watchAd()
+            return
+        }
+
+        if (effect is ShopEffect.RealMoneyPurchase) {
+            // Already owns the one thing this purchase ever grants - nothing
+            // left to buy, and Play would just decline a second purchase of
+            // a non-consumable product anyway.
+            if (ShopEffects.ownsCosmetic(prefs, Frames.SUPPORTERS_MARK.id)) return
+            billing.launchPurchase(this)
+            return
+        }
+
         // Settled before the Scrap check: this row costs nothing, it opens a
         // door. onResume redraws when the player comes back, so a voucher
         // traded for in there is priced in the moment they return.
@@ -234,6 +263,11 @@ class ShopActivity : AppCompatActivity() {
 
             ShopEffect.ComingSoon -> return
             is ShopEffect.Screen -> return
+            // Both handled - and returned from - above, before the Scrap
+            // check this when sits after; unreachable, but the when must
+            // still cover every ShopEffect to compile.
+            ShopEffect.WatchAd -> return
+            is ShopEffect.RealMoneyPurchase -> return
         }
 
         prefs.edit().putInt(GameEngine.KEY_SCRAP, scrap - price).apply()
@@ -291,6 +325,55 @@ class ShopActivity : AppCompatActivity() {
             toast(getString(R.string.shop_masterwork_done, hatched.name))
             refresh()
         }
+    }
+
+    /**
+     * Loads and shows a rewarded ad, then banks whatever it paid.
+     *
+     * Guarded by [adBusy] rather than the daily count alone: loading an ad is
+     * not instantaneous, and a second tap while one is already in flight
+     * would show two ads back to back for one button press.
+     */
+    private fun watchAd() {
+        if (adBusy) return
+        if (!RewardedAds.canWatch(prefs)) {
+            toast(getString(R.string.shop_ad_limit_reached))
+            return
+        }
+
+        adBusy = true
+        refresh()
+
+        RewardedAds.showRewardedAd(this, prefs) { earned ->
+            adBusy = false
+            if (earned > 0) {
+                prefs.edit().putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + earned).apply()
+                toast(getString(R.string.shop_ad_reward, earned))
+            }
+            // No toast on a decline/failed load - the player already knows
+            // they backed out, and a failed load is Google's ad inventory
+            // being unavailable, not something this screen can explain
+            // better than silence.
+            refresh()
+        }
+    }
+
+    /**
+     * Grants the Supporter Pack's frame and Scrap - called from a fresh
+     * purchase and from [BillingManager] restoring one Play already has on
+     * record, so this must itself be the one place that guards against
+     * paying out twice for a product Play only ever sells once.
+     */
+    private fun grantSupporterPack() {
+        if (ShopEffects.ownsCosmetic(prefs, Frames.SUPPORTERS_MARK.id)) {
+            refresh()
+            return
+        }
+
+        ShopEffects.grantCosmetic(prefs, Frames.SUPPORTERS_MARK.id)
+        prefs.edit().putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + Shop.SUPPORTER_PACK_SCRAP).apply()
+        toast(getString(R.string.shop_supporter_thanks))
+        refresh()
     }
 
     /**
@@ -356,6 +439,26 @@ class ShopActivity : AppCompatActivity() {
 
         is ShopEffect.Screen ->
             Label(getString(R.string.shop_open), enabled = true, fill = R.color.amber)
+
+        ShopEffect.WatchAd -> when {
+            adBusy -> Label(getString(R.string.shop_ad_loading), enabled = false)
+            !RewardedAds.canWatch(prefs) -> Label(getString(R.string.shop_ad_limit_btn), enabled = false)
+            else -> Label(
+                getString(
+                    R.string.shop_watch_ad_btn,
+                    RewardedAds.DAILY_LIMIT - RewardedAds.watchesToday(prefs),
+                    RewardedAds.DAILY_LIMIT
+                ),
+                enabled = true
+            )
+        }
+
+        is ShopEffect.RealMoneyPurchase ->
+            if (ShopEffects.ownsCosmetic(prefs, Frames.SUPPORTERS_MARK.id)) {
+                Label(getString(R.string.shop_purchased), enabled = false)
+            } else {
+                Label(billing.priceText ?: getString(R.string.shop_supporter_price_fallback), enabled = true)
+            }
 
         is ShopEffect.Flag ->
             if (prefs.getBoolean(effect.key, false)) {

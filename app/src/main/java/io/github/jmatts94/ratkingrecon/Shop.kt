@@ -41,6 +41,24 @@ sealed interface ShopEffect {
      */
     data class Screen(val id: String) : ShopEffect
 
+    /**
+     * Watch a rewarded ad for Scrap - see [RewardedAds]. Carries no Scrap
+     * price for the same reason [Screen] does not: this row's whole point is
+     * that it costs nothing but a few minutes, and [ShopActivity] reads the
+     * daily count straight off [RewardedAds] rather than off anything staged
+     * here.
+     */
+    data object WatchAd : ShopEffect
+
+    /**
+     * A real-money purchase through Play Billing, resolved against
+     * [productId] rather than priced in Scrap - see [BillingManager]. Like
+     * [Screen] and [WatchAd], the Shop's own affordability check and Scrap
+     * deduction never run for this effect; [ShopActivity] hands the whole
+     * purchase off to Play instead.
+     */
+    data class RealMoneyPurchase(val productId: String) : ShopEffect
+
     /** On the shelf but not for sale, so it carries no price. */
     data object ComingSoon : ShopEffect
 }
@@ -116,6 +134,9 @@ object Shop {
 
     /** Screens reachable from a shop row. */
     const val SCREEN_RELIC_TRADER = "relic_trader"
+
+    /** The one real-money product this catalogue knows about - see [BillingManager]. */
+    const val PRODUCT_SUPPORTER_PACK = "supporter_pack"
 
     private val hatching = ShopCategory(
         titleRes = R.string.shop_cat_hatching,
@@ -252,7 +273,10 @@ object Shop {
     private val cosmetic = ShopCategory(
         titleRes = R.string.shop_cat_cosmetic,
         subtitleRes = R.string.shop_cat_cosmetic_sub,
-        items = Frames.all.map { frame ->
+        // Not Frames.all directly: the Supporter Pack's own frame lives there
+        // too, so it can still be looked up and equipped, but it is granted
+        // by the Support section below rather than sold here for Scrap.
+        items = Frames.all.filterNot { it.iapOnly }.map { frame ->
             ShopItem(
                 price = frame.price,
                 effect = ShopEffect.Cosmetic(frame.id),
@@ -270,6 +294,39 @@ object Shop {
                 }
             )
         }
+    )
+
+    /** What the Supporter Pack hands over alongside its own exclusive frame. */
+    const val SUPPORTER_PACK_SCRAP = 750
+
+    /**
+     * The two rows priced outside Scrap entirely - a free daily earn and a
+     * real-money one-time purchase. Kept apart from every other category
+     * rather than folded into Featured, since neither takes a Scrap price
+     * [ShopActivity.purchase]'s ordinary affordability check could enforce -
+     * see [ShopEffect.WatchAd] and [ShopEffect.RealMoneyPurchase].
+     */
+    private val support = ShopCategory(
+        titleRes = R.string.shop_cat_support,
+        subtitleRes = R.string.shop_cat_support_sub,
+        items = listOf(
+            ShopItem(
+                price = 0,
+                effect = ShopEffect.WatchAd,
+                nameRes = R.string.shop_name_watch_ad,
+                bodyRes = R.string.shop_desc_watch_ad,
+                iconRes = R.drawable.ic_hexagon,
+                bodyArgs = listOf(RewardedAds.SCRAP_REWARD.first, RewardedAds.SCRAP_REWARD.last)
+            ),
+            ShopItem(
+                price = 0,
+                effect = ShopEffect.RealMoneyPurchase(PRODUCT_SUPPORTER_PACK),
+                nameRes = R.string.shop_name_supporter_pack,
+                bodyRes = R.string.shop_desc_supporter_pack,
+                iconRes = R.drawable.ic_star,
+                bodyArgs = listOf(SUPPORTER_PACK_SCRAP)
+            )
+        )
     )
 
     private val featured = ShopCategory(
@@ -290,5 +347,5 @@ object Shop {
         )
     )
 
-    val categories = listOf(hatching, combat, expeditions, cosmetic, featured)
+    val categories = listOf(hatching, combat, expeditions, cosmetic, support, featured)
 }
