@@ -85,7 +85,8 @@ class SplicingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val (loadedRoster, loadedExcluded) = withContext(Dispatchers.IO) {
                 val dao = RatRepository.dao(this@SplicingActivity)
-                dao.all() to SpliceEligibility.excludedIds(prefs)
+                val all = dao.all()
+                all to SpliceEligibility.excludedIds(prefs, all)
             }
             roster = loadedRoster
             excludedIds = loadedExcluded
@@ -186,7 +187,7 @@ class SplicingActivity : AppCompatActivity() {
                 val id = dao.splice(parents, mutant)
                 Milestones.recordSplice(prefs)
                 if (SpliceEffects.Kind.TINKERER in triggered) Milestones.recordTinkererTrigger(prefs)
-                Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+                Milestones.refresh(prefs, Milestones.readProgress(dao, prefs), dao)
                 DailyQuest.record(prefs, QuestType.SPLICE)?.let {
                     DailyAlerts.postQuestPaid(applicationContext, it)
                 }

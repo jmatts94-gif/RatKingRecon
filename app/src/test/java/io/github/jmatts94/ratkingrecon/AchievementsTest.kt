@@ -107,7 +107,10 @@ class AchievementsTest {
             Milestones.steps.map { it.target }
         )
         assertEquals(
-            listOf(10L, 25L, 50L, Roster.all.size.toLong()),
+            // Roster.hatchable, not Roster.all - Full Collection must stay
+            // reachable by walking and splicing alone, so TimeTail's Secret-tier
+            // entry does not count towards it. See Roster.hatchable.
+            listOf(10L, 25L, 50L, Roster.hatchable.size.toLong()),
             Milestones.roster.map { it.target }
         )
         assertEquals(
@@ -118,7 +121,8 @@ class AchievementsTest {
             listOf("splice_first", "splice_10", "splice_lucky", "splice_25"),
             Milestones.splicing.map { it.id }
         )
-        assertEquals(18, Milestones.all.size)
+        // 18 ordinary milestones plus Milestones.secret's one hidden entry.
+        assertEquals(19, Milestones.all.size)
     }
 
     @Test
@@ -130,7 +134,7 @@ class AchievementsTest {
     fun `Full Collection counts species, not rats held`() {
         val full = Milestones.roster.first { it.id == "roster_full" }
         assertEquals(MilestoneKind.SPECIES, full.kind)
-        assertEquals(Roster.all.size.toLong(), full.target)
+        assertEquals(Roster.hatchable.size.toLong(), full.target)
 
         // A hoard of duplicates is not a full collection.
         val hoarder = MilestoneProgress(ratsHeld = 500, speciesFound = 4)
@@ -158,14 +162,14 @@ class AchievementsTest {
     @Test
     fun `refresh latches what has been met and returns only the new ones`() {
         val prefs = FakePrefs()
-        val first = Milestones.refresh(prefs, MilestoneProgress(lifetimeSteps = 60_000L))
+        val first = Milestones.refresh(prefs, MilestoneProgress(lifetimeSteps = 60_000L), AchStubDao())
 
         assertEquals(listOf("steps_10k", "steps_50k"), first.map { it.id })
         assertTrue(Milestones.isEarned(prefs, Milestones.steps[0]))
         assertEquals(2, Milestones.earnedCount(prefs))
 
         // Same progress again: nothing is newly earned.
-        assertTrue(Milestones.refresh(prefs, MilestoneProgress(lifetimeSteps = 60_000L)).isEmpty())
+        assertTrue(Milestones.refresh(prefs, MilestoneProgress(lifetimeSteps = 60_000L), AchStubDao()).isEmpty())
         assertEquals(2, Milestones.earnedCount(prefs))
     }
 
@@ -179,13 +183,13 @@ class AchievementsTest {
     @Test
     fun `a roster badge survives the roster shrinking`() {
         val prefs = FakePrefs()
-        Milestones.refresh(prefs, MilestoneProgress(ratsHeld = 25))
+        Milestones.refresh(prefs, MilestoneProgress(ratsHeld = 25), AchStubDao())
 
         val badge = Milestones.roster.first { it.id == "roster_25" }
         assertTrue(Milestones.isEarned(prefs, badge))
 
         // Splice it down to 11 rats.
-        Milestones.refresh(prefs, MilestoneProgress(ratsHeld = 11))
+        Milestones.refresh(prefs, MilestoneProgress(ratsHeld = 11), AchStubDao())
         assertTrue("an earned badge must never be revoked", Milestones.isEarned(prefs, badge))
     }
 
@@ -194,10 +198,10 @@ class AchievementsTest {
         val prefs = FakePrefs()
         val shiny = Milestones.hatching.first { it.id == "hatch_shiny" }
 
-        Milestones.refresh(prefs, MilestoneProgress(ownsShiny = true))
+        Milestones.refresh(prefs, MilestoneProgress(ownsShiny = true), AchStubDao())
         assertTrue(Milestones.isEarned(prefs, shiny))
 
-        Milestones.refresh(prefs, MilestoneProgress(ownsShiny = false))
+        Milestones.refresh(prefs, MilestoneProgress(ownsShiny = false), AchStubDao())
         assertTrue(Milestones.isEarned(prefs, shiny))
     }
 
@@ -208,7 +212,7 @@ class AchievementsTest {
         assertFalse(Milestones.isEarned(prefs, badge))
 
         Milestones.recordMasterworkPull(prefs)
-        Milestones.refresh(prefs, MilestoneProgress(masterworkPulled = true))
+        Milestones.refresh(prefs, MilestoneProgress(masterworkPulled = true), AchStubDao())
         assertTrue(Milestones.isEarned(prefs, badge))
     }
 
@@ -242,7 +246,7 @@ class AchievementsTest {
         val stat15 = Milestones.hatching.first { it.id == "hatch_stat15" }
         val stat25 = Milestones.hatching.first { it.id == "hatch_stat25" }
 
-        Milestones.refresh(prefs, MilestoneProgress(hasStat15Rat = true, hasStat25Rat = false))
+        Milestones.refresh(prefs, MilestoneProgress(hasStat15Rat = true, hasStat25Rat = false), AchStubDao())
 
         assertTrue(Milestones.isEarned(prefs, stat15))
         assertFalse(Milestones.isEarned(prefs, stat25))
@@ -297,7 +301,7 @@ class AchievementsTest {
         repeat(10) { Milestones.recordSplice(prefs) }
 
         val progress = Milestones.readProgress(AchStubDao(), prefs)
-        Milestones.refresh(prefs, progress)
+        Milestones.refresh(prefs, progress, AchStubDao())
 
         assertTrue(Milestones.isEarned(prefs, Milestones.splicing.first { it.id == "splice_first" }))
         assertTrue(Milestones.isEarned(prefs, Milestones.splicing.first { it.id == "splice_10" }))
@@ -311,9 +315,64 @@ class AchievementsTest {
         assertFalse(Milestones.isEarned(prefs, badge))
 
         Milestones.recordTinkererTrigger(prefs)
-        Milestones.refresh(prefs, Milestones.readProgress(AchStubDao(), prefs))
+        Milestones.refresh(prefs, Milestones.readProgress(AchStubDao(), prefs), AchStubDao())
 
         assertTrue(Milestones.isEarned(prefs, badge))
+    }
+
+    // --- TimeTail, the one secret achievement ----------------------------------
+
+    @Test
+    fun `TimeTail Found is the one hidden milestone`() {
+        val secret = Milestones.secret.single()
+        assertEquals("timetail_found", secret.id)
+        assertTrue("must stay hidden until earned - see Milestone.hidden", secret.hidden)
+        assertEquals(MilestoneKind.BOSS_LADDER, secret.kind)
+        assertEquals(
+            "gated on the full boss ladder, not some smaller number",
+            Bosses.all.size.toLong(),
+            secret.target
+        )
+    }
+
+    @Test
+    fun `TimeTail Found does not latch before every boss is beaten`() {
+        val prefs = FakePrefs()
+        val dao = AchStubDao()
+        val progress = MilestoneProgress(bossesDefeated = Bosses.all.size - 1)
+
+        Milestones.refresh(prefs, progress, dao)
+
+        assertFalse(Milestones.isEarned(prefs, Milestones.secret.single()))
+        assertTrue("no rat should have been granted early", dao.all().isEmpty())
+    }
+
+    @Test
+    fun `defeating every boss latches TimeTail Found and mints the rat`() {
+        val prefs = FakePrefs()
+        val dao = AchStubDao()
+        val progress = MilestoneProgress(bossesDefeated = Bosses.all.size)
+
+        val newlyEarned = Milestones.refresh(prefs, progress, dao)
+
+        assertEquals(listOf("timetail_found"), newlyEarned.map { it.id })
+        assertTrue(Milestones.isEarned(prefs, Milestones.secret.single()))
+
+        val minted = dao.all().singleOrNull { it.artKey == "timetail_pic" }
+        assertTrue("TimeTail should have been inserted into the Ledger", minted != null)
+        assertFalse("TimeTail is not one of the polish-roll shinies", requireNotNull(minted).shiny)
+        assertTrue(
+            "TimeTail should arrive at the Mutagen's own stat range, not the ordinary one",
+            minted.power in GameEngine.MUTAGEN_STAT && minted.toughness in GameEngine.MUTAGEN_STAT
+        )
+    }
+
+    @Test
+    fun `TimeTail carries the Secret tier's stat bonus and gear count`() {
+        val timetail = Roster.all.first { it.artKey == "timetail_pic" }
+        assertEquals(Roster.SECRET, timetail.rarity)
+        assertEquals("a step above Legendary's own +2", 3, Roster.statBonusFor(timetail.rarity))
+        assertEquals(3, Roster.gearCountFor(timetail.rarity))
     }
 
     // --- the Golden Wrench ----------------------------------------------------
@@ -443,7 +502,7 @@ class AchievementsTest {
     }
 }
 
-/** Minimal DAO: these tests never look at the collection. */
+/** Minimal DAO. Most of these tests never look at the collection; the TimeTail ones do, via [all]. */
 private class AchStubDao : RatDao {
     private val rats = mutableListOf<RatEntity>()
     private var nextId = 1L

@@ -267,7 +267,7 @@ object GameEngine {
         Milestones.refreshSteps(prefs, lifetimeStepsOf(prefs))
         PermanentBuffs.checkIronBoots(prefs, lifetimeStepsOf(prefs))
         if (hatched != null) {
-            Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+            Milestones.refresh(prefs, Milestones.readProgress(dao, prefs), dao)
             recordHatch(prefs)
         }
 
@@ -368,7 +368,7 @@ object GameEngine {
         editor.apply()
 
         if (banked.hatched != null) {
-            Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+            Milestones.refresh(prefs, Milestones.readProgress(dao, prefs), dao)
         }
         return banked.hatched
     }
@@ -535,7 +535,7 @@ object GameEngine {
         editor.apply()
 
         val stored = rolled.copy(id = dao.insert(rolled))
-        Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+        Milestones.refresh(prefs, Milestones.readProgress(dao, prefs), dao)
 
         // A rat is a rat however it arrived, so a minted one counts towards a
         // hatching quest exactly as a walked one does.
@@ -549,7 +549,7 @@ object GameEngine {
         val mutagen = prefs.getBoolean(KEY_MUTAGEN, false)
         val polish = prefs.getBoolean(KEY_POLISH, false)
 
-        val species = Roster.all.random()
+        val species = Roster.hatchable.random()
         val card = RatEntity(
             artKey = species.artKey,
             power = if (mutagen) MUTAGEN_STAT.random() else ORDINARY_STAT.random(),

@@ -17,29 +17,40 @@ class FusionTest {
     // --- the regression -------------------------------------------------------
 
     @Test
-    fun `every species in the roster can be spliced`() {
+    fun `every hatchable species in the roster can be spliced`() {
+        // Roster.hatchable, not Roster.all - TimeTail's Secret tier is the one
+        // deliberate exception, guarded below rather than here.
         val reachable = Roster.legendary + Roster.rare + Roster.common
-        val missing = Roster.all.map { it.artKey } - reachable.map { it.artKey }.toSet()
+        val missing = Roster.hatchable.map { it.artKey } - reachable.map { it.artKey }.toSet()
 
         assertTrue(
             "unreachable from the Fusion Pot: $missing",
             missing.isEmpty()
         )
-        assertEquals(Roster.all.size, reachable.size)
+        assertEquals(Roster.hatchable.size, reachable.size)
     }
 
     @Test
-    fun `the tiers partition the roster exactly`() {
+    fun `the tiers partition the hatchable roster exactly`() {
         // No species in two tiers, none in none. A typo in a rarity tag would
         // drop a species out of every tier and show up here.
         assertEquals(
-            "tier sizes do not sum to the roster",
-            Roster.all.size,
+            "tier sizes do not sum to the hatchable roster",
+            Roster.hatchable.size,
             Roster.legendary.size + Roster.rare.size + Roster.common.size
         )
 
         val ids = (Roster.legendary + Roster.rare + Roster.common).map { it.artKey }
         assertEquals("a species appears in more than one tier", ids.size, ids.distinct().size)
+    }
+
+    @Test
+    fun `TimeTail is in none of the three splice tiers`() {
+        val tiers = Roster.legendary + Roster.rare + Roster.common
+        assertTrue(
+            "TimeTail must never be a splice result - see Roster.SECRET",
+            tiers.none { it.artKey == "timetail_pic" }
+        )
     }
 
     @Test
@@ -120,12 +131,14 @@ class FusionTest {
     }
 
     @Test
-    fun `splicing reaches every species given enough rolls`() {
-        // 32 species, the rarest tier at 5% spread over 7 - comfortably covered.
+    fun `splicing reaches every hatchable species given enough rolls`() {
+        // 32 hatchable species, the rarest tier at 5% spread over 7 - comfortably
+        // covered. TimeTail is the one species outside this, on purpose.
         val seen = (1..200_000).map { Fusion.roll().artKey }.toSet()
-        val missing = Roster.all.map { it.artKey }.toSet() - seen
+        val missing = Roster.hatchable.map { it.artKey }.toSet() - seen
 
         assertTrue("never rolled: $missing", missing.isEmpty())
+        assertTrue("TimeTail must never roll from the Fusion Pot", "timetail_pic" !in seen)
     }
 
     @Test

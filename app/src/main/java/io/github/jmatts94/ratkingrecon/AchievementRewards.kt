@@ -25,6 +25,14 @@ sealed interface AchievementReward {
     data object ReviveToken : AchievementReward
 
     data class Cosmetic(val frameId: String) : AchievementReward
+
+    /**
+     * TimeTail himself, minted straight into the Ledger - see
+     * [Milestones.secret] and [Roster.SECRET]. The one reward here that
+     * touches the database rather than a preference, which is why [grant]
+     * is the only place in this file that takes a [RatDao].
+     */
+    data object TimeTail : AchievementReward
 }
 
 /**
@@ -84,12 +92,24 @@ object AchievementRewards {
         "rustbringer" to AchievementReward.ReviveToken
     )
 
-    fun forMilestone(id: String): AchievementReward? = hatching[id] ?: roster[id] ?: steps[id] ?: splicing[id]
+    private val secret = mapOf(
+        "timetail_found" to AchievementReward.TimeTail
+    )
+
+    fun forMilestone(id: String): AchievementReward? =
+        hatching[id] ?: roster[id] ?: steps[id] ?: splicing[id] ?: secret[id]
 
     fun forBoss(id: String): AchievementReward? = combat[id]
 
-    /** Applies [reward]. Never fails silently: a Salvage Cache with nowhere to land falls back to Scrap. */
-    fun grant(prefs: SharedPreferences, reward: AchievementReward) {
+    /**
+     * Applies [reward]. Never fails silently: a Salvage Cache with nowhere to
+     * land falls back to Scrap.
+     *
+     * [dao] is null for every caller but [Milestones.refresh] - see the note
+     * on [AchievementReward.TimeTail] - and is only ever read in that one
+     * branch below.
+     */
+    fun grant(prefs: SharedPreferences, reward: AchievementReward, dao: RatDao? = null) {
         when (reward) {
             is AchievementReward.Scrap ->
                 prefs.edit().putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + reward.amount).apply()
@@ -115,6 +135,23 @@ object AchievementRewards {
 
             is AchievementReward.Cosmetic ->
                 ShopEffects.grantCosmetic(prefs, reward.frameId)
+
+            AchievementReward.TimeTail -> {
+                // Rolled at the Mutagen's own stat range rather than the
+                // ordinary one - he is meant to arrive already strong, not
+                // merely rare. Never shiny: the polish rolls a Ledger already
+                // full of ordinary hatches, and he is not one of those.
+                requireNotNull(dao) { "TimeTail's reward needs a RatDao - see Milestones.refresh" }
+                dao.insert(
+                    RatEntity(
+                        artKey = "timetail_pic",
+                        name = "TimeTail",
+                        power = GameEngine.MUTAGEN_STAT.random(),
+                        toughness = GameEngine.MUTAGEN_STAT.random(),
+                        shiny = false
+                    )
+                )
+            }
         }
     }
 
@@ -128,6 +165,7 @@ object AchievementRewards {
             R.string.achievement_reward_cosmetic,
             context.getString(requireNotNull(Frames.byId(reward.frameId)) { "unknown frame ${reward.frameId}" }.nameRes)
         )
+        AchievementReward.TimeTail -> context.getString(R.string.achievement_reward_timetail)
     }
 
     /** Same key [BattleItem]'s charge lives under everywhere else - see [ShopEffects]/[RelicTrader]. */

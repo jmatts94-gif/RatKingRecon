@@ -542,6 +542,9 @@ RARE DROP: %2$s</string>
     <string name="achievements_hatching_sub">Rarities that only turn up once.</string>
     <string name="achievements_splicing">Splicing</string>
     <string name="achievements_splicing_sub">What the Fusion Pot has produced.</string>
+    <!-- Escaped: a leading ? in a resource value is read as an attr reference. -->
+    <string name="achievements_secret">\?\?\?</string>
+    <string name="achievements_secret_sub">Something the walking hasn\'t shown you yet.</string>
     <string name="achievements_buffs">Permanent Buffs</string>
     <string name="achievements_buffs_sub">Earned once, and active for good from that moment on.</string>
     <!-- Escaped: a leading ? in a resource value is read as an attr reference. -->
@@ -582,6 +585,14 @@ RARE DROP: %2$s</string>
     <string name="milestone_lucky_break">Lucky Break</string>
     <string name="milestone_chimera_master">Chimera Master</string>
 
+    <!-- The one hidden achievement - see Milestones.secret. Its real name is
+         only ever shown once earned; badge_locked ("???") stands in for it
+         until then, the same way an unmet boss badge already hides its name. -->
+    <string name="milestone_timetail_found">TimeTail</string>
+    <!-- Shown in place of the numeric "N of 5" progress line while this row
+         is still hidden - see AchievementsActivity.renderMilestones. -->
+    <string name="milestone_secret_detail">A rumor, nothing more.</string>
+
     <string name="milestone_done">Earned.</string>
     <!-- earned detail, with what it paid -->
     <string name="milestone_done_with_reward">Earned. %1$s</string>
@@ -597,6 +608,7 @@ RARE DROP: %2$s</string>
     <string name="achievement_reward_mutagen">A free Tinkerer\'s Serum, armed for your next hatch</string>
     <string name="achievement_reward_salvage">A Salvage Cache — one random combat item</string>
     <string name="achievement_reward_revive">1 free Revive Token</string>
+    <string name="achievement_reward_timetail">TimeTail joins your Ledger</string>
     <!-- frame name -->
     <string name="achievement_reward_cosmetic">New frame: %1$s</string>
 

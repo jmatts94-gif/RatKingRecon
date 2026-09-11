@@ -48,6 +48,7 @@ class AchievementsActivity : AppCompatActivity() {
     private lateinit var rosterList: LinearLayout
     private lateinit var hatchingList: LinearLayout
     private lateinit var splicingList: LinearLayout
+    private lateinit var secretList: LinearLayout
     private lateinit var buffsList: LinearLayout
     private lateinit var summary: TextView
     private lateinit var stepsSubtitle: TextView
@@ -71,6 +72,7 @@ class AchievementsActivity : AppCompatActivity() {
         rosterList = findViewById(R.id.rosterList)
         hatchingList = findViewById(R.id.hatchingList)
         splicingList = findViewById(R.id.splicingList)
+        secretList = findViewById(R.id.secretList)
         buffsList = findViewById(R.id.buffsList)
         summary = findViewById(R.id.achievementsSummary)
         stepsSubtitle = findViewById(R.id.stepsSubtitle)
@@ -87,7 +89,7 @@ class AchievementsActivity : AppCompatActivity() {
             val progress = withContext(Dispatchers.IO) {
                 val dao = RatRepository.dao(this@AchievementsActivity)
                 val read = Milestones.readProgress(dao, prefs)
-                Milestones.refresh(prefs, read)
+                Milestones.refresh(prefs, read, dao)
                 PermanentBuffs.refresh(prefs)
                 read
             }
@@ -139,6 +141,7 @@ class AchievementsActivity : AppCompatActivity() {
         renderMilestones(rosterList, Milestones.roster, prefs, progress)
         renderMilestones(hatchingList, Milestones.hatching, prefs, progress)
         renderMilestones(splicingList, Milestones.splicing, prefs, progress)
+        renderMilestones(secretList, Milestones.secret, prefs, progress)
         renderBuffs(prefs)
     }
 
@@ -277,12 +280,19 @@ class AchievementsActivity : AppCompatActivity() {
             val current = Milestones.currentFor(milestone, progress)
             val reward = AchievementRewards.forMilestone(milestone.id)?.let { AchievementRewards.describe(this, it) }
 
+            // A hidden milestone gives up nothing - not its name, not a
+            // count, not even that it pays a reward - until earned. The same
+            // "???" treatment a boss badge already gives an unmet one; see
+            // Milestone.hidden.
+            val redacted = milestone.hidden && !earned
+
             // A yes/no milestone has nothing to count towards, so it gets a
             // plain "not yet" rather than "0 of 1". Reward text only joins
             // the yes/no rows - a numeric progress row already has the bar
             // beneath it, and "37 of 100000. Reward: ..." reads as clutter a
             // bar-only row does not have room to spare.
             val detail = when {
+                redacted -> getString(R.string.milestone_secret_detail)
                 earned && reward != null -> getString(R.string.milestone_done_with_reward, reward)
                 earned -> getString(R.string.milestone_done)
                 milestone.target == 1L && reward != null ->
@@ -295,10 +305,10 @@ class AchievementsActivity : AppCompatActivity() {
                 row(
                     parent = into,
                     iconRes = milestone.iconRes,
-                    name = getString(milestone.nameRes),
+                    name = if (redacted) getString(R.string.badge_locked) else getString(milestone.nameRes),
                     detail = detail,
                     unlocked = earned,
-                    progress = if (earned || milestone.target == 1L) null else {
+                    progress = if (redacted || earned || milestone.target == 1L) null else {
                         Milestones.percentTowards(milestone, progress)
                     },
                     // Only a Lifetime Steps row that has actually been earned

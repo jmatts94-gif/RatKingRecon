@@ -5,7 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 
 /** What a milestone is measured against. */
-enum class MilestoneKind { STEPS, RATS_HELD, SPECIES, SHINY, MASTERWORK, STAT_15, STAT_25, SPLICE_COUNT, SPLICE_TINKERER }
+enum class MilestoneKind { STEPS, RATS_HELD, SPECIES, SHINY, MASTERWORK, STAT_15, STAT_25, SPLICE_COUNT, SPLICE_TINKERER, BOSS_LADDER }
 
 /**
  * One achievement row.
@@ -13,13 +13,19 @@ enum class MilestoneKind { STEPS, RATS_HELD, SPECIES, SHINY, MASTERWORK, STAT_15
  * [id] reaches the save as the latch behind the badge, so it must never change
  * once shipped. [target] is 1 for the yes/no ones, which keeps the progress
  * arithmetic uniform.
+ *
+ * [hidden] rows are the one exception to every other row on the Achievements
+ * screen always naming itself: name, detail and progress bar all stay behind
+ * "???" - the same treatment a boss badge already gives an unmet one - until
+ * [Milestones.isEarned] says otherwise. See [Milestones.secret].
  */
 data class Milestone(
     val id: String,
     @param:StringRes val nameRes: Int,
     @param:DrawableRes val iconRes: Int,
     val kind: MilestoneKind,
-    val target: Long
+    val target: Long,
+    val hidden: Boolean = false
 )
 
 /** Everything the milestones are measured against, read once per refresh. */
@@ -36,7 +42,9 @@ data class MilestoneProgress(
     /** Lifetime splices completed at the Fusion Pot. Only ever climbs - see [Milestones.KEY_LIFETIME_SPLICES]. */
     val lifetimeSplices: Long = 0L,
     /** Whether a Tinkerer roll has ever fired on a splice. */
-    val tinkererTriggered: Boolean = false
+    val tinkererTriggered: Boolean = false,
+    /** How many of [Bosses.all] have ever been beaten. Read straight off [Bosses], never a second count. */
+    val bossesDefeated: Int = 0
 )
 
 /**
@@ -99,10 +107,13 @@ object Milestones {
         Milestone("roster_25", R.string.milestone_colony, R.drawable.ic_book, MilestoneKind.RATS_HELD, 25L),
         Milestone("roster_50", R.string.milestone_swarm, R.drawable.ic_library_add, MilestoneKind.RATS_HELD, 50L),
         // Distinct species, not rats held - "Full Collection" means the same
-        // thing here as the counter at the top of the Ledger.
+        // thing here as the counter at the top of the Ledger. Counted against
+        // Roster.hatchable rather than Roster.all, so this stays reachable by
+        // walking and splicing alone - a completionist should never need to
+        // stumble onto the secret rat just to finish the ordinary roster.
         Milestone(
             "roster_full", R.string.milestone_full_collection, R.drawable.ic_hexagon,
-            MilestoneKind.SPECIES, Roster.all.size.toLong()
+            MilestoneKind.SPECIES, Roster.hatchable.size.toLong()
         )
     )
 
@@ -126,7 +137,23 @@ object Milestones {
         Milestone("splice_25", R.string.milestone_chimera_master, R.drawable.ic_hexagon, MilestoneKind.SPLICE_COUNT, 25L)
     )
 
-    val all: List<Milestone> = steps + roster + hatching + splicing
+    /**
+     * The one hidden achievement in the game.
+     *
+     * Gated on the full boss ladder - every [Bosses.all] entry beaten at least
+     * once, [Bosses.defeatedCount] against [Bosses.all.size] - rather than
+     * anything smaller: this sits above every other target on the screen on
+     * purpose, and reuses badge tracking the boss wall already keeps instead
+     * of a new save key.
+     */
+    val secret: List<Milestone> = listOf(
+        Milestone(
+            "timetail_found", R.string.milestone_timetail_found, R.drawable.ic_star,
+            MilestoneKind.BOSS_LADDER, Bosses.all.size.toLong(), hidden = true
+        )
+    )
+
+    val all: List<Milestone> = steps + roster + hatching + splicing + secret
 
     // ---- measuring -----------------------------------------------------------
 
@@ -141,6 +168,7 @@ object Milestones {
             MilestoneKind.STAT_25 -> if (progress.hasStat25Rat) 1L else 0L
             MilestoneKind.SPLICE_COUNT -> progress.lifetimeSplices
             MilestoneKind.SPLICE_TINKERER -> if (progress.tinkererTriggered) 1L else 0L
+            MilestoneKind.BOSS_LADDER -> progress.bossesDefeated.toLong()
         }
 
     fun isMet(milestone: Milestone, progress: MilestoneProgress): Boolean =
@@ -170,15 +198,19 @@ object Milestones {
      * that were not already earned.
      *
      * Only ever sets, never clears, which is what makes an achievement permanent.
+     *
+     * [dao] only exists for "TimeTail Found" - see [AchievementRewards.grant] -
+     * and every caller already has one in hand from the [readProgress] call
+     * that built [progress] in the first place.
      */
-    fun refresh(prefs: SharedPreferences, progress: MilestoneProgress): List<Milestone> {
+    fun refresh(prefs: SharedPreferences, progress: MilestoneProgress, dao: RatDao): List<Milestone> {
         val newlyEarned = all.filter { !isEarned(prefs, it) && isMet(it, progress) }
         if (newlyEarned.isEmpty()) return emptyList()
 
         val editor = prefs.edit()
         newlyEarned.forEach { editor.putBoolean(LATCH_PREFIX + it.id, true) }
         editor.apply()
-        newlyEarned.forEach { grantReward(prefs, it.id) }
+        newlyEarned.forEach { grantReward(prefs, it.id, dao) }
         return newlyEarned
     }
 
@@ -201,9 +233,15 @@ object Milestones {
         return newlyEarned
     }
 
-    /** Pays whatever [AchievementRewards] has attached to [milestoneId], if anything. */
-    private fun grantReward(prefs: SharedPreferences, milestoneId: String) {
-        AchievementRewards.forMilestone(milestoneId)?.let { AchievementRewards.grant(prefs, it) }
+    /**
+     * Pays whatever [AchievementRewards] has attached to [milestoneId], if anything.
+     *
+     * [dao] defaults to null for [refreshSteps]'s sake, which never latches
+     * "TimeTail Found" - the only reward [dao] is for - since that one is
+     * [MilestoneKind.BOSS_LADDER], not [MilestoneKind.STEPS].
+     */
+    private fun grantReward(prefs: SharedPreferences, milestoneId: String, dao: RatDao? = null) {
+        AchievementRewards.forMilestone(milestoneId)?.let { AchievementRewards.grant(prefs, it, dao) }
     }
 
     /** Effective Power/Toughness a rat must clear for [MilestoneKind.STAT_15]. */
@@ -231,6 +269,7 @@ object Milestones {
                 it.effectivePower >= STAT_25_THRESHOLD && it.effectiveToughness >= STAT_25_THRESHOLD
             },
             lifetimeSplices = prefs.getLong(KEY_LIFETIME_SPLICES, 0L),
+            bossesDefeated = Bosses.defeatedCount(prefs),
             tinkererTriggered = prefs.getBoolean(KEY_TINKERER_TRIGGERED, false)
         )
     }

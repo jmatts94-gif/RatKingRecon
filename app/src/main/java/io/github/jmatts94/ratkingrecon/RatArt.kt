@@ -43,6 +43,7 @@ object RatArt {
         "sooty_pic" to R.drawable.sooty_pic,
         "sparkplug_pic" to R.drawable.sparkplug_pic,
         "spindle_pic" to R.drawable.spindle_pic,
+        "timetail_pic" to R.drawable.timetail_pic,
         "welder_pic" to R.drawable.welder_pic,
         "winch_pic" to R.drawable.winch_pic,
         "wrencher_pic" to R.drawable.wrencher_pic

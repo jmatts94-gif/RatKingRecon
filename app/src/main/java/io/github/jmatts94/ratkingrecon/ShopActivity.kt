@@ -262,7 +262,7 @@ class ShopActivity : AppCompatActivity() {
                 // The only place a Masterwork pull is observable: the rat it
                 // mints carries no column marking it as one.
                 Milestones.recordMasterworkPull(prefs)
-                Milestones.refresh(prefs, Milestones.readProgress(dao, prefs))
+                Milestones.refresh(prefs, Milestones.readProgress(dao, prefs), dao)
 
                 // "Any hatch method" includes the bought one, and so does the
                 // payout it can finish.

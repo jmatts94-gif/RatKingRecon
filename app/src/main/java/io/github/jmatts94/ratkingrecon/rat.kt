@@ -34,6 +34,15 @@ object Roster {
     const val RARE = "Rare"
     const val LEGENDARY = "Legendary"
 
+    /**
+     * The one rat this tier ever holds is never hatched, never spliced, never
+     * offered - see [hatchable], [Fusion.speciesFor] and [SpliceEligibility].
+     * A tier of its own rather than tagging it Legendary, because Legendary
+     * still rolls off [Roster.legendary] every time an ordinary hatch or a
+     * splice reaches for that list; nothing should.
+     */
+    const val SECRET = "Secret"
+
     // Flavor groupings, same purpose as the rarity constants above: one
     // spelling, so a typo in a faction tag shows up as a species silently
     // missing from its group rather than as text that merely looks right.
@@ -75,8 +84,22 @@ object Roster {
         Rat("winch_pic", "Winch", "Common", FOUNDRY_BORN),
         Rat("spindle_pic", "Spindle", "Common", BRAWLERS),
         Rat("sparkplug_pic", "Sparkplug", "Legendary", TINKERERS),
-        Rat("nutkin_pic", "Nutkin", "Common", SCAVENGERS)
+        Rat("nutkin_pic", "Nutkin", "Common", SCAVENGERS),
+
+        // Not in any hatch or splice pool - see SECRET above. Earned once,
+        // the one way Achievements.secret's own milestone describes.
+        Rat("timetail_pic", "TimeTail", SECRET, TINKERERS)
     )
+
+    /**
+     * Every species an ordinary hatch may actually produce.
+     *
+     * The Fusion Pot never needs this: [Fusion.speciesFor] already draws from
+     * [common]/[rare]/[legendary], which a Secret-tier rat is never part of
+     * either. This is the one line standing between it and turning up from an
+     * ordinary walk instead - see [GameEngine.rollRat].
+     */
+    val hatchable: List<Rat> = all.filterNot { it.rarity == SECRET }
 
     /**
      * Every species at [rarity], matched without case.
@@ -105,6 +128,7 @@ object Roster {
      */
     fun statBonusFor(rarity: String?): Int = when {
         rarity == null -> 0
+        rarity.equals(SECRET, ignoreCase = true) -> 3
         rarity.equals(LEGENDARY, ignoreCase = true) -> 2
         rarity.equals(RARE, ignoreCase = true) -> 1
         else -> 0
@@ -118,6 +142,10 @@ object Roster {
      */
     fun gearCountFor(rarity: String?): Int = when {
         rarity == null -> 1
+        // Same three gears Legendary draws - the badge has never had a
+        // fourth notch to draw, and TimeTail is a single rat rather than a
+        // tier that needed its own.
+        rarity.equals(SECRET, ignoreCase = true) -> 3
         rarity.equals(LEGENDARY, ignoreCase = true) -> 3
         rarity.equals(RARE, ignoreCase = true) -> 2
         else -> 1

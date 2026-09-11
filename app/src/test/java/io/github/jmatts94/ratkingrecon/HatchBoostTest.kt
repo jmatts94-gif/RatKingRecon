@@ -135,6 +135,24 @@ class HatchBoostTest {
         assertFalse(alreadyOwned.shiny)
     }
 
+    /**
+     * TimeTail is Secret-tier - see [Roster.SECRET] - and must never turn up
+     * from an ordinary hatch, however many times the dice are rolled. He only
+     * ever reaches the Ledger through [AchievementRewards.grant].
+     */
+    @Test
+    fun `TimeTail never comes from an ordinary hatch`() {
+        val prefs = FakePrefs()
+        val dao = FakeRatDao()
+
+        val minted = List(2_000) { GameEngine.mintRat(dao, prefs) }
+
+        assertTrue(
+            "TimeTail must never be minted like an ordinary species",
+            minted.none { it.artKey == "timetail_pic" }
+        )
+    }
+
     /** A boost is one-shot, not a permanent upgrade to every future hatch. */
     @Test
     fun `the hatch after a boosted one is back to normal`() {
