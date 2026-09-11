@@ -186,6 +186,18 @@ object ArenaRun {
      * The Rustbot for [fight], scaled by [ratioFor] - plus [BOSS_RATIO_BONUS]
      * on a milestone fight.
      *
+     * Power is sized off the rat's own Power *and* Toughness averaged
+     * together, not Power alone - actually playing a full run (not just
+     * simulating one) surfaced why that mattered: HP scales as Toughness×10
+     * with no cap, but a Rustbot's own Power had only ever answered the
+     * rat's Power stat, so Toughness bought pure survival margin for free.
+     * A 5/6 rat and a 6/2 rat cost the same to raise, but the 5/6 rat's
+     * 80 HP absorbed a hit that took over a third of the 6/2 rat's 40 - the
+     * exact same fight read as a coin flip for one and barely a threat for
+     * the other. Averaging the two stats means the bot a tankier rat meets
+     * hits closer to as hard as the one a glass cannon already did, rather
+     * than rewarding whichever stat happened to roll high.
+     *
      * Uncapped on both Power and HP - the same treatment [Bosses.rustbotFor]
      * gives a boss, and for the same reason: past the curve's midpoint this is
      * meant to be allowed to out-hit the rat outright, not merely catch up to
@@ -195,7 +207,7 @@ object ArenaRun {
         val ratio = ratioFor(fight) + if (bossIdFor(fight) != null) BOSS_RATIO_BONUS else 0.0
         return Rustbot(
             name = RustbotFactory.randomVariantName(),
-            power = max(1, (rat.power * ratio).roundToInt()),
+            power = max(1, ((rat.power + rat.toughness) / 2.0 * ratio).roundToInt()),
             maxHp = max(1, (rat.maxHp * ratio).roundToInt())
         )
     }
