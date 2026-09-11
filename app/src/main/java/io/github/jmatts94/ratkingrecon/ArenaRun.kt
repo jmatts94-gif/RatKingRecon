@@ -207,6 +207,19 @@ object ArenaRun {
      * Power-led rat's own difficulty is completely untouched and only a
      * Toughness-led one pays the difference.
      *
+     * HP takes the same `max` - a Power-led rat closing that fix was still a
+     * breeze afterward, and playing it out live showed why: its own bot's HP
+     * had only ever answered the rat's Toughness, so a 6/2 rat still met a
+     * small, fast-dying bot. Fast is the operative word - a bot dead in two
+     * or three rounds usually dies before it ever reaches its own Special
+     * (see [Battle.BOT_SPECIAL_COOLDOWN]), so the one hit built to make a
+     * fight dangerous went off zero times across all fifteen. A Toughness-led
+     * rat's own bot already draws its HP from its higher stat and so already
+     * takes the long way round (see [Bosses] fight logs during Chimney's
+     * playtest above, into the danger this is meant to create); this is what
+     * lets a Power-led rat's bot take just as long, rather than trading one
+     * exploit (free HP) for another (a bot too small to ever swing back).
+     *
      * Uncapped on both Power and HP - the same treatment [Bosses.rustbotFor]
      * gives a boss, and for the same reason: past the curve's midpoint this is
      * meant to be allowed to out-hit the rat outright, not merely catch up to
@@ -214,10 +227,11 @@ object ArenaRun {
      */
     fun rustbotFor(fight: Int, rat: RatEntity): Rustbot {
         val ratio = ratioFor(fight) + if (bossIdFor(fight) != null) BOSS_RATIO_BONUS else 0.0
+        val dominant = max(rat.power, rat.toughness)
         return Rustbot(
             name = RustbotFactory.randomVariantName(),
-            power = max(1, (max(rat.power, rat.toughness) * ratio).roundToInt()),
-            maxHp = max(1, (rat.maxHp * ratio).roundToInt())
+            power = max(1, (dominant * ratio).roundToInt()),
+            maxHp = max(1, ((dominant * 10 + rat.bonusHp) * ratio).roundToInt())
         )
     }
 
