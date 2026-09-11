@@ -24,6 +24,15 @@ import kotlinx.coroutines.withContext
  * rat is the only one turned away here, the same eligibility
  * [RatDao.strongestAvailable] already applies elsewhere. Being on Battle duty
  * or out on an Expedition does not disqualify a rat from the Arena.
+ *
+ * TimeTail (see [Roster.SECRET]) never even reaches [roster] - he is left out
+ * at the query in [load], not merely disabled the way a knocked-out rat is.
+ * Every other exclusion this whole codebase gives him is about protecting him
+ * from being spent (Fusion fodder, the Full Collection tally); this one
+ * protects the point of him instead - "more of a nod to my daughter than an
+ * end game rat to use for everything" - which a stat line built to sit above
+ * the whole roster (see [Roster.statBonusFor]) would otherwise make him
+ * exactly that for the one mode built to reward the biggest stats most.
  */
 class ArenaSelectActivity : AppCompatActivity() {
 
@@ -98,7 +107,8 @@ class ArenaSelectActivity : AppCompatActivity() {
             // keep the query's own id-ascending order.
             val loadedRoster = withContext(Dispatchers.IO) {
                 RatRepository.dao(this@ArenaSelectActivity).byPowerDesc()
-            }.sortedByDescending { it.effectivePower }
+            }.filterNot { it.rarity.equals(Roster.SECRET, ignoreCase = true) }
+                .sortedByDescending { it.effectivePower }
             roster = loadedRoster
             excludedIds = loadedRoster.filter { it.isRecovering(now) }.map { it.id }.toSet()
             adapter.submitList(roster)

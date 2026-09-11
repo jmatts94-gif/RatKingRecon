@@ -30,11 +30,25 @@ object BossMoves {
     /** Extra multiplier a move's damage carries when it hits its target faction. */
     const val BONUS_MULTIPLIER = 1.10
 
-    /** Rounds Rusty Rake's corrosion lingers for, its own round included. */
-    const val DOT_ROUNDS = 3
+    /**
+     * Rounds Rusty Rake's corrosion lingers for, its own round included.
+     *
+     * Raised from 3: playtesting the Arena found it fizzling out against
+     * [ArenaRun.ARENA_RELIEF_FRACTION]'s own top-up and a Regenerative Tonic's
+     * regen well before it added up to anything - a boss's one lingering
+     * effect that outlasting a couple of Attacks was not making felt.
+     */
+    const val DOT_ROUNDS = 5
 
-    /** Corrosion per round, as a share of the boss's own Power. */
-    const val DOT_FRACTION = 0.15
+    /**
+     * Corrosion per round, as a share of the boss's own Power.
+     *
+     * Raised from 0.15 alongside [DOT_ROUNDS], for the same reason - still
+     * kept just under [Battle.CORROSIVE_DOT_FRACTION] (0.20), so the
+     * player's own paid, turn-spending Corrosive Charge still hits harder
+     * per round than a boss's free one, only for longer now.
+     */
+    const val DOT_FRACTION = 0.18
 
     val GEAR_SMASH = BossMove("gear_smash", R.string.boss_move_gear_smash, Roster.SMUGGLERS)
     val RUSTY_RAKE = BossMove(

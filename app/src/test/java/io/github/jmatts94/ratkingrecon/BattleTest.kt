@@ -371,7 +371,7 @@ class BattleTest {
     }
 
     @Test
-    fun `rusty rake applies a lingering dot for three rounds, whether or not the bonus lands`() {
+    fun `rusty rake applies a lingering dot for five rounds, whether or not the bonus lands`() {
         val b = Battle(
             "Rat", 1, 5000, "Old Ironclaw", 20, 5000,
             // A mismatched faction, so this also checks the dot is unconditional
@@ -387,15 +387,28 @@ class BattleTest {
         val r3 = b.advance(BattleAction.ATTACK)
         assertEquals(R.string.boss_move_rusty_rake, r3.bossMoveNameRes)
         assertEquals("no bonus - Foundry-born is not Rusty Rake's target", 30, r3.damageTaken)
-        assertEquals(3, r3.dotDamage)
+        assertEquals(4, r3.dotDamage)
 
         val r4 = b.advance(BattleAction.ATTACK)
         assertNull("only the round the move lands names it", r4.bossMoveNameRes)
         assertEquals(20, r4.damageTaken)
-        assertEquals("corrosion outlasts the round it started on", 3, r4.dotDamage)
+        assertEquals("corrosion outlasts the round it started on", 4, r4.dotDamage)
 
         val r5 = b.advance(BattleAction.ATTACK)
-        assertEquals(3, r5.dotDamage)
+        assertEquals(4, r5.dotDamage)
+
+        // Old Ironclaw's only move is Rusty Rake, and its Special is due
+        // again at r6 - one round before this application would have run
+        // out on its own (5 ticks from r3 land on r7). The refire simply
+        // re-arms it, so for a boss whose one move always applies the dot,
+        // corrosion never actually lapses: it is a standing tax on the fight
+        // rather than a five-round burst, and every later round still ticks.
+        val r6 = b.advance(BattleAction.ATTACK)
+        val r7 = b.advance(BattleAction.ATTACK)
+        val r8 = b.advance(BattleAction.ATTACK)
+        assertEquals(4, r6.dotDamage)
+        assertEquals(4, r7.dotDamage)
+        assertEquals("re-armed before it could lapse - still ticking", 4, r8.dotDamage)
     }
 
     // --- the other direction: a rat exploiting the boss's own weakness ------
@@ -731,7 +744,7 @@ class BattleTest {
         )
         repeat(2) { b.advance(BattleAction.ATTACK) }
         val hit = b.advance(BattleAction.ATTACK)
-        assertEquals("rusty rake has armed the corrosion", 3, hit.dotDamage)
+        assertEquals("rusty rake has armed the corrosion", 4, hit.dotDamage)
 
         val cleansed = b.advance(BattleAction.USE_ITEM, BattleItem.CLEANSE)
         assertEquals("gone the same round it is cleansed", 0, cleansed.dotDamage)

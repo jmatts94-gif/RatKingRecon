@@ -170,7 +170,21 @@ object ArenaRun {
     const val ARENA_RELIEF_FRACTION = 0.30
 
     /**
-     * The Rustbot for [fight], scaled by [ratioFor] alone.
+     * The extra ratio a milestone fight (5/10/15) adds on top of [ratioFor].
+     *
+     * Playtesting cleared fight 15 comfortably even after the curve's own
+     * ceiling was raised (see [MAX_RATIO]'s own doc comment) - a milestone
+     * fight was otherwise sized identically to a plain fight at the same
+     * depth, with nothing about it being a boss reflected in its stats, only
+     * in which kit it borrows (see [bossIdFor]). This is that difference:
+     * a boss should hit harder than the fight either side of it, not merely
+     * wear its name.
+     */
+    private const val BOSS_RATIO_BONUS = 0.15
+
+    /**
+     * The Rustbot for [fight], scaled by [ratioFor] - plus [BOSS_RATIO_BONUS]
+     * on a milestone fight.
      *
      * Uncapped on both Power and HP - the same treatment [Bosses.rustbotFor]
      * gives a boss, and for the same reason: past the curve's midpoint this is
@@ -178,7 +192,7 @@ object ArenaRun {
      * it. An ordinary Rustbot's Power stops at parity; this one does not.
      */
     fun rustbotFor(fight: Int, rat: RatEntity): Rustbot {
-        val ratio = ratioFor(fight)
+        val ratio = ratioFor(fight) + if (bossIdFor(fight) != null) BOSS_RATIO_BONUS else 0.0
         return Rustbot(
             name = RustbotFactory.randomVariantName(),
             power = max(1, (rat.power * ratio).roundToInt()),
