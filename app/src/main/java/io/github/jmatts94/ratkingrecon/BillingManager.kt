@@ -90,9 +90,9 @@ class BillingManager(
             )
             .build()
 
-        client.queryProductDetailsAsync(params) { result, productDetailsList ->
+        client.queryProductDetailsAsync(params) { result, queryProductDetailsResult ->
             if (result.responseCode != BillingClient.BillingResponseCode.OK) return@queryProductDetailsAsync
-            val details = productDetailsList.firstOrNull() ?: return@queryProductDetailsAsync
+            val details = queryProductDetailsResult.productDetailsList.firstOrNull() ?: return@queryProductDetailsAsync
             productDetails = details
             priceText = details.oneTimePurchaseOfferDetails?.formattedPrice
         }
