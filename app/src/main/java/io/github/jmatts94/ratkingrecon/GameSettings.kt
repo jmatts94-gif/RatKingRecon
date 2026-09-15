@@ -24,7 +24,14 @@ object GameSettings {
      */
     const val KEY_DARK_STEAMPUNK = "dark_steampunk_enabled"
 
-    /** Whether a hatch may raise a notification at all. */
+    /**
+     * Whether a hatch, banked boss, Ledger Task, or daily-loop alert may raise a
+     * notification at all.
+     *
+     * Deliberately does not cover the Rustbot encounter alert - see
+     * [StepTrackerService.notifyEncounter]'s own comment on why that one is the
+     * single exception.
+     */
     fun notificationsEnabled(prefs: SharedPreferences): Boolean =
         prefs.getBoolean(KEY_NOTIFICATIONS, true)
 

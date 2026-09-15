@@ -702,14 +702,16 @@ class MainActivity : AppCompatActivity() {
 
         if (!isExpeditionActive) {
             status.setText(R.string.tile_expedition_idle)
+            status.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
             icon.alpha = IDLE_ICON_ALPHA
             return
         }
 
         icon.alpha = 1f
         val remaining = expeditionEndTime - System.currentTimeMillis()
+        val ready = remaining <= 0L
         status.text = when {
-            remaining <= 0L -> getString(R.string.tile_expedition_collect)
+            ready -> getString(R.string.tile_expedition_collect)
             remaining >= HOUR_MS -> getString(
                 R.string.tile_expedition_hm,
                 remaining / HOUR_MS,
@@ -717,6 +719,9 @@ class MainActivity : AppCompatActivity() {
             )
             else -> getString(R.string.tile_expedition_m, remaining / MINUTE_MS)
         }
+        status.setTextColor(
+            ContextCompat.getColor(this, if (ready) R.color.highlight_glow else R.color.text_primary)
+        )
     }
 
     /**

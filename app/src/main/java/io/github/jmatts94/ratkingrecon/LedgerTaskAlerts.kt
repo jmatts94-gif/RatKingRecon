@@ -88,6 +88,8 @@ class LedgerTaskAlarmReceiver : BroadcastReceiver() {
         if (!prefs.getBoolean("${taskId}_ACTIVE", false)) return
         if (System.currentTimeMillis() < prefs.getLong("${taskId}_END_TIME", 0L)) return
 
+        if (!GameSettings.notificationsEnabled(prefs)) return
+
         val title = prefs.getString("${taskId}_TITLE", null) ?: return
         val quiet = !GameSettings.soundEnabled(prefs)
 

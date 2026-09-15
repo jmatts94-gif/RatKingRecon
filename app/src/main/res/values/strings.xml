@@ -254,8 +254,8 @@
     <!-- Settings: alerts -->
     <string name="settings_cat_alerts">Alerts</string>
     <string name="settings_cat_alerts_sub">The ongoing step-counter notification is required by Android and cannot be turned off.</string>
-    <string name="toggle_notifications">Hatch notifications</string>
-    <string name="toggle_notifications_sub">Tell me when an egg hatches while the app is closed.</string>
+    <string name="toggle_notifications">Notifications</string>
+    <string name="toggle_notifications_sub">Tell me about hatches, finished tasks, and daily rewards while the app is closed. A Rustbot blocking your path always alerts you, since that notification is the only way to fight it.</string>
     <string name="toggle_sound">Sound and vibration</string>
     <string name="toggle_sound_sub">Let alerts play a sound and buzz.</string>
 
