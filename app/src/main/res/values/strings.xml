@@ -682,6 +682,8 @@ RARE DROP: %2$s</string>
     <string name="battle_special_cooldown">Special (%1$d)</string>
     <string name="battle_leave">Leave</string>
     <string name="battle_stats">Power %1$d  ·  HP %2$d / %3$d</string>
+    <!-- The floating "-12" that pops over whichever side just took a hit. -->
+    <string name="battle_damage_popup">-%1$d</string>
     <string name="battle_won">Victory! %1$s scrapped the %2$s. +%3$d Scrap.</string>
     <!-- rat name, bot name, recovery in whole minutes (scales with roster size) -->
     <string name="battle_lost">%1$s was beaten by the %2$s and needs %3$d minutes to recover.</string>

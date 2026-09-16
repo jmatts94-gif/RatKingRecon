@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -15,8 +16,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 
 /**
  * The manual battle screen.
@@ -26,6 +30,20 @@ import kotlinx.coroutines.withContext
  * apart.
  */
 class BattleActivity : AppCompatActivity() {
+
+    private companion object {
+        /** Milliseconds per character for the log's own typewriter reveal - see [typeInLatestLine]. */
+        const val TYPEWRITER_MS = 16L
+
+        /** The bot portrait frame's plain size, matching activity_battle.xml's own default. */
+        const val PLAIN_PORTRAIT_DP = 64
+        /** How much bigger a ceremonial boss's own portrait frame stands next to that - see [bindBossPortrait]. */
+        const val BOSS_PORTRAIT_DP = 88
+
+        /** The same breathing-glow cadence an earned Arena medallion already pulses at - see [ArenaBadgeMedallion]. */
+        const val BOSS_GLOW_CYCLE_MS = 1_600L
+        const val BOSS_GLOW_MIN_ALPHA = 30
+    }
 
     private lateinit var battle: Battle
     private lateinit var encounter: Encounter
@@ -44,6 +62,15 @@ class BattleActivity : AppCompatActivity() {
     private lateinit var specialGlyph: ImageView
     private lateinit var botCard: View
     private lateinit var ratCard: View
+    private lateinit var botPortraitFrame: View
+    private lateinit var ratPortraitFrame: View
+    private lateinit var botImage: ImageView
+    private lateinit var bossGlow: View
+    private lateinit var bossBadge: ImageView
+    private lateinit var botHitFlash: View
+    private lateinit var ratHitFlash: View
+    private lateinit var botDamagePopup: TextView
+    private lateinit var ratDamagePopup: TextView
     private lateinit var activeBuffBadge: View
     private lateinit var activeBuffIcon: ImageView
     private lateinit var activeBuffLabel: TextView
@@ -58,6 +85,32 @@ class BattleActivity : AppCompatActivity() {
 
     /** Icon and name of whichever combat buff rode into this fight, if either did. */
     private var armedBuff: Pair<Int, Int>? = null
+
+    /**
+     * What the HP bars last actually showed, so [render] knows whether to
+     * tween or snap - see [animateHpBar]. -1 means "nothing shown yet",
+     * which is also what [bindStaticViews] resets both back to for every
+     * fight this Activity loads, including an Arena run's own reload-in-place
+     * onward: the first render of a new fight should never tween in from
+     * whatever the last fight's bar happened to be sitting at.
+     */
+    private var lastBotHpShown = -1
+    private var lastRatHpShown = -1
+
+    /** The portraits' own idle breathing loop - see [startIdleAnimations]. */
+    private val idleAnimators = mutableListOf<ObjectAnimator>()
+
+    /**
+     * A ceremonial boss's own glow, breathing behind its portrait - see
+     * [bindStaticViews]. Fight-scoped rather than started once like
+     * [idleAnimators]: most fights are an ordinary Rustbot with no glow to
+     * animate at all, so this only exists for the fights that actually earn
+     * one.
+     */
+    private var bossGlowAnimator: ObjectAnimator? = null
+
+    /** The battle log's newest line typing itself out - see [render] and [revealLogInstantly]. */
+    private var typewriterJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +130,15 @@ class BattleActivity : AppCompatActivity() {
         specialGlyph = findViewById(R.id.specialGlyph)
         botCard = findViewById(R.id.botCard)
         ratCard = findViewById(R.id.ratCard)
+        botPortraitFrame = findViewById(R.id.botPortraitFrame)
+        ratPortraitFrame = findViewById(R.id.ratPortraitFrame)
+        botImage = findViewById(R.id.botImage)
+        bossGlow = findViewById(R.id.bossGlow)
+        bossBadge = findViewById(R.id.bossBadge)
+        botHitFlash = findViewById(R.id.botHitFlash)
+        ratHitFlash = findViewById(R.id.ratHitFlash)
+        botDamagePopup = findViewById(R.id.botDamagePopup)
+        ratDamagePopup = findViewById(R.id.ratDamagePopup)
         activeBuffBadge = findViewById(R.id.activeBuffBadge)
         activeBuffIcon = findViewById(R.id.activeBuffIcon)
         activeBuffLabel = findViewById(R.id.activeBuffLabel)
@@ -88,9 +150,48 @@ class BattleActivity : AppCompatActivity() {
         btnLeave = findViewById(R.id.btnLeave)
 
         btnLeave.setOnClickListener { finish() }
+        // A tap skips the typewriter straight to the full line - see
+        // revealLogInstantly. Harmless to tap when nothing is animating: it
+        // just re-sets the same text that is already fully shown.
+        logView.setOnClickListener { revealLogInstantly() }
         wireActions()
+        startIdleAnimations()
 
         loadFight()
+    }
+
+    override fun onDestroy() {
+        idleAnimators.forEach { it.cancel() }
+        idleAnimators.clear()
+        bossGlowAnimator?.cancel()
+        super.onDestroy()
+    }
+
+    /**
+     * A slow, continuous breathing loop on both portrait frames, so the
+     * screen has some life to it between rounds rather than sitting
+     * perfectly still. Targets the *frame* each portrait sits in, not the
+     * ImageView itself - [lunge] animates the ImageView's own translationY
+     * for the attack hop, and a child's local translation composes with its
+     * parent's rather than fighting it, so the two motions layer cleanly
+     * instead of one animator stomping the other's value.
+     *
+     * Started once from [onCreate] rather than per fight from
+     * [bindStaticViews] - both portrait frames are fixed views for this
+     * Activity's whole lifetime, so restarting this on every [loadFight]
+     * (including an Arena run's own reload-in-place onward) would only pile
+     * up duplicate animators driving the same property.
+     */
+    private fun startIdleAnimations() {
+        val amplitude = -4 * resources.displayMetrics.density
+        listOf(botPortraitFrame to 1100L, ratPortraitFrame to 950L).forEach { (view, duration) ->
+            val animator = ObjectAnimator.ofFloat(view, View.TRANSLATION_Y, 0f, amplitude, 0f).apply {
+                this.duration = duration
+                repeatCount = ValueAnimator.INFINITE
+                start()
+            }
+            idleAnimators += animator
+        }
     }
 
     /**
@@ -194,22 +295,24 @@ class BattleActivity : AppCompatActivity() {
             val opening = getString(RustbotFlavour.openingFor(encounter), battle.botName)
             lines += opening
 
-            bindStaticViews()
+            // Null for an ordinary Rustbot and for an Arena milestone fight
+            // alike, even though the latter carries a real bossId too (see
+            // ArenaRun.rustbotFor) - that id exists only to drive the named
+            // Special/DOT/weakness kit inside Battle, not to make an Arena
+            // fight look and behave like the ceremonial boss ladder it
+            // deliberately stays separate from. Computed once and shared by
+            // bindStaticViews' own portrait treatment below and the intro
+            // dialog further down, so the two can never disagree about
+            // whether this fight is a ceremonial boss.
+            val ceremonialBoss = if (inArena) null else encounter.bossId?.let { Bosses.byId(it) }
+
+            bindStaticViews(ceremonialBoss)
             render()
 
             // The intro replaces the normal drop straight into combat, and only
             // for a boss - an ordinary Rustbot falls straight through to the
-            // screen already rendered above, exactly as it always has. Also
-            // skipped for an Arena milestone fight even though those now carry
-            // a bossId too (see ArenaRun.rustbotFor) - that id exists only to
-            // drive the named Special/DOT/weakness kit inside Battle, not to
-            // make an Arena fight look and behave like the ceremonial boss
-            // ladder it deliberately stays separate from.
-            if (!ArenaRun.isActive(prefs)) {
-                encounter.bossId?.let { Bosses.byId(it) }?.let { spec ->
-                    showBossIntro(spec, opening)
-                }
-            }
+            // screen already rendered above, exactly as it always has.
+            ceremonialBoss?.let { spec -> showBossIntro(spec, opening) }
         }
     }
 
@@ -245,12 +348,20 @@ class BattleActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun bindStaticViews() {
+    private fun bindStaticViews(ceremonialBoss: BossSpec?) {
         botName.text = battle.botName
         ratName.text = battle.ratName
         ratImage.setImageResource(rat.imageRes)
         botHpBar.max = battle.botMaxHp
         ratHpBar.max = battle.ratMaxHp
+
+        // A new fight's first render should snap both bars straight to full,
+        // never tween in from wherever the last fight's bars were left - see
+        // animateHpBar and lastBotHpShown's own doc comment.
+        lastBotHpShown = -1
+        lastRatHpShown = -1
+
+        bindBossPortrait(ceremonialBoss)
 
         // ic_settings and ic_sparkle both mean other things elsewhere on this
         // screen (Corrosive Charge's own Items-panel icon, the Special
@@ -277,6 +388,56 @@ class BattleActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Escalates the bot portrait for a ceremonial boss fight: a bigger frame,
+     * a brass_bright glow breathing behind it (the same [ArenaBadgeMedallion]
+     * cadence an earned Arena badge already pulses at, and the same
+     * bg_lantern_glow drawable the streak lantern lights up with - brass_bright
+     * is already this app's own colour for "this one is lit"), and the
+     * boss's own badge icon - the one [showBossIntro] and [showBossResult]
+     * already pair with its name - pinned to the portrait's corner, so the
+     * fight itself carries a hint of which boss this is, not just the two
+     * screens bookending it.
+     *
+     * Null for an ordinary Rustbot, which is almost every fight, and reverts
+     * the frame to [PLAIN_PORTRAIT_DP] with both add-ons hidden - the state a
+     * freshly inflated screen already starts in, but this Activity is reused
+     * across every fight an Arena run plays (see [loadFight]'s own doc
+     * comment), so a boss fight's own escalation has to be explicitly undone
+     * here rather than assumed absent.
+     */
+    private fun bindBossPortrait(spec: BossSpec?) {
+        bossGlowAnimator?.cancel()
+
+        val density = resources.displayMetrics.density
+        val frameDp = if (spec != null) BOSS_PORTRAIT_DP else PLAIN_PORTRAIT_DP
+        val frameSize = (frameDp * density).roundToInt()
+        botPortraitFrame.layoutParams = botPortraitFrame.layoutParams.apply {
+            width = frameSize
+            height = frameSize
+        }
+
+        if (spec == null) {
+            bossGlow.visibility = View.GONE
+            bossBadge.visibility = View.GONE
+            return
+        }
+
+        bossBadge.setImageResource(spec.badgeRes)
+        bossBadge.imageTintList = ContextCompat.getColorStateList(this, R.color.brass_bright)
+        bossBadge.visibility = View.VISIBLE
+
+        bossGlow.visibility = View.VISIBLE
+        bossGlow.background.mutate()
+        bossGlow.background.alpha = BOSS_GLOW_MIN_ALPHA
+        bossGlowAnimator = ObjectAnimator.ofInt(bossGlow.background, "alpha", BOSS_GLOW_MIN_ALPHA, 255).apply {
+            duration = BOSS_GLOW_CYCLE_MS
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.REVERSE
+            start()
+        }
+    }
+
     private fun wireActions() {
         btnAttack.setOnClickListener { play(BattleAction.ATTACK) }
         btnDefend.setOnClickListener { play(BattleAction.DEFEND) }
@@ -296,16 +457,91 @@ class BattleActivity : AppCompatActivity() {
     }
 
     /**
-     * The battle screen's only concession to motion: the rat's faction
-     * glyph popping over its own portrait when Special fires, and a shake
-     * on whichever card just took a hit. Purely cosmetic - reads [r] but
-     * never feeds back into [battle], so a skipped or double-fired call
-     * here could never change how a fight actually plays out.
+     * The battle screen's whole concession to motion: the rat's faction
+     * glyph popping over its own portrait when Special fires, a lunge from
+     * whichever side just swung, a hit-flash and floating damage number on
+     * whichever side just took the swing, and a shake on that same card.
+     * Purely cosmetic - reads [r] but never feeds back into [battle], so a
+     * skipped or double-fired call here could never change how a fight
+     * actually plays out.
      */
     private fun animateRound(r: RoundResult) {
         if (r.action == BattleAction.SPECIAL) flashFactionSpecial()
-        if (r.damageDealt > 0) shake(botCard)
-        if (r.damageTaken > 0) shake(ratCard)
+
+        if (r.damageDealt > 0) {
+            lunge(ratImage, towardOpponent = -1f)
+            flash(botHitFlash)
+            popDamage(botDamagePopup, r.damageDealt, big = r.action == BattleAction.SPECIAL)
+            shake(botCard, big = r.action == BattleAction.SPECIAL)
+        }
+        if (r.damageTaken > 0) {
+            lunge(botImage, towardOpponent = 1f)
+            flash(ratHitFlash)
+            popDamage(ratDamagePopup, r.damageTaken, big = r.botUsedSpecial)
+            shake(ratCard, big = r.botUsedSpecial)
+        }
+    }
+
+    /**
+     * A quick hop toward the opponent's card for whichever portrait just
+     * landed a hit - the bot card sits above the rat card on this screen, so
+     * "toward the opponent" is [towardOpponent] of vertical travel: negative
+     * (up, toward the bot) for the rat's own swing, positive (down, toward
+     * the rat) for the bot's reply.
+     *
+     * Targets the ImageView itself rather than its portrait frame, so this
+     * composes with that frame's own idle breathing loop instead of the two
+     * fighting over one view's translationY - see [startIdleAnimations].
+     */
+    private fun lunge(view: View, towardOpponent: Float) {
+        val distance = 10 * resources.displayMetrics.density * towardOpponent
+        view.animate().cancel()
+        view.translationY = 0f
+        view.animate()
+            .translationY(distance)
+            .setDuration(90)
+            .withEndAction {
+                view.animate().translationY(0f).setDuration(140).start()
+            }
+            .start()
+    }
+
+    /** A brief white flash over the portrait that just took a hit. */
+    private fun flash(view: View) {
+        view.animate().cancel()
+        view.alpha = 0.75f
+        view.animate().alpha(0f).setStartDelay(60).setDuration(180).start()
+    }
+
+    /**
+     * The floating "-12" over whichever portrait just took a hit. [big]
+     * (a Special or a boss's named move) reads brass_bright instead of the
+     * usual ember_deep, the same "this one mattered more" colour
+     * [flashFactionSpecial]'s own glyph already uses.
+     */
+    private fun popDamage(view: TextView, amount: Int, big: Boolean) {
+        view.animate().cancel()
+        view.text = getString(R.string.battle_damage_popup, amount)
+        view.setTextColor(
+            ContextCompat.getColor(this, if (big) R.color.brass_bright else R.color.ember_deep)
+        )
+        view.alpha = 1f
+        view.translationY = 0f
+        view.scaleX = 1.3f
+        view.scaleY = 1.3f
+        view.animate()
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(120)
+            .withEndAction {
+                view.animate()
+                    .translationY(-24 * resources.displayMetrics.density)
+                    .alpha(0f)
+                    .setStartDelay(260)
+                    .setDuration(340)
+                    .start()
+            }
+            .start()
     }
 
     /**
@@ -343,9 +579,13 @@ class BattleActivity : AppCompatActivity() {
             .start()
     }
 
-    /** A quick side-to-side rattle on whichever card's rat/bot just took a hit. */
-    private fun shake(view: View) {
-        val amplitude = 8 * resources.displayMetrics.density
+    /**
+     * A quick side-to-side rattle on whichever card's rat/bot just took a
+     * hit. [big] widens it for a Special or a boss's named move, the same
+     * "this one mattered more" treatment [popDamage]'s own colour swap gives.
+     */
+    private fun shake(view: View, big: Boolean = false) {
+        val amplitude = (if (big) 12 else 8) * resources.displayMetrics.density
         ObjectAnimator.ofFloat(
             view, View.TRANSLATION_X,
             0f, -amplitude, amplitude, -amplitude * 0.6f, amplitude * 0.6f, 0f
@@ -495,11 +735,38 @@ class BattleActivity : AppCompatActivity() {
         null -> "${battle.ratName} fumbles with an empty pocket"
     }
 
+    /**
+     * Drains (or fills, on a Tonic/lifesteal round) [bar] toward [newValue],
+     * tweened rather than snapped - the single biggest thing missing from
+     * this screen's own "feel" next to an old Pokemon-style fight, where a
+     * bar visibly running down is most of what sells a hit landing.
+     *
+     * [previouslyShown] is what this same bar last actually displayed, per
+     * [lastBotHpShown]/[lastRatHpShown]'s own doc comment: -1 (nothing shown
+     * yet, i.e. this fight's first render) or an unchanged value both skip
+     * the tween and set the bar directly, so a fresh fight opens with full
+     * bars already in place rather than visibly filling up to them.
+     *
+     * Returns [newValue], so a caller can fold the read-and-store into one
+     * line rather than needing a separate assignment after.
+     */
+    private fun animateHpBar(bar: ProgressBar, newValue: Int, previouslyShown: Int): Int {
+        if (previouslyShown < 0 || previouslyShown == newValue) {
+            bar.progress = newValue
+        } else {
+            ObjectAnimator.ofInt(bar, "progress", bar.progress, newValue).apply {
+                duration = 450
+                start()
+            }
+        }
+        return newValue
+    }
+
     private fun render() {
         botStats.text = getString(R.string.battle_stats, battle.botPower, battle.botHp, battle.botMaxHp)
         ratStats.text = getString(R.string.battle_stats, battle.attackDamage(), battle.ratHp, battle.ratMaxHp)
-        botHpBar.progress = battle.botHp
-        ratHpBar.progress = battle.ratHp
+        lastBotHpShown = animateHpBar(botHpBar, battle.botHp, lastBotHpShown)
+        lastRatHpShown = animateHpBar(ratHpBar, battle.ratHp, lastRatHpShown)
 
         // Status icons - see Battle.botDotActive/ratDotActive/botCharging.
         // Charging takes priority over the DOT badge on the bot's own row: the
@@ -512,12 +779,12 @@ class BattleActivity : AppCompatActivity() {
         ratDotIcon.visibility = if (battle.ratDotActive) View.VISIBLE else View.GONE
 
         // Stays hidden until there is something to read, so the screen never
-        // shows an empty card. Driven by the text actually about to be drawn
+        // shows an empty card. Driven by the lines actually about to be drawn
         // rather than by the line count: a blank or whitespace-only entry would
         // otherwise pass the count check and render as an empty white box.
-        val log = lines.takeLast(8).joinToString("\n")
-        logView.text = log
-        logView.visibility = if (log.isBlank()) View.GONE else View.VISIBLE
+        val shown = lines.takeLast(8)
+        logView.visibility = if (shown.isEmpty()) View.GONE else View.VISIBLE
+        typeInLatestLine(shown)
 
         val over = battle.outcome != BattleOutcome.ONGOING
         btnAttack.isEnabled = !over
@@ -531,6 +798,47 @@ class BattleActivity : AppCompatActivity() {
         } else {
             getString(R.string.battle_special_cooldown, battle.specialCooldownRemaining)
         }
+    }
+
+    /**
+     * Types [shown]'s last entry out one character at a time, Pokemon-dialogue
+     * style, with every earlier entry sitting above it already fully shown.
+     *
+     * [shown] is always [lines] with a new entry just appended - see every
+     * call site of [render] - so "every earlier entry" only ever needs
+     * [List.dropLast], never a second animation of its own: by the time an
+     * entry stops being the last one, this function has already finished
+     * typing it out (or [revealLogInstantly] jumped it there), so replaying
+     * it in full costs nothing extra to look at.
+     *
+     * Cancels whatever this was still typing first. That leaves the previous
+     * call's entry exactly where it stopped for one frame, but the very next
+     * line this method sets folds that same entry into history in full -
+     * [shown]'s second-to-last-or-earlier slice - so the stale partial text
+     * is never actually visible.
+     */
+    private fun typeInLatestLine(shown: List<String>) {
+        typewriterJob?.cancel()
+        if (shown.isEmpty()) return
+
+        val history = shown.dropLast(1).joinToString("\n")
+        val current = shown.last()
+        typewriterJob = lifecycleScope.launch {
+            for (charCount in 1..current.length) {
+                logView.text = if (history.isEmpty()) {
+                    current.substring(0, charCount)
+                } else {
+                    "$history\n${current.substring(0, charCount)}"
+                }
+                delay(TYPEWRITER_MS)
+            }
+        }
+    }
+
+    /** A tap on the log jumps straight to what [typeInLatestLine] was still typing out. */
+    private fun revealLogInstantly() {
+        typewriterJob?.cancel()
+        logView.text = lines.takeLast(8).joinToString("\n")
     }
 
     private fun finishBattle() {

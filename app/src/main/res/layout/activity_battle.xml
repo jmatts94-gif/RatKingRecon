@@ -64,68 +64,175 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:background="@drawable/bg_battle_card_inner"
                 android:clipChildren="false"
                 android:padding="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:id="@+id/botName"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Rustbot"
-                        android:textColor="@color/text_primary"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                <!--
+                  The Rustbot portrait - see ic_rustbot_silhouette. Every
+                  encounter draws the same glyph (no per-bot art exists), so
+                  this FrameLayout is fixed content rather than something
+                  bindStaticViews swaps per fight, unlike ratImage below it.
+                  botPortraitFrame carries the idle breathing loop
+                  (BattleActivity.startIdleAnimations); botImage itself is
+                  left free for the momentary attack lunge
+                  (BattleActivity.lunge) so the two motions compose instead of
+                  fighting over the same view's translationY.
+                -->
+                <FrameLayout
+                    android:id="@+id/botPortraitFrame"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_marginEnd="14dp"
+                    android:clipChildren="false">
 
                     <!--
-                      Status icons - see Battle.botDotActive / botCharging and
-                      BattleActivity.renderStatusIcons. Both gone by default;
-                      at most one is ever visible at once (a charging boss has
-                      no reply of its own to have applied a DOT with yet).
+                      A ceremonial boss's own glow, sitting behind the portrait
+                      rather than replacing it - see BattleActivity.bindStaticViews
+                      and its own isCeremonialBoss check. The same
+                      bg_lantern_glow the streak lantern and an earned Arena
+                      medallion already use for "this one is lit", at brass_bright
+                      undyed since that is already the glow this app reaches
+                      for to mark something as the important one. Bigger than
+                      the frame it sits in and centred, the same oversized
+                      halo-behind-a-smaller-icon shape ic_rustbot_silhouette's
+                      own glow already draws at a much smaller scale.
+                      Gone rather than merely alpha-0 for every ordinary
+                      Rustbot, which is most fights - no wasted overdraw
+                      behind a portrait most players will only ever see once
+                      or twice a level.
+                    -->
+                    <View
+                        android:id="@+id/bossGlow"
+                        android:layout_width="104dp"
+                        android:layout_height="104dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_lantern_glow"
+                        android:visibility="gone"
+                        android:importantForAccessibility="no" />
+
+                    <ImageView
+                        android:id="@+id/botImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/ic_rustbot_silhouette"
+                        android:importantForAccessibility="no" />
+
+                    <!--
+                      The boss's own badge - the same icon Boss.kt already
+                      pairs with its name on the intro/result ceremony this
+                      fight opened on, pinned to the portrait as a corner
+                      emblem so the fight itself carries a hint of which boss
+                      this is, not just the two screens bookending it. See
+                      BattleActivity.bindStaticViews. Gone outside a
+                      ceremonial boss fight, the same as bossGlow above.
                     -->
                     <ImageView
-                        android:id="@+id/botDotIcon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_marginStart="6dp"
-                        android:src="@drawable/ic_settings"
+                        android:id="@+id/bossBadge"
+                        android:layout_width="26dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="bottom|end"
+                        android:background="@drawable/bg_badge_scrim"
+                        android:padding="4dp"
                         android:visibility="gone"
-                        android:contentDescription="@string/battle_status_dot"
+                        android:importantForAccessibility="no"
+                        tools:src="@drawable/ic_hexagon"
+                        tools:tint="@color/brass_bright"
                         tools:visibility="visible" />
 
-                    <ImageView
-                        android:id="@+id/botChargingIcon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_marginStart="6dp"
-                        android:src="@drawable/ic_sparkle"
-                        android:visibility="gone"
-                        android:contentDescription="@string/battle_status_charging"
-                        tools:visibility="visible" />
-                </LinearLayout>
+                    <!-- A brief white flash on the portrait it sits over -
+                         see BattleActivity.flash. Alpha 0 costs nothing to
+                         leave in the layout between hits. -->
+                    <View
+                        android:id="@+id/botHitFlash"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/cream"
+                        android:alpha="0"
+                        android:importantForAccessibility="no" />
 
-                <TextView
-                    android:id="@+id/botStats"
-                    android:layout_width="match_parent"
+                    <!-- The floating "-12" - see BattleActivity.popDamage. -->
+                    <TextView
+                        android:id="@+id/botDamagePopup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/ember_deep"
+                        android:elevation="6dp"
+                        android:alpha="0"
+                        android:importantForAccessibility="no"
+                        tools:text="-12" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_muted"
-                    android:textSize="13sp"
-                    android:layout_marginBottom="6dp" />
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <ProgressBar
-                    android:id="@+id/botHpBar"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="12dp"
-                    android:progressDrawable="@drawable/progress_amber" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/botName"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Rustbot"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <!--
+                          Status icons - see Battle.botDotActive / botCharging and
+                          BattleActivity.renderStatusIcons. Both gone by default;
+                          at most one is ever visible at once (a charging boss has
+                          no reply of its own to have applied a DOT with yet).
+                        -->
+                        <ImageView
+                            android:id="@+id/botDotIcon"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginStart="6dp"
+                            android:src="@drawable/ic_settings"
+                            android:visibility="gone"
+                            android:contentDescription="@string/battle_status_dot"
+                            tools:visibility="visible" />
+
+                        <ImageView
+                            android:id="@+id/botChargingIcon"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_marginStart="6dp"
+                            android:src="@drawable/ic_sparkle"
+                            android:visibility="gone"
+                            android:contentDescription="@string/battle_status_charging"
+                            tools:visibility="visible" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/botStats"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_muted"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="6dp" />
+
+                    <ProgressBar
+                        android:id="@+id/botHpBar"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="12dp"
+                        android:progressDrawable="@drawable/progress_amber" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
@@ -153,6 +260,7 @@
                 android:padding="16dp">
 
                 <FrameLayout
+                    android:id="@+id/ratPortraitFrame"
                     android:layout_width="64dp"
                     android:layout_height="64dp"
                     android:layout_marginEnd="14dp"
@@ -164,6 +272,31 @@
                         android:layout_height="64dp"
                         android:scaleType="centerCrop"
                         android:contentDescription="@string/battle_title" />
+
+                    <!-- A brief white flash on the portrait it sits over -
+                         see BattleActivity.flash. Alpha 0 costs nothing to
+                         leave in the layout between hits. -->
+                    <View
+                        android:id="@+id/ratHitFlash"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/cream"
+                        android:alpha="0"
+                        android:importantForAccessibility="no" />
+
+                    <!-- The floating "-12" - see BattleActivity.popDamage. -->
+                    <TextView
+                        android:id="@+id/ratDamagePopup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:textColor="@color/ember_deep"
+                        android:elevation="6dp"
+                        android:alpha="0"
+                        android:importantForAccessibility="no"
+                        tools:text="-12" />
 
                     <!--
                       The faction's own glyph - the same one CardIcons.faction
