@@ -66,6 +66,14 @@ class MainActivity : AppCompatActivity() {
         const val TIP_FADE_MS = 400L
     }
 
+    // Launches OnboardingActivity and waits for it to finish, so the permission
+    // request that follows fires after the walkthrough rather than stacking on
+    // top of it with no explanation.
+    private val onboardingLauncher =
+        registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()) {
+            requestNeededPermissions()
+        }
+
     private val ticker = Handler(Looper.getMainLooper())
 
     /** The Arena tile's three medallions' own spin/glow animators - see [updateArenaTile]. */
@@ -251,27 +259,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         EdgeToEdge.apply(this)
 
-        // 0. First launch: explain the game before the workshop appears. The
-        //    flag lives in the save, so a reset brings the walkthrough back.
+        // 0. First launch: explain the game before the workshop appears, and
+        //    hold the permission request until it is dismissed. The flag lives
+        //    in the save, so a reset brings the walkthrough back.
         if (!Onboarding.isComplete(RatRepository.prefs(this))) {
-            startActivity(android.content.Intent(this, OnboardingActivity::class.java))
-        }
-
-        // 1. Permission Check
-        val wanted = mutableListOf<String>()
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            wanted += android.Manifest.permission.ACTIVITY_RECOGNITION
-        }
-        // Without this the hatch alert is silently dropped on Android 13+.
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            wanted += android.Manifest.permission.POST_NOTIFICATIONS
-        }
-        val missing = wanted.filter {
-            ContextCompat.checkSelfPermission(this, it) !=
-                android.content.pm.PackageManager.PERMISSION_GRANTED
-        }
-        if (missing.isNotEmpty()) {
-            androidx.core.app.ActivityCompat.requestPermissions(this, missing.toTypedArray(), 1)
+            onboardingLauncher.launch(android.content.Intent(this, OnboardingActivity::class.java))
+        } else {
+            // 1. Permission Check
+            requestNeededPermissions()
         }
 
         // 2. Initialize UI (We do this FIRST so the buttons exist before we click them)
@@ -397,6 +392,24 @@ class MainActivity : AppCompatActivity() {
 
         // Covers a save that was already past the unlock level before this shipped.
         maybeShowUnlockPopup()
+    }
+
+    private fun requestNeededPermissions() {
+        val wanted = mutableListOf<String>()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            wanted += android.Manifest.permission.ACTIVITY_RECOGNITION
+        }
+        // Without this the hatch alert is silently dropped on Android 13+.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            wanted += android.Manifest.permission.POST_NOTIFICATIONS
+        }
+        val missing = wanted.filter {
+            ContextCompat.checkSelfPermission(this, it) !=
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) {
+            androidx.core.app.ActivityCompat.requestPermissions(this, missing.toTypedArray(), 1)
+        }
     }
 
     /**
