@@ -49,9 +49,6 @@ object ReconCard {
     private const val CARD_WIDTH_DP = 480
     private const val CARD_HEIGHT_DP = 600
 
-    /** Always reads high on the dial - see GaugeDialView's own comment on why. */
-    private const val GAUGE_NEEDLE_FRACTION = 0.85f
-
     private val stepsFormat: NumberFormat get() = NumberFormat.getIntegerInstance()
 
     /** See [lightSteampunkContext] - a Recon Card is a fixed exported image, never dark-mode aware. */
@@ -98,7 +95,9 @@ object ReconCard {
         view.findViewById<TextView>(R.id.reconStepsKm).text = activity.getString(
             R.string.recon_steps_km, Milestones.kilometresFor(milestone.target)
         )
-        view.findViewById<GaugeDialView>(R.id.reconGauge).needleFraction = GAUGE_NEEDLE_FRACTION
+        // Same icon the Achievements row already shows for this milestone -
+        // the medallion is that badge struck large, not a different image.
+        view.findViewById<ImageView>(R.id.reconMedallionIcon).setImageResource(milestone.iconRes)
         view.findViewById<TextView>(R.id.reconRibbon).text = activity.getString(milestone.nameRes)
 
         renderAndShare(activity, view, activity.getString(R.string.recon_share_subject_milestone))
