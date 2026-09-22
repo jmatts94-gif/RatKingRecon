@@ -99,11 +99,14 @@ class AchievementsTest {
     @Test
     fun `the three categories match the brief`() {
         assertEquals(
-            // The last two share a target on purpose now - "steps_1m" (Master
-            // Courier's own milestone) was lowered from 1,000,000 to 100,000,
-            // the same target "steps_100k" (Wayfarer) already uses. Both fire
-            // together at 100,000 steps rather than one gating the other.
-            listOf(10_000L, 50_000L, 100_000L, 250_000L, 500_000L, 100_000L),
+            // "steps_10k" (First Steps) was lowered from 10,000 to 1,000, and
+            // "steps_5k" (Scout) added between it and Pathfinder - friendlier
+            // to players who don't walk much. The last two still share a
+            // target on purpose: "steps_1m" (Master Courier's own milestone)
+            // was lowered from 1,000,000 to 100,000, the same target
+            // "steps_100k" (Wayfarer) already uses. Both fire together at
+            // 100,000 steps rather than one gating the other.
+            listOf(1_000L, 5_000L, 50_000L, 100_000L, 250_000L, 500_000L, 100_000L),
             Milestones.steps.map { it.target }
         )
         assertEquals(
@@ -121,8 +124,8 @@ class AchievementsTest {
             listOf("splice_first", "splice_10", "splice_lucky", "splice_25"),
             Milestones.splicing.map { it.id }
         )
-        // 18 ordinary milestones plus Milestones.secret's one hidden entry.
-        assertEquals(19, Milestones.all.size)
+        // 19 ordinary milestones plus Milestones.secret's one hidden entry.
+        assertEquals(20, Milestones.all.size)
     }
 
     @Test
@@ -144,9 +147,9 @@ class AchievementsTest {
     @Test
     fun `a milestone is met exactly at its threshold`() {
         val first = Milestones.steps.first()
-        assertFalse(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 9_999L)))
-        assertTrue(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 10_000L)))
-        assertTrue(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 10_001L)))
+        assertFalse(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 999L)))
+        assertTrue(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 1_000L)))
+        assertTrue(Milestones.isMet(first, MilestoneProgress(lifetimeSteps = 1_001L)))
     }
 
     @Test
@@ -164,13 +167,13 @@ class AchievementsTest {
         val prefs = FakePrefs()
         val first = Milestones.refresh(prefs, MilestoneProgress(lifetimeSteps = 60_000L), AchStubDao())
 
-        assertEquals(listOf("steps_10k", "steps_50k"), first.map { it.id })
+        assertEquals(listOf("steps_10k", "steps_5k", "steps_50k"), first.map { it.id })
         assertTrue(Milestones.isEarned(prefs, Milestones.steps[0]))
-        assertEquals(2, Milestones.earnedCount(prefs))
+        assertEquals(3, Milestones.earnedCount(prefs))
 
         // Same progress again: nothing is newly earned.
         assertTrue(Milestones.refresh(prefs, MilestoneProgress(lifetimeSteps = 60_000L), AchStubDao()).isEmpty())
-        assertEquals(2, Milestones.earnedCount(prefs))
+        assertEquals(3, Milestones.earnedCount(prefs))
     }
 
     /**
@@ -259,11 +262,11 @@ class AchievementsTest {
         // the sensor-path refresh must not need or use them.
         Milestones.refreshSteps(prefs, 100_000L)
 
-        assertTrue(Milestones.isEarned(prefs, Milestones.steps[2]))
+        assertTrue(Milestones.isEarned(prefs, Milestones.steps[3]))
         assertFalse(Milestones.isEarned(prefs, Milestones.roster[0]))
-        // 10k/50k/100k, plus steps_1m - lowered to the same 100k target as
+        // 1k/5k/50k/100k, plus steps_1m - lowered to the same 100k target as
         // steps_100k, so both latch together here rather than one at a time.
-        assertEquals(4, Milestones.earnedCount(prefs))
+        assertEquals(5, Milestones.earnedCount(prefs))
     }
 
     @Test

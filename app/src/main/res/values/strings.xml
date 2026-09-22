@@ -577,6 +577,7 @@ RARE DROP: %2$s</string>
 
     <!-- Lifetime step milestones -->
     <string name="milestone_first_steps">First Steps</string>
+    <string name="milestone_scout">Scout</string>
     <string name="milestone_pathfinder">Pathfinder</string>
     <string name="milestone_wayfarer">Wayfarer</string>
     <string name="milestone_trailblazer">Trailblazer</string>

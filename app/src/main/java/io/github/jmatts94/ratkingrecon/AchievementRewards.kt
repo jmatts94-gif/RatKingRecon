@@ -75,6 +75,7 @@ object AchievementRewards {
 
     private val steps = mapOf(
         "steps_10k" to AchievementReward.Scrap(20),
+        "steps_5k" to AchievementReward.Scrap(25),
         "steps_50k" to AchievementReward.Scrap(40),
         "steps_100k" to AchievementReward.Scrap(60),
         "steps_250k" to AchievementReward.Scrap(100),

@@ -89,7 +89,11 @@ object Milestones {
     const val KEY_TINKERER_TRIGGERED = "TINKERER_TRIGGERED"
 
     val steps: List<Milestone> = listOf(
-        Milestone("steps_10k", R.string.milestone_first_steps, R.drawable.ic_footprint, MilestoneKind.STEPS, 10_000L),
+        // Lowered from 10,000 - friendlier to players who don't walk much,
+        // same never-move-it-once-shipped id rule as steps_1m below. The
+        // name stays "First Steps" either way.
+        Milestone("steps_10k", R.string.milestone_first_steps, R.drawable.ic_footprint, MilestoneKind.STEPS, 1_000L),
+        Milestone("steps_5k", R.string.milestone_scout, R.drawable.ic_footprint, MilestoneKind.STEPS, 5_000L),
         Milestone("steps_50k", R.string.milestone_pathfinder, R.drawable.ic_footprint, MilestoneKind.STEPS, 50_000L),
         Milestone("steps_100k", R.string.milestone_wayfarer, R.drawable.ic_expedition, MilestoneKind.STEPS, 100_000L),
         Milestone("steps_250k", R.string.milestone_trailblazer, R.drawable.ic_expedition, MilestoneKind.STEPS, 250_000L),
