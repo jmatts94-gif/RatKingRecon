@@ -49,8 +49,8 @@ android {
         applicationId = "io.github.jmatts94.ratkingrecon"
         minSdk = 24
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.10"
+        versionCode = 13
+        versionName = "0.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
