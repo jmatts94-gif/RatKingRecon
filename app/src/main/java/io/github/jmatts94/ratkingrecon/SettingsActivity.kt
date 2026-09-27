@@ -123,6 +123,12 @@ class SettingsActivity : AppCompatActivity() {
             // told directly since it is the one already in front.
             recreate()
         }
+
+        val distanceMiles = findViewById<MaterialSwitch>(R.id.distanceMilesSwitch)
+        distanceMiles.isChecked = GameSettings.distanceUnitMiles(prefs)
+        distanceMiles.setOnCheckedChangeListener { _, on ->
+            prefs.edit().putBoolean(GameSettings.KEY_DISTANCE_MILES, on).apply()
+        }
     }
 
     /** Reads the version from the installed package, so it can never drift from the build. */
@@ -314,6 +320,7 @@ class SettingsActivity : AppCompatActivity() {
                 val notifications = GameSettings.notificationsEnabled(prefs)
                 val sound = GameSettings.soundEnabled(prefs)
                 val darkSteampunk = GameSettings.darkSteampunkEnabled(prefs)
+                val distanceMiles = GameSettings.distanceUnitMiles(prefs)
 
                 // As with import: keep a sensor event from landing mid-wipe.
                 stopService(Intent(this@SettingsActivity, StepTrackerService::class.java))
@@ -322,6 +329,7 @@ class SettingsActivity : AppCompatActivity() {
                     .putBoolean(GameSettings.KEY_NOTIFICATIONS, notifications)
                     .putBoolean(GameSettings.KEY_SOUND, sound)
                     .putBoolean(GameSettings.KEY_DARK_STEAMPUNK, darkSteampunk)
+                    .putBoolean(GameSettings.KEY_DISTANCE_MILES, distanceMiles)
                     .commit()
 
                 RatRepository.dao(this@SettingsActivity).deleteAll()

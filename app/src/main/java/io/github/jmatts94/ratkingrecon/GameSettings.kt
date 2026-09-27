@@ -17,6 +17,9 @@ object GameSettings {
     const val KEY_NOTIFICATIONS = "notifications_enabled"
     const val KEY_SOUND = "sound_enabled"
 
+    /** Whether distances show in miles rather than km - defaults false, same reasoning as the others. */
+    const val KEY_DISTANCE_MILES = "distance_unit_miles"
+
     /**
      * The one toggle here that defaults to false rather than true - an opt-in
      * look, not a behaviour a save written before it existed should suddenly
@@ -42,4 +45,8 @@ object GameSettings {
     /** Whether the dark steampunk palette is on - see RatKingApp, which applies it at launch. */
     fun darkSteampunkEnabled(prefs: SharedPreferences): Boolean =
         prefs.getBoolean(KEY_DARK_STEAMPUNK, false)
+
+    /** Whether every distance in the app - see [Milestones.distanceFor] - shows in miles rather than km. */
+    fun distanceUnitMiles(prefs: SharedPreferences): Boolean =
+        prefs.getBoolean(KEY_DISTANCE_MILES, false)
 }

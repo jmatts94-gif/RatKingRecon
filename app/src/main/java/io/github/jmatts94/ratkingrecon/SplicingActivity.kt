@@ -51,7 +51,8 @@ class SplicingActivity : AppCompatActivity() {
             animator = FrameAnimator(),
             onCardClick = { onPetTapped(it) },
             isDisabled = { it.id in excludedIds },
-            isSelected = { it.id in selectedIds }
+            isSelected = { it.id in selectedIds },
+            onDisabledClick = { onExcludedPetTapped(it) }
         )
         findViewById<RecyclerView>(R.id.splicePetGrid).adapter = adapter
 
@@ -79,6 +80,27 @@ class SplicingActivity : AppCompatActivity() {
         }
         selectedIds += pet.id
         refresh()
+    }
+
+    /**
+     * Tells the player why a greyed-out card won't pick - it used to just sit
+     * there dead on tap, which is exactly what Jacob hit: a rat badged for a
+     * Ledger Task he'd forgotten starting, with no way to find out why it
+     * wouldn't select.
+     */
+    private fun onExcludedPetTapped(pet: RatEntity) {
+        val reason = SpliceEligibility.reasonFor(prefs, pet.id, roster) ?: return
+        val message = when (reason) {
+            is SpliceEligibility.ExclusionReason.BattleRat ->
+                getString(R.string.toast_splice_excluded_battle_rat, pet.name)
+            is SpliceEligibility.ExclusionReason.ScrapRun ->
+                getString(R.string.toast_splice_excluded_scrap_run, pet.name)
+            is SpliceEligibility.ExclusionReason.LedgerTask ->
+                getString(R.string.toast_splice_excluded_ledger_task, pet.name, reason.title)
+            is SpliceEligibility.ExclusionReason.Protected ->
+                getString(R.string.toast_splice_excluded_protected, pet.name)
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun load() {

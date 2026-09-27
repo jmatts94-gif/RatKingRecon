@@ -126,7 +126,8 @@ class AchievementsActivity : AppCompatActivity() {
         stepsSubtitle.text = getString(
             R.string.achievements_steps_sub,
             progress.lifetimeSteps,
-            Milestones.kilometresFor(progress.lifetimeSteps)
+            Milestones.distanceFor(prefs, progress.lifetimeSteps),
+            Milestones.distanceUnit(prefs)
         )
         rosterSubtitle.text = getString(
             R.string.achievements_roster_sub,

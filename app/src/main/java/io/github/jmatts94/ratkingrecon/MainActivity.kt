@@ -677,8 +677,11 @@ class MainActivity : AppCompatActivity() {
         // screen cannot disagree about how far a walk was.
         findViewById<TextView>(R.id.stepsTileCount).text =
             getString(R.string.tile_steps, stepsToday)
-        findViewById<TextView>(R.id.stepsTileDistance).text =
-            getString(R.string.tile_distance, Milestones.kilometresFor(stepsToday.toLong()))
+        findViewById<TextView>(R.id.stepsTileDistance).text = getString(
+            R.string.tile_distance,
+            Milestones.distanceFor(sharedPreferences, stepsToday.toLong()),
+            Milestones.distanceUnit(sharedPreferences)
+        )
     }
 
     /**

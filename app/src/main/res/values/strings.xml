@@ -29,8 +29,8 @@
     <string name="recon_ribbon_hatched">Just Hatched</string>
     <string name="recon_ribbon_spliced">Freshly Spliced</string>
     <string name="recon_steps_label">Lifetime Steps</string>
-    <!-- "≈ 38.5 km walked, all of it real" - the one flex backed by actual footsteps. -->
-    <string name="recon_steps_km">≈ %1$.1f km walked, all of it real</string>
+    <!-- "≈ 38.5 km walked, all of it real" - the one flex backed by actual footsteps. Unit is "km" or "mi", see Milestones.distanceUnit. -->
+    <string name="recon_steps_km">≈ %1$.1f %2$s walked, all of it real</string>
     <string name="recon_share_chooser_title">Share Recon Card</string>
     <string name="recon_share_subject_rat">%1$s — Rat King Recon</string>
     <string name="recon_share_subject_milestone">Rat King Recon</string>
@@ -146,8 +146,8 @@
     <string name="enlarged_scrap_run_busy">Scrap Run In Progress</string>
     <!-- steps walked today -->
     <string name="tile_steps">%1$d steps</string>
-    <!-- today's distance, estimated from an average stride -->
-    <string name="tile_distance">%1$.1f km</string>
+    <!-- today's distance, estimated from an average stride. Unit is "km" or "mi", see Milestones.distanceUnit. -->
+    <string name="tile_distance">%1$.1f %2$s</string>
 
     <!--
       Ambient flavor and tips cycled in the small tile at the foot of the home
@@ -264,6 +264,8 @@
     <string name="settings_cat_display_sub">How the workshop looks.</string>
     <string name="toggle_dark_steampunk">Dark steampunk</string>
     <string name="toggle_dark_steampunk_sub">A darker brass-and-shadow palette — not a true black mode.</string>
+    <string name="toggle_distance_miles">Distance in miles</string>
+    <string name="toggle_distance_miles_sub">Off shows km. Applies to every distance in the app.</string>
 
     <!-- Settings: about -->
     <string name="settings_cat_about">About</string>
@@ -309,6 +311,11 @@ RARE DROP: %2$s</string>
     <string name="splice_pick_two_rats">Select two eligible rats to continue.</string>
     <string name="toast_splice_max_selected">Deselect one first — only two rats at a time.</string>
     <string name="btn_splice_confirm">Splice (25 Scrap)</string>
+    <!-- Shown on tap of a greyed-out, unpickable card - explains why rather than doing nothing -->
+    <string name="toast_splice_excluded_battle_rat">%1$s is your Battle Rat. Stand it down first if you want to splice it.</string>
+    <string name="toast_splice_excluded_scrap_run">%1$s is out on a Scrap Run.</string>
+    <string name="toast_splice_excluded_ledger_task">%1$s is out on a Ledger Task (%2$s). Claim or wait it out first.</string>
+    <string name="toast_splice_excluded_protected">%1$s can never be used as Fusion Pot fodder.</string>
     <!--
       One line per triggered parent-faction effect, shown on the result card
       below Power/Toughness - see EnlargedRatDialog and SplicingActivity.splice.
@@ -549,8 +556,8 @@ RARE DROP: %2$s</string>
     <string name="arena_tile_status">Fight %1$d cleared</string>
     <string name="arena_tile_status_none">Not started</string>
     <string name="achievements_steps">Lifetime Steps</string>
-    <!-- lifetime steps, approximate kilometres -->
-    <string name="achievements_steps_sub">%1$d steps walked, about %2$.1f km</string>
+    <!-- lifetime steps, approximate distance. Unit is "km" or "mi", see Milestones.distanceUnit. -->
+    <string name="achievements_steps_sub">%1$d steps walked, about %2$.1f %3$s</string>
     <string name="achievements_roster">Roster Size</string>
     <!-- rats held, species found, species in the roster -->
     <string name="achievements_roster_sub">%1$d rats held, %2$d of %3$d species found</string>

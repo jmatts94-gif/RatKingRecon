@@ -190,6 +190,23 @@ object Milestones {
 
     fun kilometresFor(steps: Long): Double = steps * METRES_PER_STEP / 1000.0
 
+    private const val KM_PER_MILE = 1.609344
+
+    fun milesFor(steps: Long): Double = kilometresFor(steps) / KM_PER_MILE
+
+    /**
+     * The distance line's number, in whichever unit [GameSettings.distanceUnitMiles]
+     * says - the one conversion every screen that shows a distance goes through,
+     * so the home tile, the Achievements screen and the shared Recon Card can
+     * never disagree about which unit is on.
+     */
+    fun distanceFor(prefs: SharedPreferences, steps: Long): Double =
+        if (GameSettings.distanceUnitMiles(prefs)) milesFor(steps) else kilometresFor(steps)
+
+    /** The abbreviation to print after [distanceFor]'s number. */
+    fun distanceUnit(prefs: SharedPreferences): String =
+        if (GameSettings.distanceUnitMiles(prefs)) "mi" else "km"
+
     // ---- latching ------------------------------------------------------------
 
     fun isEarned(prefs: SharedPreferences, milestone: Milestone): Boolean =

@@ -48,4 +48,39 @@ object SpliceEligibility {
 
         return ids
     }
+
+    /** Why a rat is missing from [excludedIds]'s complement, for the tap that lands on it anyway. */
+    sealed class ExclusionReason {
+        object BattleRat : ExclusionReason()
+        object ScrapRun : ExclusionReason()
+        data class LedgerTask(val title: String) : ExclusionReason()
+        object Protected : ExclusionReason()
+    }
+
+    /**
+     * Which of [excludedIds]'s reasons applies to [ratId], for a tap that lands
+     * on an excluded card. Re-checks the same prefs rather than caching a
+     * verdict from [excludedIds], since a courtesy exclusion can lapse between
+     * that call and this tap (a task claimed elsewhere, an Expedition landing).
+     * Returns null if [ratId] is not actually excluded any more.
+     */
+    fun reasonFor(prefs: SharedPreferences, ratId: Long, roster: List<RatEntity>): ExclusionReason? {
+        if (roster.any { it.id == ratId && it.artKey == TIMETAIL_ART_KEY }) return ExclusionReason.Protected
+
+        if (BattleRat.idOf(prefs) == ratId) return ExclusionReason.BattleRat
+
+        if (prefs.getBoolean(ShopEffects.KEY_EXPEDITION_ACTIVE, false) &&
+            prefs.getLong("DEPLOYED_RAT_ID", -1L) == ratId
+        ) return ExclusionReason.ScrapRun
+
+        LedgerTasks.all.forEach { tier ->
+            if (LedgerTasks.isRunning(prefs, tier) &&
+                prefs.getLong(LedgerTasks.assignedRatKey(tier.id), LedgerTasks.NO_RAT) == ratId
+            ) {
+                return ExclusionReason.LedgerTask(LedgerTasks.stored(prefs, tier).title)
+            }
+        }
+
+        return null
+    }
 }

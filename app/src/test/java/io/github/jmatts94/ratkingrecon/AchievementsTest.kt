@@ -288,6 +288,17 @@ class AchievementsTest {
         assertEquals(7.62, Milestones.kilometresFor(10_000L), 0.01)
     }
 
+    @Test
+    fun `distance follows the miles setting`() {
+        val prefs = FakePrefs()
+        assertEquals(7.62, Milestones.distanceFor(prefs, 10_000L), 0.01)
+        assertEquals("km", Milestones.distanceUnit(prefs))
+
+        prefs.edit().putBoolean(GameSettings.KEY_DISTANCE_MILES, true).apply()
+        assertEquals(4.73, Milestones.distanceFor(prefs, 10_000L), 0.01)
+        assertEquals("mi", Milestones.distanceUnit(prefs))
+    }
+
     // --- splicing ---------------------------------------------------------------
 
     @Test

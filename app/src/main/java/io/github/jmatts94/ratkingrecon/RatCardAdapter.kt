@@ -85,7 +85,9 @@ class RatCardAdapter(
     private val animator: FrameAnimator,
     private val onCardClick: (RatEntity) -> Unit,
     private val isDisabled: (RatEntity) -> Boolean = { false },
-    private val isSelected: (RatEntity) -> Boolean = { false }
+    private val isSelected: (RatEntity) -> Boolean = { false },
+    /** Fires instead of [onCardClick] for a disabled card - default is silence, the old behaviour. */
+    private val onDisabledClick: (RatEntity) -> Unit = {}
 ) : ListAdapter<RatEntity, RatCardAdapter.CardHolder>(DIFF) {
 
     private companion object {
@@ -229,8 +231,13 @@ class RatCardAdapter(
                 ((equippedFrame?.let { Frames.STROKE_DP.toFloat() } ?: 1f) * density).toInt()
         }
 
-        holder.itemView.isEnabled = !disabled
-        holder.itemView.setOnClickListener(if (disabled) null else View.OnClickListener { onCardClick(pet) })
+        // Left enabled and clickable even when disabled: a disabled card still
+        // needs to hear the tap so onDisabledClick can say why, rather than
+        // going dead in the player's hand with no feedback at all.
+        holder.itemView.isEnabled = true
+        holder.itemView.setOnClickListener {
+            if (disabled) onDisabledClick(pet) else onCardClick(pet)
+        }
 
         // At most one rat in the whole roster is ever out on a Scrap Run at
         // once - see ShopEffects.KEY_EXPEDITION_ACTIVE - but up to three can

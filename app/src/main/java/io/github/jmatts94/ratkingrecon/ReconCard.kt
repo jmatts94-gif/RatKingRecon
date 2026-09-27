@@ -91,9 +91,12 @@ object ReconCard {
     fun shareStepsMilestone(activity: AppCompatActivity, milestone: Milestone) {
         val view = lightInflater(activity).inflate(R.layout.card_recon_steps, null) as ViewGroup
 
+        val prefs = RatRepository.prefs(activity)
         view.findViewById<TextView>(R.id.reconStepsNumber).text = stepsFormat.format(milestone.target)
         view.findViewById<TextView>(R.id.reconStepsKm).text = activity.getString(
-            R.string.recon_steps_km, Milestones.kilometresFor(milestone.target)
+            R.string.recon_steps_km,
+            Milestones.distanceFor(prefs, milestone.target),
+            Milestones.distanceUnit(prefs)
         )
         // Same icon the Achievements row already shows for this milestone -
         // the medallion is that badge struck large, not a different image.
