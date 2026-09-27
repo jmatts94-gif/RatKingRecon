@@ -174,7 +174,7 @@
       per release; the bullets are literal characters and the breaks are \n.
     -->
     <string name="whats_new_title">What\'s New</string>
-    <string name="whats_new_body">• Ledger Tasks now ask for a faction, not a specific rat, and look the part</string>
+    <string name="whats_new_body">• Arena battles hit harder: animated HP bars and bigger bosses\n• A new, earlier step milestone for lighter walkers\n• Distance in miles: switch it on in Settings\n• Tap a greyed-out rat in Splicing to see why it can\'t be picked\n• The Scrap Run tile lights up when it\'s ready to collect</string>
     <string name="btn_got_it">Got it</string>
 
     <!-- Settings and save transfer -->
