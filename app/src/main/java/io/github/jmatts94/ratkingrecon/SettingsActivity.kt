@@ -3,6 +3,7 @@ package io.github.jmatts94.ratkingrecon
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -122,6 +123,13 @@ class SettingsActivity : AppCompatActivity() {
             // AppCompatDelegate itself as it is resumed; this one has to be
             // told directly since it is the one already in front.
             recreate()
+        }
+
+        // Google requires UK/EEA players can change their ad consent later;
+        // everyone else never needs the button, so it stays hidden for them.
+        findViewById<View>(R.id.adPrivacyButton).apply {
+            visibility = if (AdConsent.privacyOptionsRequired(this@SettingsActivity)) View.VISIBLE else View.GONE
+            setOnClickListener { AdConsent.showPrivacyOptions(this@SettingsActivity) {} }
         }
 
         val distanceMiles = findViewById<MaterialSwitch>(R.id.distanceMilesSwitch)

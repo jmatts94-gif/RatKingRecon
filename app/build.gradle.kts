@@ -90,9 +90,20 @@ android {
             // player's collection appearing to vanish is a worse surprise than
             // the one this is fixing.
             versionNameSuffix = "-debug"
+
+            // Google's own published test IDs - see
+            // https://developers.google.com/admob/android/test-ads. A debug
+            // build is what goes on Jacob's own phone, and tapping your own
+            // real ads is the quickest way to get an AdMob account banned.
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+            buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"ca-app-pub-3940256099942544/5224354917\"")
         }
 
         release {
+            // The real AdMob app and its one rewarded unit ("Rewarded Scrap").
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-6929333443737262~2864932440"
+            buildConfigField("String", "REWARDED_AD_UNIT_ID", "\"ca-app-pub-6929333443737262/7925687435\"")
+
             /*
              * The real key when this machine has one, the debug key otherwise.
              *
@@ -154,6 +165,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     implementation(libs.play.services.ads)
+    implementation(libs.user.messaging.platform)
     implementation(libs.billing.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)

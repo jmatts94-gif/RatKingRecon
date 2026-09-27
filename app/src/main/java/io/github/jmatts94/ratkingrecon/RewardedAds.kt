@@ -23,18 +23,8 @@ object RewardedAds {
 
     const val DAILY_LIMIT = 3
 
-    /**
-     * Google's own published test unit ID for a rewarded ad - see
-     * https://developers.google.com/admob/android/test-ads. It always serves
-     * a real (test) ad and always pays out, which is what makes this safe to
-     * ship before a real AdMob account exists: no real inventory is ever
-     * requested and no real money changes hands. Swap for the real rewarded
-     * ad unit's ID, created against the real AdMob App ID in
-     * AndroidManifest.xml, once that account exists - shipping this test ID
-     * to real users would mean every "ad" is a Google-labelled test card that
-     * pays out unconditionally, not a real rewarded ad.
-     */
-    private const val AD_UNIT_ID = "ca-app-pub-3940256099942544/5224354917"
+    /** Real in release, Google's test unit in debug - see the build types in app/build.gradle.kts. */
+    private val AD_UNIT_ID = BuildConfig.REWARDED_AD_UNIT_ID
 
     /** Scrap one completed watch pays - a bit above the short 50-step bounty (8-15), never a way to skip the economy. */
     val SCRAP_REWARD = 25..40
@@ -72,6 +62,15 @@ object RewardedAds {
      * the game's critical path.
      */
     fun showRewardedAd(activity: Activity, prefs: SharedPreferences, onResult: (Int) -> Unit) {
+        // Consent first: a UK/EEA player sees Google's consent form on their
+        // first watch, never at launch, so a player who never taps an ad
+        // never sees a privacy popup either.
+        AdConsent.gather(activity) { canRequestAds ->
+            if (!canRequestAds) onResult(0) else loadAndShow(activity, prefs, onResult)
+        }
+    }
+
+    private fun loadAndShow(activity: Activity, prefs: SharedPreferences, onResult: (Int) -> Unit) {
         RewardedAd.load(
             activity,
             AD_UNIT_ID,

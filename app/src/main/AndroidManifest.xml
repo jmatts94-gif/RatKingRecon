@@ -155,15 +155,10 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <!--
-          Google's own published test App ID - safe to ship in a build that
-          only ever requests test ad units (see RewardedAds.AD_UNIT_ID's own
-          comment). Swap for the real one from AdMob once that account exists;
-          until then this is the only App ID that will serve anything at all.
-        -->
+        <!-- Real in release, Google's test App ID in debug - see the build types in app/build.gradle.kts. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="${admobAppId}" />
     </application>
 
 </manifest>
