@@ -119,22 +119,39 @@ class StepTrackerService : Service(), SensorEventListener {
          * starts tracking - whereas an uncaught exception in a boot receiver
          * would surface as a crash while the phone is starting up.
          */
-        fun start(context: Context): Boolean = try {
-            val intent = Intent(context, StepTrackerService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+        fun start(context: Context): Boolean {
+            // Checked here, before promising Android a foreground service.
+            // onCreate's own check stops the service without ever calling
+            // startForeground, and Android kills the whole app for that -
+            // ForegroundServiceDidNotStartInTimeException. Seen on a Pixel
+            // after the app's data was cleared (permission gone) and the
+            // BootReceiver fired: the app crashed before its first screen.
+            if (!hasActivityRecognition(context)) {
+                Log.i(TAG, "Step tracking not started: no activity recognition permission yet")
+                return false
             }
-            true
-        } catch (e: Exception) {
-            // ForegroundServiceStartNotAllowedException on API 31+, SecurityException
-            // if ACTIVITY_RECOGNITION was revoked. Neither is worth crashing over.
-            Log.w(TAG, "Step tracking could not start: ${e.javaClass.simpleName}: ${e.message}")
-            false
+            return try {
+                val intent = Intent(context, StepTrackerService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+                true
+            } catch (e: Exception) {
+                // ForegroundServiceStartNotAllowedException on API 31+, SecurityException
+                // if ACTIVITY_RECOGNITION was revoked. Neither is worth crashing over.
+                Log.w(TAG, "Step tracking could not start: ${e.javaClass.simpleName}: ${e.message}")
+                false
+            }
         }
 
         private const val TAG = "StepTrackerService"
+
+        private fun hasActivityRecognition(context: Context): Boolean =
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                context.checkSelfPermission(android.Manifest.permission.ACTIVITY_RECOGNITION) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
     }
 
     private lateinit var prefs: SharedPreferences
@@ -193,10 +210,7 @@ class StepTrackerService : Service(), SensorEventListener {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun hasActivityRecognition(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
-            checkSelfPermission(android.Manifest.permission.ACTIVITY_RECOGNITION) ==
-            android.content.pm.PackageManager.PERMISSION_GRANTED
+    private fun hasActivityRecognition(): Boolean = hasActivityRecognition(this)
 
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null || event.sensor.type != Sensor.TYPE_STEP_COUNTER) return
