@@ -695,6 +695,18 @@ RARE DROP: %2$s</string>
     <string name="battle_damage_popup">-%1$d</string>
     <string name="battle_won">Victory! %1$s scrapped the %2$s. +%3$d Scrap.</string>
 
+    <!-- Announced Rustbot moves - see Battle.botIntent. -->
+    <string name="battle_intent_strike">Next: Strike for %1$d</string>
+    <string name="battle_intent_heavy">Next: HEAVY hit for %1$d. Defend to parry!</string>
+    <string name="battle_intent_heavy_boss">Next: SPECIAL MOVE. Defend to parry!</string>
+    <string name="battle_intent_charging">Next: Winding up. Nothing to block.</string>
+    <string name="battle_intent_repair">Next: Repairing. Hit it to stop it!</string>
+    <!-- rat name, counter damage -->
+    <string name="battle_parry">Parried! %1$s counters for %2$d, and Special recharges faster.</string>
+    <!-- bot name, HP healed -->
+    <string name="battle_repaired">%1$s patches itself up for %2$d HP.</string>
+    <string name="battle_repair_interrupted">Repair interrupted!</string>
+
     <!-- Boot Camp: the starter rat and the practice fight on a fresh save. -->
     <string name="bootcamp_title">Your starter egg cracked open!</string>
     <string name="bootcamp_stats">Power %1$d  ·  Toughness %2$d</string>
@@ -702,7 +714,7 @@ RARE DROP: %2$s</string>
     <string name="bootcamp_fight">Practice Fight</string>
     <string name="bootcamp_later">Maybe Later</string>
     <string name="bootcamp_bot_name">Training Bot</string>
-    <string name="bootcamp_battle_hint">Practice round. Tap Attack to hit, Defend to brace, and Special for your rat\'s faction power.</string>
+    <string name="bootcamp_battle_hint">Practice round. Watch the line under the Training Bot: it tells you its next move. Defend a HEAVY hit to parry it, and hit hard when it repairs.</string>
     <string name="bootcamp_battle_done">Boot Camp done! Now get walking. Your next rat hatches at 250 steps.</string>
     <!-- rat name, bot name, recovery in whole minutes (scales with roster size) -->
     <string name="battle_lost">%1$s was beaten by the %2$s and needs %3$d minutes to recover.</string>

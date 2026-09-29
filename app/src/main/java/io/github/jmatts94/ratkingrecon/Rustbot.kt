@@ -303,7 +303,9 @@ data class Encounter(
         incomingDamageReduction: Double = 0.0,
         specialMultiplierBonus: Double = 0.0,
         windfallChanceBonus: Double = 0.0,
-        blockChanceBonus: Double = 0.0
+        blockChanceBonus: Double = 0.0,
+        /** Announced moves and parries - see [BotIntent]. On for every real fight. */
+        intents: Boolean = true
     ): Battle {
         val maxHp = loadout.maxHpFor(rat.effectiveMaxHp) + bonusMaxHp
         return Battle(
@@ -323,7 +325,8 @@ data class Encounter(
             incomingDamageReduction = incomingDamageReduction,
             specialMultiplierBonus = specialMultiplierBonus,
             windfallChanceBonus = windfallChanceBonus,
-            blockChanceBonus = blockChanceBonus
+            blockChanceBonus = blockChanceBonus,
+            intents = intents
         )
     }
 }

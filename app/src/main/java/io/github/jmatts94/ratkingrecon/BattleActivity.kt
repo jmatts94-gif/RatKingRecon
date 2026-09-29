@@ -35,6 +35,9 @@ class BattleActivity : AppCompatActivity() {
         /** Milliseconds per character for the log's own typewriter reveal - see [typeInLatestLine]. */
         const val TYPEWRITER_MS = 16L
 
+        /** How long after the Rustbot's HEAVY the parry's counter-hit plays. */
+        const val PARRY_COUNTER_DELAY_MS = 420L
+
         /** The bot portrait frame's plain size, matching activity_battle.xml's own default. */
         const val PLAIN_PORTRAIT_DP = 64
         /** How much bigger a ceremonial boss's own portrait frame stands next to that - see [bindBossPortrait]. */
@@ -54,6 +57,7 @@ class BattleActivity : AppCompatActivity() {
     private lateinit var botHpBar: ProgressBar
     private lateinit var botDotIcon: ImageView
     private lateinit var botChargingIcon: ImageView
+    private lateinit var botIntentText: TextView
     private lateinit var ratName: TextView
     private lateinit var ratStats: TextView
     private lateinit var ratHpBar: ProgressBar
@@ -122,6 +126,7 @@ class BattleActivity : AppCompatActivity() {
         botHpBar = findViewById(R.id.botHpBar)
         botDotIcon = findViewById(R.id.botDotIcon)
         botChargingIcon = findViewById(R.id.botChargingIcon)
+        botIntentText = findViewById(R.id.botIntentText)
         ratName = findViewById(R.id.ratName)
         ratStats = findViewById(R.id.ratStats)
         ratHpBar = findViewById(R.id.ratHpBar)
@@ -487,6 +492,17 @@ class BattleActivity : AppCompatActivity() {
             popDamage(ratDamagePopup, r.damageTaken, big = r.botUsedSpecial)
             shake(ratCard, big = r.botUsedSpecial)
         }
+        // The parry's counter lands after the Rustbot's own swing, so it
+        // follows it on screen rather than overlapping it.
+        if (r.parried && r.counterDamage > 0) {
+            botCard.postDelayed({
+                if (isFinishing || isDestroyed) return@postDelayed
+                lunge(ratImage, towardOpponent = -1f)
+                flash(botHitFlash)
+                popDamage(botDamagePopup, r.counterDamage, big = true)
+                shake(botCard, big = true)
+            }, PARRY_COUNTER_DELAY_MS)
+        }
     }
 
     /**
@@ -727,7 +743,15 @@ class BattleActivity : AppCompatActivity() {
         } else {
             ""
         }
-        return "Round ${r.round}: $subject$reply$dot$enemyDot$factionSpecial$buffHeal"
+        // Intents mode's own events, each on its own line like the rest.
+        val intentLine = when {
+            r.parried -> "\n" + getString(R.string.battle_parry, battle.ratName, r.counterDamage)
+            r.botRepaired > 0 -> "\n" + getString(R.string.battle_repaired, battle.botName, r.botRepaired)
+            r.botIntent == BotIntent.REPAIR && r.damageDealt > 0 ->
+                "\n" + getString(R.string.battle_repair_interrupted)
+            else -> ""
+        }
+        return "Round ${r.round}: $subject$reply$intentLine$dot$enemyDot$factionSpecial$buffHeal"
     }
 
     /** The whole clause for whichever item this round spent - see [BattleActivity.play]. */
@@ -784,6 +808,7 @@ class BattleActivity : AppCompatActivity() {
         botDotIcon.visibility =
             if (!battle.botCharging && battle.botDotActive) View.VISIBLE else View.GONE
         ratDotIcon.visibility = if (battle.ratDotActive) View.VISIBLE else View.GONE
+        renderIntent()
 
         // Stays hidden until there is something to read, so the screen never
         // shows an empty card. Driven by the lines actually about to be drawn
@@ -805,6 +830,40 @@ class BattleActivity : AppCompatActivity() {
         } else {
             getString(R.string.battle_special_cooldown, battle.specialCooldownRemaining)
         }
+    }
+
+    /**
+     * The announcement under the Rustbot's health bar - see [Battle.botIntent].
+     * Icon and words together, so it never leans on colour alone.
+     */
+    private fun renderIntent() {
+        val intent = battle.botIntent
+        if (intent == null) {
+            botIntentText.visibility = View.GONE
+            return
+        }
+        val (icon, text) = when (intent) {
+            BotIntent.STRIKE ->
+                R.drawable.ic_power to getString(R.string.battle_intent_strike, battle.botNextDamage())
+            // A boss's named move can carry a faction bonus the screen cannot
+            // know yet, so it is announced without a number rather than a
+            // wrong one.
+            BotIntent.HEAVY -> R.drawable.ic_warning to if (battle.isBoss) {
+                getString(R.string.battle_intent_heavy_boss)
+            } else {
+                getString(R.string.battle_intent_heavy, battle.botNextDamage())
+            }
+            BotIntent.CHARGING -> R.drawable.ic_sparkle to getString(R.string.battle_intent_charging)
+            BotIntent.REPAIR -> R.drawable.ic_settings to getString(R.string.battle_intent_repair)
+        }
+        val size = (18 * resources.displayMetrics.density).toInt()
+        val drawable = ContextCompat.getDrawable(this, icon)?.mutate()?.apply { setBounds(0, 0, size, size) }
+        botIntentText.setCompoundDrawablesRelative(drawable, null, null, null)
+        botIntentText.text = text
+        // A HEAVY is the one worth stopping for, so it reads bold as well as
+        // carrying its own warning icon.
+        botIntentText.setTypeface(null, if (intent == BotIntent.HEAVY) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        botIntentText.visibility = View.VISIBLE
     }
 
     /**

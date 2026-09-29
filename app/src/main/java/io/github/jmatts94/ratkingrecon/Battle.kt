@@ -20,6 +20,27 @@ enum class BattleItem { HP_TONIC, CORROSIVE_CHARGE, REINFORCED_PLATING, CLEANSE 
 enum class BattleOutcome { ONGOING, PLAYER_WON, PLAYER_LOST }
 
 /**
+ * What the Rustbot will do next round, shown to the player before they pick.
+ *
+ * Only surfaced when a [Battle] is built with `intents = true` - see
+ * [Battle.botIntent]. The point is a fight you read and answer rather than
+ * a row of buttons: Defend a [HEAVY], go all out on a [REPAIR].
+ */
+enum class BotIntent {
+    /** An ordinary swing at the Rustbot's Power. */
+    STRIKE,
+
+    /** Its Special - a big hit. Defending it is a parry: see [Battle.PARRY_COUNTER_FRACTION]. */
+    HEAVY,
+
+    /** A boss winding up its Special. Deals nothing; blocking it is wasted. */
+    CHARGING,
+
+    /** Patching itself up instead of swinging - see [Battle.REPAIR_FRACTION]. */
+    REPAIR
+}
+
+/**
  * One still-ticking Corrosive Charge stack on the bot.
  *
  * A list rather than the single scalar Rusty Rake's own corrosion uses,
@@ -113,7 +134,15 @@ data class RoundResult(
     /** Whether a Scavenger's Special rolled its refund chance and shaved a round off its own cooldown. */
     val specialRefundedCooldown: Boolean = false,
     /** HP Rusted Fang's lifesteal healed back this round - see [Battle.lifestealFraction]. */
-    val buffLifesteal: Int = 0
+    val buffLifesteal: Int = 0,
+    /** What the Rustbot did this round, as it was announced. Null outside intents mode. */
+    val botIntent: BotIntent? = null,
+    /** Whether the rat defended a [BotIntent.HEAVY] this round - see [Battle.PARRY_COUNTER_FRACTION]. */
+    val parried: Boolean = false,
+    /** The parry's counter-hit, already included in [botHp]. */
+    val counterDamage: Int = 0,
+    /** HP the Rustbot patched back on a [BotIntent.REPAIR] round. */
+    val botRepaired: Int = 0
 )
 
 /**
@@ -183,7 +212,15 @@ class Battle(
     /** Smuggler's Lockpick's own bonus onto [FactionSpecials.SMUGGLER_WINDFALL_CHANCE]. Zero until equipped. */
     private val windfallChanceBonus: Double = 0.0,
     /** Tinkerer's Loupe's own bonus onto [FactionSpecials.TINKERER_BLOCK_CHANCE]. Zero until equipped. */
-    private val blockChanceBonus: Double = 0.0
+    private val blockChanceBonus: Double = 0.0,
+    /**
+     * Turns on announced moves, parries and repairs - see [BotIntent].
+     *
+     * Off by default so the maths every existing caller and test was built
+     * on stays exactly as it was; [Encounter.toBattle] switches it on for
+     * real fights.
+     */
+    val intents: Boolean = false
 ) {
 
     companion object {
@@ -247,6 +284,24 @@ class Battle(
          * attack-triggered stacks alive at once.
          */
         const val CORROSIVE_ATTACK_DOT_FRACTION = CORROSIVE_DOT_FRACTION / 2
+
+        // --- intents mode (see BotIntent) --------------------------------------
+
+        /**
+         * An ordinary Rustbot's HEAVY in intents mode: twice its Power rather
+         * than half again. It is announced now, so walking into it is a
+         * choice - and Defending halves it back to a plain hit.
+         */
+        const val HEAVY_MULTIPLIER = 2.5
+
+        /** A parry's counter-hit, as a share of the rat's Power. */
+        const val PARRY_COUNTER_FRACTION = 0.5
+
+        /** Rounds a parry knocks off the Special's cooldown. */
+        const val PARRY_COOLDOWN_REFUND = 1
+
+        /** A REPAIR round heals this share of the Rustbot's max HP. */
+        const val REPAIR_FRACTION = 0.20
     }
 
     var ratHp = startingRatHp
@@ -348,7 +403,43 @@ class Battle(
         get() = outcome == BattleOutcome.ONGOING && bossId != null &&
             (round + 1) - botLastSpecialRound == BOT_SPECIAL_COOLDOWN - 1
 
-    fun botSpecialDamage(): Int = (botPower * SPECIAL_MULTIPLIER).roundToInt()
+    fun botSpecialDamage(): Int {
+        // Bosses keep their tuned 1.5x - their named moves carry their own
+        // bonuses on top, and the ladder was balanced around that number.
+        val multiplier = if (intents && bossId == null) HEAVY_MULTIPLIER else SPECIAL_MULTIPLIER
+        return (botPower * multiplier).roundToInt()
+    }
+
+    /**
+     * Whether [forRound] is one of an ordinary Rustbot's REPAIR rounds.
+     *
+     * Every other gap between HEAVYs, from the second one on - rounds 5, 11,
+     * 17 and so on - so the first two rounds of a fight stay plain swings and
+     * a repair never lands right next to a HEAVY.
+     */
+    private fun isRepairRound(forRound: Int): Boolean =
+        intents && bossId == null && forRound >= 5 &&
+            forRound % BOT_SPECIAL_COOLDOWN == 2 &&
+            ((forRound - 2) / BOT_SPECIAL_COOLDOWN) % 2 == 1
+
+    /**
+     * What the Rustbot will do next round - read before the round plays, the
+     * same way [botCharging] is, so the screen can announce it. Null outside
+     * intents mode.
+     */
+    val botIntent: BotIntent?
+        get() = when {
+            !intents || outcome != BattleOutcome.ONGOING -> null
+            botCharging -> BotIntent.CHARGING
+            botSpecialReady -> BotIntent.HEAVY
+            isRepairRound(round + 1) -> BotIntent.REPAIR
+            else -> BotIntent.STRIKE
+        }
+
+    val isBoss: Boolean get() = bossId != null
+
+    /** HP a REPAIR round would patch back right now. */
+    fun botRepairAmount(): Int = min(botMaxHp - botHp, max(1, (botMaxHp * REPAIR_FRACTION).roundToInt()))
 
     /**
      * What the Rustbot's next unblocked hit will be.
@@ -360,6 +451,7 @@ class Battle(
      */
     fun botNextDamage(): Int = when {
         botCharging -> 0
+        isRepairRound(round + 1) -> 0
         botSpecialReady -> botSpecialDamage()
         else -> botPower
     }
@@ -418,6 +510,9 @@ class Battle(
             requested == BattleAction.USE_ITEM && item == null -> BattleAction.ATTACK
             else -> requested
         }
+
+        // Read before the round counter moves - it names this coming round.
+        val announced = botIntent
 
         round += 1
 
@@ -537,7 +632,19 @@ class Battle(
         var move: BossMove? = null
         var dotTick = 0
         var botBonusHit = false
-        if (botHp > 0) {
+        var parried = false
+        var counter = 0
+        var repaired = 0
+        if (botHp > 0 && announced == BotIntent.REPAIR) {
+            // No swing at all - it spends the round patching itself up, and a
+            // hit this round interrupts it. So the answer to REPAIR is to go
+            // all in; defending it just hands the Rustbot its health back.
+            // Never a Special round (see isRepairRound), so the cadence holds.
+            if (dealt == 0) {
+                repaired = botRepairAmount()
+                botHp += repaired
+            }
+        } else if (botHp > 0) {
             // A boss telegraphs its Special one round early: the round right
             // before the cooldown threshold is reached, it charges instead of
             // swinging - dealing no damage, but leaving the Special due to
@@ -587,6 +694,16 @@ class Battle(
                 }
                 ratHp = max(0, ratHp - taken)
 
+                // A parry: Defending the announced HEAVY. DEFEND has already
+                // halved it above; the rat answers with a counter-hit and gets
+                // its Special back a round sooner.
+                if (intents && botSpecial && action == BattleAction.DEFEND && ratHp > 0) {
+                    parried = true
+                    counter = max(1, (ratPower * PARRY_COUNTER_FRACTION).roundToInt())
+                    botHp = max(0, botHp - counter)
+                    lastSpecialRound -= PARRY_COOLDOWN_REFUND
+                }
+
                 if (move?.appliesDot == true) {
                     dotRoundsRemaining = BossMoves.DOT_ROUNDS
                     dotPerRound = max(1, (botPower * BossMoves.DOT_FRACTION).roundToInt())
@@ -635,7 +752,11 @@ class Battle(
             specialAppliedDot = specialAppliedDot,
             specialArmedBlock = specialArmedBlock,
             specialRefundedCooldown = specialRefundedCooldown,
-            buffLifesteal = buffLifesteal
+            buffLifesteal = buffLifesteal,
+            botIntent = announced,
+            parried = parried,
+            counterDamage = counter,
+            botRepaired = repaired
         ).also { log += it }
     }
 
@@ -697,6 +818,14 @@ object AutoResolver {
             return BattleAction.SPECIAL
         }
         if (battle.attackDamage() >= battle.botHp) return BattleAction.ATTACK
+        // Intents mode: read the announcement the way a player would - parry
+        // every HEAVY, and never waste a block on a round that deals nothing.
+        when (battle.botIntent) {
+            BotIntent.HEAVY -> return BattleAction.DEFEND
+            BotIntent.REPAIR, BotIntent.CHARGING ->
+                return if (battle.specialAvailable) BattleAction.SPECIAL else BattleAction.ATTACK
+            else -> {}
+        }
         if (blockingSavesUs(battle)) return BattleAction.DEFEND
         if (battle.specialAvailable) return BattleAction.SPECIAL
         return BattleAction.ATTACK
