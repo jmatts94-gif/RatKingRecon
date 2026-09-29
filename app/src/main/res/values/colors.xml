@@ -167,6 +167,18 @@
     <color name="scarred_iron">#3A2E22</color>
 
     <!--
+      Rust King's Mantle's colour cycle - see FrameOverlayDrawable.drawMantle.
+      It starts at its own gold/orange/copper, turns reddish, then rust
+      brown, then back. Each stage is a comet head / tail / ring triple.
+    -->
+    <color name="mantle_red_head">#E4553A</color>
+    <color name="mantle_red_tail">#B3301C</color>
+    <color name="mantle_red_ring">#9E3B26</color>
+    <color name="mantle_rust_head">#C0703A</color>
+    <color name="mantle_rust_tail">#8B4A2B</color>
+    <color name="mantle_rust_ring">#6E3B22</color>
+
+    <!--
       Maunderer's Catch (Frames.RAT_KINGS_CROWN, the one FrameStyle.PAWS
       frame - see FrameOverlayDrawable.drawPaws; renamed once already from
       Master Courier, which is why these two names still read

@@ -89,7 +89,12 @@ class FrameOverlayDrawable(
      * card underneath it and visibly pokes out past the card's own edge.
      */
     private val trackCornerDp: Float = TRACK_CORNER_DP,
-    private val trackInsetDp: Float = TRACK_INSET_DP
+    private val trackInsetDp: Float = TRACK_INSET_DP,
+    /**
+     * MANTLE's colour cycle: head/tail/ring triples, one per stage, drawn in
+     * a loop - see [drawMantle]. Null for every other style.
+     */
+    private val mantlePalette: IntArray? = null
 ) : Drawable() {
 
     companion object {
@@ -135,7 +140,23 @@ class FrameOverlayDrawable(
             },
             glow = frame.glow,
             trackCornerDp = trackCornerDp ?: TRACK_CORNER_DP,
-            trackInsetDp = trackInsetDp ?: TRACK_INSET_DP
+            trackInsetDp = trackInsetDp ?: TRACK_INSET_DP,
+            mantlePalette = if (frame.style == FrameStyle.MANTLE) {
+                intArrayOf(
+                    // Its own colours first: gold head, orange tail, copper ring.
+                    ContextCompat.getColor(context, frame.accentColorRes),
+                    ContextCompat.getColor(context, R.color.ember_hot),
+                    ContextCompat.getColor(context, frame.accentAltColorRes),
+                    ContextCompat.getColor(context, R.color.mantle_red_head),
+                    ContextCompat.getColor(context, R.color.mantle_red_tail),
+                    ContextCompat.getColor(context, R.color.mantle_red_ring),
+                    ContextCompat.getColor(context, R.color.mantle_rust_head),
+                    ContextCompat.getColor(context, R.color.mantle_rust_tail),
+                    ContextCompat.getColor(context, R.color.mantle_rust_ring)
+                )
+            } else {
+                null
+            }
         ).apply { setDensity(context.resources.displayMetrics.density) }
 
         // --- the gear track running the perimeter ---
@@ -411,6 +432,9 @@ class FrameOverlayDrawable(
         private const val MANTLE_EMBER_RADIUS_DP = 2.8f
         private const val MANTLE_EMBER_SWAY_DP = 6f
         private const val MANTLE_EMBER_ALPHA = 255
+
+        /** One full loop of the colour cycle - gold, reddish, rust brown, back. */
+        private const val MANTLE_COLOUR_PERIOD_MS = 9_000f
     }
 
     /** One entry in [PAW_TOES] - see that field's own comment. */
@@ -701,17 +725,31 @@ class FrameOverlayDrawable(
         val total = pawsLength
         if (total <= 0f) return
 
-        pulsePaint.color = accentAlt
+        // The colour cycle: where we are between two stages of mantlePalette,
+        // eased so each colour lingers a moment before sliding to the next.
+        var headColour = accent
+        var tailEnd = secondaryAccent ?: accentAlt
+        var ringColour = accentAlt
+        mantlePalette?.let { p ->
+            val stages = p.size / 3
+            val pos = (SystemClock.uptimeMillis() % MANTLE_COLOUR_PERIOD_MS.toLong()) /
+                MANTLE_COLOUR_PERIOD_MS * stages
+            val from = pos.toInt().coerceIn(0, stages - 1)
+            val to = (from + 1) % stages
+            val raw = pos - from
+            val mix = raw * raw * (3f - 2f * raw)
+            headColour = ColorUtils.blendARGB(p[from * 3], p[to * 3], mix)
+            tailEnd = ColorUtils.blendARGB(p[from * 3 + 1], p[to * 3 + 1], mix)
+            ringColour = ColorUtils.blendARGB(p[from * 3 + 2], p[to * 3 + 2], mix)
+        }
+
+        pulsePaint.color = ringColour
         pulsePaint.strokeWidth = dp(MANTLE_BASE_WIDTH_DP)
         pulsePaint.alpha = MANTLE_BASE_ALPHA
         canvas.drawPath(borderPath, pulsePaint)
 
         val t = (SystemClock.uptimeMillis() % MANTLE_PERIOD_MS.toLong()) / MANTLE_PERIOD_MS
         val segmentSpan = MANTLE_TAIL_SPAN / MANTLE_TAIL_SEGMENTS
-        // The tail burns out from gold to a hot orange - see forFrame's
-        // secondaryAccent - which reads against a cream card where a
-        // gold-to-copper fade did not.
-        val tailEnd = secondaryAccent ?: accentAlt
 
         for (c in 0 until MANTLE_COMETS) {
             val head = t + c / MANTLE_COMETS.toFloat()
@@ -719,7 +757,7 @@ class FrameOverlayDrawable(
             pulsePaint.strokeWidth = dp(MANTLE_TAIL_WIDTH_DP)
             for (s in 0 until MANTLE_TAIL_SEGMENTS) {
                 val fade = 1f - s / MANTLE_TAIL_SEGMENTS.toFloat()
-                pulsePaint.color = ColorUtils.blendARGB(tailEnd, accent, fade)
+                pulsePaint.color = ColorUtils.blendARGB(tailEnd, headColour, fade)
                 pulsePaint.alpha = (255 * fade).toInt().coerceIn(0, 255)
                 val end = head - s * segmentSpan
                 pawGlowSegmentPath.rewind()
@@ -732,7 +770,7 @@ class FrameOverlayDrawable(
             steamPaint.color = tailEnd
             steamPaint.alpha = MANTLE_HEAD_HALO_ALPHA
             canvas.drawCircle(mantlePos[0], mantlePos[1], dp(MANTLE_HEAD_RADIUS_DP) * MANTLE_HEAD_HALO_SCALE, steamPaint)
-            steamPaint.color = accent
+            steamPaint.color = headColour
             steamPaint.alpha = 255
             canvas.drawCircle(mantlePos[0], mantlePos[1], dp(MANTLE_HEAD_RADIUS_DP), steamPaint)
         }
@@ -756,7 +794,7 @@ class FrameOverlayDrawable(
             steamPaint.color = tailEnd
             steamPaint.alpha = (MANTLE_EMBER_ALPHA * 0.45f * fade).toInt().coerceIn(0, 255)
             canvas.drawCircle(x, y, r * 2f, steamPaint)
-            steamPaint.color = accent
+            steamPaint.color = headColour
             steamPaint.alpha = (MANTLE_EMBER_ALPHA * fade).toInt().coerceIn(0, 255)
             canvas.drawCircle(x, y, r, steamPaint)
         }
