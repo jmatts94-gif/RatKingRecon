@@ -820,14 +820,85 @@ class MainActivity : AppCompatActivity() {
         // with the player. It has to be here rather than in onCreate: the splash
         // is started and not waited for, so onCreate has no idea whether it is
         // done. See CoachMarks.shouldShow.
+        val coachMarksDue = CoachMarks.shouldShow(sharedPreferences)
         CoachMarkOverlay.showIfDue(
             activity = this,
-            shouldShow = CoachMarks.shouldShow(sharedPreferences),
+            shouldShow = coachMarksDue,
             steps = CoachMarks.stepsFor(sharedPreferences),
-            onFinish = { CoachMarks.markComplete(sharedPreferences) }
+            onFinish = {
+                CoachMarks.markComplete(sharedPreferences)
+                maybeRunBootCamp()
+            }
         )
+        // Boot Camp waits behind the walkthrough, so the tour of the screen
+        // comes first and the starter hatches onto a screen already explained.
+        if (!coachMarksDue) maybeRunBootCamp()
 
         maybeShowWhatsNew()
+    }
+
+    /** Stops a second resume from stacking a second Boot Camp dialog. */
+    private var bootCampRunning = false
+
+    /**
+     * Hatches the starter rat and offers the practice fight, once per save.
+     *
+     * Existing saves are marked done without a rat - see
+     * [BootCamp.grantStarterIfDue].
+     */
+    private fun maybeRunBootCamp() {
+        if (bootCampRunning || isFinishing || isDestroyed) return
+        if (!Onboarding.isComplete(sharedPreferences)) return
+        if (!BootCamp.needsStarter(sharedPreferences)) return
+        bootCampRunning = true
+
+        lifecycleScope.launch {
+            val starter = withContext(Dispatchers.IO) {
+                BootCamp.grantStarterIfDue(RatRepository.dao(this@MainActivity), sharedPreferences)
+            }
+            if (starter == null || isFinishing || isDestroyed) {
+                bootCampRunning = false
+                return@launch
+            }
+            reloadProgress()
+            updateScreen()
+            celebrateHatch(starter.artKey, starter.name)
+            showBootCampDialog(starter)
+        }
+    }
+
+    private fun showBootCampDialog(starter: RatEntity) {
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_boot_camp)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        dialog.setCancelable(false)
+
+        dialog.findViewById<ImageView>(R.id.bootCampRatImage).apply {
+            setImageResource(RatArt.resId(starter.artKey))
+            contentDescription = starter.name
+        }
+        dialog.findViewById<TextView>(R.id.bootCampRatName).text = starter.name
+        dialog.findViewById<TextView>(R.id.bootCampRatStats).text =
+            getString(R.string.bootcamp_stats, starter.power, starter.toughness)
+
+        dialog.findViewById<Button>(R.id.bootCampFightButton).setOnClickListener {
+            dialog.dismiss()
+            bootCampRunning = false
+            val raised = BootCamp.raisePracticeFight(
+                sharedPreferences, starter, getString(R.string.bootcamp_bot_name)
+            )
+            if (raised) startActivity(android.content.Intent(this, BattleActivity::class.java))
+        }
+        dialog.findViewById<Button>(R.id.bootCampLaterButton).setOnClickListener {
+            dialog.dismiss()
+            bootCampRunning = false
+        }
+        dialog.show()
     }
 
     /**

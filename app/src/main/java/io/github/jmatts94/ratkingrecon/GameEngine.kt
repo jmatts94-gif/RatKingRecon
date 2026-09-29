@@ -1,6 +1,7 @@
 package io.github.jmatts94.ratkingrecon
 
 import android.content.SharedPreferences
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
@@ -529,9 +530,9 @@ object GameEngine {
      * the point of sharing the path, even though it means an armed serum is
      * used up by the first rat this mints.
      */
-    fun mintRat(dao: RatDao, prefs: SharedPreferences): RatEntity {
+    fun mintRat(dao: RatDao, prefs: SharedPreferences, minStat: Int = 1): RatEntity {
         val editor = prefs.edit()
-        val rolled = rollRat(prefs, editor)
+        val rolled = rollRat(prefs, editor, minStat)
         editor.apply()
 
         val stored = rolled.copy(id = dao.insert(rolled))
@@ -544,16 +545,25 @@ object GameEngine {
         return stored
     }
 
-    /** Rolls a rat, consuming any active consumables. */
-    private fun rollRat(prefs: SharedPreferences, editor: SharedPreferences.Editor): RatEntity {
+    /**
+     * Rolls a rat, consuming any active consumables.
+     *
+     * [minStat] lifts a low roll rather than rerolling it - only Boot Camp's
+     * starter asks for one, so a first rat is never a 1/1.
+     */
+    private fun rollRat(
+        prefs: SharedPreferences,
+        editor: SharedPreferences.Editor,
+        minStat: Int = 1
+    ): RatEntity {
         val mutagen = prefs.getBoolean(KEY_MUTAGEN, false)
         val polish = prefs.getBoolean(KEY_POLISH, false)
 
         val species = Roster.hatchable.random()
         val card = RatEntity(
             artKey = species.artKey,
-            power = if (mutagen) MUTAGEN_STAT.random() else ORDINARY_STAT.random(),
-            toughness = if (mutagen) MUTAGEN_STAT.random() else ORDINARY_STAT.random(),
+            power = max(minStat, if (mutagen) MUTAGEN_STAT.random() else ORDINARY_STAT.random()),
+            toughness = max(minStat, if (mutagen) MUTAGEN_STAT.random() else ORDINARY_STAT.random()),
             name = species.name,
             shiny = polish || (1..10).random() == 1
         )

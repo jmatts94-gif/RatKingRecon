@@ -221,6 +221,9 @@ class BattleActivity : AppCompatActivity() {
             // loadFightable has just cleared it rather than leaving it to block
             // every future encounter.
             if (loaded == null) {
+                // Nothing left to fight, so no practice fight either - a stale
+                // flag would dress the next real Rustbot up as one.
+                BootCamp.clearPractice(RatRepository.prefs(this@BattleActivity))
                 Toast.makeText(this@BattleActivity, R.string.battle_gone, Toast.LENGTH_SHORT).show()
                 finish()
                 return@launch
@@ -246,7 +249,10 @@ class BattleActivity : AppCompatActivity() {
             // screen reloads in place for every fight of the run (see loadFight's
             // own doc comment), so without this guard the same toast would have
             // reopened after fight 2, fight 3, every fight after that.
-            if (!inArena && !BattleRat.isSet(prefs)) {
+            val practice = !inArena && BootCamp.isPracticePending(prefs)
+            // Not on Boot Camp's practice fight either: a brand-new player has
+            // one rat and has never heard of a Battle Rat yet.
+            if (!inArena && !practice && !BattleRat.isSet(prefs)) {
                 Toast.makeText(
                     this@BattleActivity,
                     R.string.toast_no_battle_rat,
@@ -294,6 +300,7 @@ class BattleActivity : AppCompatActivity() {
             // rather than drawing a second one, so the two never disagree.
             val opening = getString(RustbotFlavour.openingFor(encounter), battle.botName)
             lines += opening
+            if (practice) lines += getString(R.string.bootcamp_battle_hint)
 
             // Null for an ordinary Rustbot and for an Arena milestone fight
             // alike, even though the latter carries a real bossId too (see
@@ -848,6 +855,7 @@ class BattleActivity : AppCompatActivity() {
             // a win advances ArenaRun's own fight counter, so this is the only
             // point that still names the fight that was just played.
             val arenaFightNumber = if (ArenaRun.isActive(prefs)) ArenaRun.currentFight(prefs) else null
+            val practice = arenaFightNumber == null && BootCamp.isPracticePending(prefs)
 
             val resolution = withContext(Dispatchers.IO) {
                 EncounterResolver.apply(
@@ -855,6 +863,8 @@ class BattleActivity : AppCompatActivity() {
                     isArenaFight = arenaFightNumber != null
                 )
             }
+            // Win or lose, the practice fight is over once it settles.
+            if (practice) BootCamp.clearPractice(prefs)
 
             // Everything below is the fight settling exactly as it always has -
             // the payout, the badge, the log line, the revive offer on a loss.
@@ -873,6 +883,7 @@ class BattleActivity : AppCompatActivity() {
                         lines += getString(R.string.boss_badge_earned, getString(it.nameRes))
                     }
                 }
+                if (practice) lines += getString(R.string.bootcamp_battle_done)
                 render()
             } else {
                 GameSounds.play(this@BattleActivity, GameSounds.Cue.DEFEAT)

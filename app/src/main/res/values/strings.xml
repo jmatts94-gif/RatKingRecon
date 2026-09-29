@@ -249,7 +249,7 @@
     <string name="onboarding_fight_body">Feed two weak rats to the Fusion Pot to mint a stronger mutant. Out walking, Rustbots will block your path — fight one yourself, or settle it straight from the notification.</string>
 
     <string name="onboarding_ready_title">Ready to Roll</string>
-    <string name="onboarding_ready_body">That is everything. Get walking, and your first rat will not be far off.</string>
+    <string name="onboarding_ready_body">That is everything. Your starter egg is waiting in the workshop. Let\'s crack it open.</string>
 
     <!-- Settings: alerts -->
     <string name="settings_cat_alerts">Alerts</string>
@@ -694,6 +694,16 @@ RARE DROP: %2$s</string>
     <!-- The floating "-12" that pops over whichever side just took a hit. -->
     <string name="battle_damage_popup">-%1$d</string>
     <string name="battle_won">Victory! %1$s scrapped the %2$s. +%3$d Scrap.</string>
+
+    <!-- Boot Camp: the starter rat and the practice fight on a fresh save. -->
+    <string name="bootcamp_title">Your starter egg cracked open!</string>
+    <string name="bootcamp_stats">Power %1$d  ·  Toughness %2$d</string>
+    <string name="bootcamp_body">A Training Bot has wandered into the workshop. Want to show it who\'s boss?</string>
+    <string name="bootcamp_fight">Practice Fight</string>
+    <string name="bootcamp_later">Maybe Later</string>
+    <string name="bootcamp_bot_name">Training Bot</string>
+    <string name="bootcamp_battle_hint">Practice round. Tap Attack to hit, Defend to brace, and Special for your rat\'s faction power.</string>
+    <string name="bootcamp_battle_done">Boot Camp done! Now get walking. Your next rat hatches at 250 steps.</string>
     <!-- rat name, bot name, recovery in whole minutes (scales with roster size) -->
     <string name="battle_lost">%1$s was beaten by the %2$s and needs %3$d minutes to recover.</string>
     <!-- rat name, bot name - the Revive Token path, where there is no wait to quote -->
