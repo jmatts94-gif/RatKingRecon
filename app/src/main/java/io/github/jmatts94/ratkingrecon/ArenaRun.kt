@@ -32,7 +32,9 @@ data class ArenaMilestone(
      * premium of the three, not merely the brightest, so its glow is
      * physically larger as well as stronger.
      */
-    val glowScale: Float = 1f
+    val glowScale: Float = 1f,
+    /** Gears spin; the Rust King's crown sits upright and bobs instead. */
+    val spins: Boolean = true
 )
 
 /**
@@ -47,7 +49,10 @@ data class ArenaFightOutcome(
     val relicEarned: Relic?,
     val milestoneFightNewlyEarned: Int?,
     val cleared: Boolean,
-    /** Set only when [cleared] and a frame was still left to give. */
+    /**
+     * A frame this fight granted: on [cleared] when one was still left to
+     * give, or Champion's Banner the first time fight 15 falls.
+     */
     val cosmeticFrame: CardFrame? = null,
     /** Set only when [cleared] and every frame was already owned. */
     val cosmeticScrapFallback: Int = 0
@@ -71,7 +76,26 @@ data class ArenaLossSummary(
  */
 object ArenaRun {
 
-    const val TOTAL_FIGHTS = 15
+    /**
+     * Twenty since the Rust King arrived. Fights 1-15 are exactly the run
+     * they always were - same curve, same badges - and 16-20 carry on up the
+     * same slope into him. See [CURVE_SPAN].
+     */
+    const val TOTAL_FIGHTS = 20
+
+    /** The Arena's own final boss, met at fight 20 and nowhere else. */
+    const val FINAL_FIGHT = TOTAL_FIGHTS
+
+    /** The old finish line, which still hands out Champion's Banner. */
+    const val CHAMPION_FIGHT = 15
+
+    /**
+     * The fight count the reward and difficulty curves were tuned across -
+     * the old 15-fight run's 1..15. Kept as its own number so stretching the
+     * run to 20 continued those curves rather than flattening them: fight
+     * 15 is still exactly as hard, and pays exactly as well, as it did.
+     */
+    private const val CURVE_SPAN = 14
 
     val MILESTONES: List<ArenaMilestone> = listOf(
         ArenaMilestone(5, R.string.arena_milestone_5_name, R.drawable.ic_settings, R.color.copper, glowAlpha = 0),
@@ -79,6 +103,10 @@ object ArenaRun {
         ArenaMilestone(
             15, R.string.arena_milestone_15_name, R.drawable.ic_gear_triple, R.color.brass_bright,
             glowAlpha = 225, glowScale = 1.4f
+        ),
+        ArenaMilestone(
+            20, R.string.arena_milestone_20_name, R.drawable.ic_crown, R.color.shiny_gold,
+            glowAlpha = 255, glowScale = 1.7f, spins = false
         )
     )
     val MILESTONE_FIGHTS: Set<Int> = MILESTONES.map { it.fight }.toSet()
@@ -101,7 +129,7 @@ object ArenaRun {
      * a single tier.
      */
     fun scrapMultiplierFor(fight: Int): Double =
-        1.0 + (fight - 1).toDouble() / (TOTAL_FIGHTS - 1) * 2.0
+        1.0 + (fight - 1).toDouble() / CURVE_SPAN * 2.0
 
     /**
      * Chance a fight's win rolls a relic, climbing from 10% at fight 1 to 50%
@@ -109,7 +137,10 @@ object ArenaRun {
      * its short/medium/long tiers, applied here across depth instead.
      */
     fun relicChanceFor(fight: Int): Double =
-        0.10 + (fight - 1).toDouble() / (TOTAL_FIGHTS - 1) * 0.40
+        min(MAX_RELIC_CHANCE, 0.10 + (fight - 1).toDouble() / CURVE_SPAN * 0.40)
+
+    /** Past fight 15 the relic chance keeps climbing, but never past this. */
+    private const val MAX_RELIC_CHANCE = 0.60
 
     // ---- difficulty curve ------------------------------------------------
 
@@ -144,7 +175,18 @@ object ArenaRun {
      * player meets the same fifteen fights.
      */
     fun ratioFor(fight: Int): Double =
-        START_RATIO + (MAX_RATIO - START_RATIO) * (fight - 1).toDouble() / (TOTAL_FIGHTS - 1)
+        if (fight <= CHAMPION_FIGHT) {
+            START_RATIO + (MAX_RATIO - START_RATIO) * (fight - 1).toDouble() / CURVE_SPAN
+        } else {
+            // Past the old finish line the curve nearly levels off. Fight 15
+            // was already tuned as a coin flip for a well-prepared rat; five
+            // more fights at the old slope measured as a wall, not a climb.
+            // The Rust King's own rage is the spike at the end instead.
+            MAX_RATIO + LATE_RATIO_PER_FIGHT * (fight - CHAMPION_FIGHT)
+        }
+
+    /** How much harder each fight past 15 gets - a creep, not a slope. */
+    private const val LATE_RATIO_PER_FIGHT = 0.01
 
     /**
      * Share of the rat's own max HP topped up after every fight cleared -
@@ -288,6 +330,7 @@ object ArenaRun {
         5 -> "junk_golem"
         10 -> "boiler_baron"
         15 -> "rustbringer"
+        FINAL_FIGHT -> Bosses.RUST_KING.id
         else -> null
     }
 
@@ -384,6 +427,9 @@ object ArenaRun {
      * clear with the real thing it stands for never actually met.
      */
     private fun weightedClearedFrame(prefs: SharedPreferences): CardFrame? {
+        // Beating the Rust King pays his own mantle first - never in the pool
+        // below, so this is the only way it is ever earned.
+        if (!ShopEffects.ownsCosmetic(prefs, Frames.RUST_KINGS_MANTLE.id)) return Frames.RUST_KINGS_MANTLE
         if (!ShopEffects.ownsCosmetic(prefs, Frames.ARENA_CHAMPION.id)) return Frames.ARENA_CHAMPION
 
         val candidates = Frames.all.filter { it.arenaPool }.filterNot { ShopEffects.ownsCosmetic(prefs, it.id) }
@@ -451,6 +497,12 @@ object ArenaRun {
                 editor.putInt(GameEngine.KEY_SCRAP, GameEngine.scrapOf(prefs) + cosmeticScrapFallback)
             }
         } else {
+            // Fight 15 was the old finish line, and still pays what the old
+            // finish line did: Champion's Banner, the first time through.
+            if (fightJustCleared == CHAMPION_FIGHT && !ShopEffects.ownsCosmetic(prefs, Frames.ARENA_CHAMPION.id)) {
+                cosmeticFrame = Frames.ARENA_CHAMPION
+            }
+
             // Every fight cleared, the rat gets a breather: 30% of its own
             // max HP topped up before the next fight starts, on top of
             // whatever it carried out of this one. Capped at the rat's own

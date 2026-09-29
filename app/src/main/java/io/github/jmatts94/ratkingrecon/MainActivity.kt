@@ -559,7 +559,7 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.arena_tile_status_none)
         }
 
-        val badgeIds = listOf(R.id.arenaTileBadge5, R.id.arenaTileBadge10, R.id.arenaTileBadge15)
+        val badgeIds = listOf(R.id.arenaTileBadge5, R.id.arenaTileBadge10, R.id.arenaTileBadge15, R.id.arenaTileBadge20)
         ArenaRun.MILESTONES.forEachIndexed { index, milestone ->
             val medallion = findViewById<View>(badgeIds[index])
             val earned = ArenaRun.isMilestoneEarned(sharedPreferences, milestone.fight)

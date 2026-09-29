@@ -378,6 +378,30 @@ class FrameOverlayDrawable(
 
         /** Peak alpha, at the head of the glow - "slight," well short of the paws' own full opacity. */
         private const val PAW_GLOW_MAX_ALPHA = 130
+
+        // --- the Rust King's mantle: two comets and rising embers ---
+
+        /** One lap of the border per comet. Its own clock, like LIGHTNING's. */
+        private const val MANTLE_PERIOD_MS = 4_800f
+        private const val MANTLE_BASE_WIDTH_DP = 3f
+        private const val MANTLE_BASE_ALPHA = 170
+        private const val MANTLE_COMETS = 2
+
+        /** How much of the perimeter each comet's fiery tail covers. */
+        private const val MANTLE_TAIL_SPAN = 0.16f
+        private const val MANTLE_TAIL_SEGMENTS = 16
+        private const val MANTLE_TAIL_WIDTH_DP = 4.5f
+        private const val MANTLE_HEAD_RADIUS_DP = 3.5f
+        private const val MANTLE_HEAD_HALO_SCALE = 2.6f
+        private const val MANTLE_HEAD_HALO_ALPHA = 90
+
+        private const val MANTLE_EMBERS = 7
+
+        /** How far up the card an ember rises before it has fully faded. */
+        private const val MANTLE_EMBER_RISE = 0.45f
+        private const val MANTLE_EMBER_RADIUS_DP = 1.8f
+        private const val MANTLE_EMBER_SWAY_DP = 5f
+        private const val MANTLE_EMBER_ALPHA = 230
     }
 
     /** One entry in [PAW_TOES] - see that field's own comment. */
@@ -426,6 +450,9 @@ class FrameOverlayDrawable(
     /** Scratch path for each of [drawPawGlow]'s own extracted segments - rewound and reused rather than allocated per segment, per frame. */
     private val pawGlowSegmentPath = Path()
 
+    /** MANTLE's comet head position, filled by [PathMeasure.getPosTan] - never allocated per draw. */
+    private val mantlePos = FloatArray(2)
+
     /** RADIANT's own palette - accent, accentAlt, and a third stop off secondaryAccent. */
     private val radiantColors: IntArray by lazy { intArrayOf(accent, accentAlt, secondaryAccent ?: accent) }
 
@@ -452,7 +479,8 @@ class FrameOverlayDrawable(
         buildTrack()
         if (style == FrameStyle.SCARRED) buildCracks()
         if (style == FrameStyle.LIGHTNING) buildLightning()
-        if (style == FrameStyle.PAWS) buildPaws()
+        // MANTLE walks the same measured border PAWS does.
+        if (style == FrameStyle.PAWS || style == FrameStyle.MANTLE) buildPaws()
         built = true
     }
 
@@ -629,6 +657,70 @@ class FrameOverlayDrawable(
             FrameStyle.LIGHTNING -> drawLightning(canvas)
             FrameStyle.RADIANT -> drawRadiant(canvas)
             FrameStyle.PAWS -> drawPaws(canvas)
+            FrameStyle.MANTLE -> drawMantle(canvas, b)
+        }
+    }
+
+    /**
+     * The Rust King's mantle - see [FrameStyle.MANTLE].
+     *
+     * A steady border in [accentAlt], two [accent] comets half a lap apart
+     * running round it with tails that fade behind them, and embers drifting
+     * up off the bottom edge. The tails reuse [addWrappedSegment], the same
+     * fading-segment trick [drawPawGlow] uses, so nothing is allocated here.
+     */
+    private fun drawMantle(canvas: Canvas, b: Rect) {
+        val total = pawsLength
+        if (total <= 0f) return
+
+        pulsePaint.color = accentAlt
+        pulsePaint.strokeWidth = dp(MANTLE_BASE_WIDTH_DP)
+        pulsePaint.alpha = MANTLE_BASE_ALPHA
+        canvas.drawPath(borderPath, pulsePaint)
+
+        val t = (SystemClock.uptimeMillis() % MANTLE_PERIOD_MS.toLong()) / MANTLE_PERIOD_MS
+        val segmentSpan = MANTLE_TAIL_SPAN / MANTLE_TAIL_SEGMENTS
+
+        for (c in 0 until MANTLE_COMETS) {
+            val head = t + c / MANTLE_COMETS.toFloat()
+
+            pulsePaint.strokeWidth = dp(MANTLE_TAIL_WIDTH_DP)
+            for (s in 0 until MANTLE_TAIL_SEGMENTS) {
+                val fade = 1f - s / MANTLE_TAIL_SEGMENTS.toFloat()
+                // Gold at the head, cooling to copper down the tail.
+                pulsePaint.color = ColorUtils.blendARGB(accentAlt, accent, fade)
+                pulsePaint.alpha = (255 * fade * fade).toInt().coerceIn(0, 255)
+                val end = head - s * segmentSpan
+                pawGlowSegmentPath.rewind()
+                addWrappedSegment(end - segmentSpan, end, total, pawGlowSegmentPath)
+                canvas.drawPath(pawGlowSegmentPath, pulsePaint)
+            }
+
+            val headFraction = head - floor(head)
+            pawsMeasure.getPosTan(headFraction * total, mantlePos, null)
+            steamPaint.color = accent
+            steamPaint.alpha = MANTLE_HEAD_HALO_ALPHA
+            canvas.drawCircle(mantlePos[0], mantlePos[1], dp(MANTLE_HEAD_RADIUS_DP) * MANTLE_HEAD_HALO_SCALE, steamPaint)
+            steamPaint.alpha = 255
+            canvas.drawCircle(mantlePos[0], mantlePos[1], dp(MANTLE_HEAD_RADIUS_DP), steamPaint)
+        }
+
+        // Embers: spread along the bottom edge, each on its own offset
+        // through the shared clock so they never rise in step.
+        val phase = FrameClock.phase()
+        val width = b.width().toFloat()
+        val rise = b.height() * MANTLE_EMBER_RISE
+        val bottom = b.bottom - dp(6f)
+        steamPaint.color = accent
+        for (i in 0 until MANTLE_EMBERS) {
+            val offset = i / MANTLE_EMBERS.toFloat()
+            val e = (phase * 2f + offset * 1.7f) % 1f
+            val x = b.left + width * (0.12f + 0.76f * ((offset * 3.3f) % 1f)) +
+                sin((e * 4f * Math.PI).toFloat()) * dp(MANTLE_EMBER_SWAY_DP)
+            val y = bottom - e * rise
+            val fade = if (e < 0.15f) e / 0.15f else 1f - (e - 0.15f) / 0.85f
+            steamPaint.alpha = (MANTLE_EMBER_ALPHA * fade).toInt().coerceIn(0, 255)
+            canvas.drawCircle(x, y, dp(MANTLE_EMBER_RADIUS_DP) * (0.6f + 0.4f * fade), steamPaint)
         }
     }
 

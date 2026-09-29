@@ -77,6 +77,23 @@ object Bosses {
     private const val KEY_BANKED = "BOSS_BANKED_ID"
     private const val KEY_DEFEATED_PREFIX = "BOSS_DEFEATED_"
 
+    /**
+     * The Arena's own final boss - fight 20, and nowhere else. Kept out of
+     * [all] on purpose: [all] is the level ladder, and the Rust King is not
+     * on it. Nothing banks him, no level covers him, and his fight is sized
+     * by [ArenaRun.rustbotFor] like every other Arena fight, so the level
+     * range and multipliers here are never read.
+     *
+     * The Rat King's rival: a king of scrap who crowned himself.
+     */
+    val RUST_KING = BossSpec(
+        id = "rust_king",
+        nameRes = R.string.boss_rust_king,
+        badgeRes = R.drawable.ic_crown,
+        minLevel = Int.MAX_VALUE, maxLevel = Int.MAX_VALUE,
+        powerMult = 1.0, hpMult = 1.0, rewardMult = 10
+    )
+
     val all: List<BossSpec> = listOf(
         BossSpec(
             id = "junk_golem",

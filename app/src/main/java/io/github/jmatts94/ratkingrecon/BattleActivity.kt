@@ -113,6 +113,15 @@ class BattleActivity : AppCompatActivity() {
      */
     private var bossGlowAnimator: ObjectAnimator? = null
 
+    /** The big centred word that pops over the fight - see [showCallout]. */
+    private lateinit var callout: TextView
+
+    /** The HEAVY warning's own throb - see [renderIntent]. */
+    private var intentPulse: ObjectAnimator? = null
+
+    /** The rat's health bar beating once it is low - see [renderHeartbeat]. */
+    private var heartbeat: ObjectAnimator? = null
+
     /** The battle log's newest line typing itself out - see [render] and [revealLogInstantly]. */
     private var typewriterJob: Job? = null
 
@@ -161,6 +170,7 @@ class BattleActivity : AppCompatActivity() {
         logView.setOnClickListener { revealLogInstantly() }
         wireActions()
         startIdleAnimations()
+        buildCallout()
 
         loadFight()
     }
@@ -169,7 +179,112 @@ class BattleActivity : AppCompatActivity() {
         idleAnimators.forEach { it.cancel() }
         idleAnimators.clear()
         bossGlowAnimator?.cancel()
+        intentPulse?.cancel()
+        heartbeat?.cancel()
         super.onDestroy()
+    }
+
+    /**
+     * The callout sits over the whole screen rather than in the layout: the
+     * layout is a ScrollView, and a word meant to land in the middle of what
+     * the player is looking at cannot live somewhere they may have scrolled
+     * past. Never takes touches - it is a flourish, not a button.
+     */
+    private fun buildCallout() {
+        val density = resources.displayMetrics.density
+        callout = TextView(this).apply {
+            textSize = 30f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            letterSpacing = 0.06f
+            gravity = android.view.Gravity.CENTER
+            setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+            background = ContextCompat.getDrawable(context, R.drawable.bg_pill_tan)
+            val h = (28 * density).toInt()
+            val v = (12 * density).toInt()
+            setPadding(h, v, h, v)
+            compoundDrawablePadding = (10 * density).toInt()
+            elevation = 16 * density
+            isClickable = false
+            isFocusable = false
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            visibility = View.GONE
+        }
+        findViewById<ViewGroup>(android.R.id.content).addView(
+            callout,
+            android.widget.FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.Gravity.CENTER
+            )
+        )
+    }
+
+    /**
+     * Pops [textRes] up in the middle of the screen: in fast and a touch
+     * oversized, settles, holds, then fades. An icon rides alongside the
+     * word, so the moment reads without leaning on colour.
+     */
+    private fun showCallout(textRes: Int, iconRes: Int) {
+        if (isFinishing || isDestroyed) return
+        val size = (26 * resources.displayMetrics.density).toInt()
+        val icon = ContextCompat.getDrawable(this, iconRes)?.mutate()?.apply { setBounds(0, 0, size, size) }
+        callout.setCompoundDrawablesRelative(icon, null, null, null)
+        callout.setText(textRes)
+
+        callout.animate().cancel()
+        callout.alpha = 0f
+        callout.scaleX = 0.6f
+        callout.scaleY = 0.6f
+        callout.visibility = View.VISIBLE
+        callout.animate()
+            .alpha(1f).scaleX(1.08f).scaleY(1.08f).setDuration(170)
+            .withEndAction {
+                callout.animate().scaleX(1f).scaleY(1f).setDuration(130)
+                    .withEndAction {
+                        callout.animate().alpha(0f).setStartDelay(650).setDuration(260)
+                            .withEndAction {
+                                callout.visibility = View.GONE
+                                callout.animate().setStartDelay(0)
+                            }
+                    }
+            }
+    }
+
+    /** The one callout a round earns, if any - rarest moment first. */
+    private fun calloutFor(r: RoundResult) {
+        when {
+            r.botEnragedNow -> {
+                showCallout(R.string.callout_enraged, R.drawable.ic_crown)
+                Haptics.play(this, Haptics.Cue.DEFEAT)
+            }
+            r.parried -> {
+                showCallout(R.string.callout_parry, R.drawable.ic_toughness)
+                Haptics.play(this, Haptics.Cue.RELIC)
+            }
+            r.botIntent == BotIntent.REPAIR && r.damageDealt > 0 ->
+                showCallout(R.string.callout_interrupted, R.drawable.ic_settings)
+        }
+    }
+
+    /**
+     * Once the rat is down to a quarter of its health, its bar beats -
+     * a quiet "careful" rather than another number to read.
+     */
+    private fun renderHeartbeat() {
+        val low = battle.outcome == BattleOutcome.ONGOING &&
+            battle.ratHp > 0 && battle.ratHp <= battle.ratMaxHp / 4
+        if (low && heartbeat == null) {
+            heartbeat = ObjectAnimator.ofFloat(ratHpBar, View.ALPHA, 1f, 0.35f).apply {
+                duration = 480
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.REVERSE
+                start()
+            }
+        } else if (!low && heartbeat != null) {
+            heartbeat?.cancel()
+            heartbeat = null
+            ratHpBar.alpha = 1f
+        }
     }
 
     /**
@@ -234,7 +349,12 @@ class BattleActivity : AppCompatActivity() {
                 return@launch
             }
 
-            encounter = loaded.first
+            // The Rust King is raised with an ordinary variant name - ArenaRun
+            // has no Context to read his real one - so he is named here,
+            // before the fight or its result ever reads it.
+            encounter = loaded.first.let {
+                if (it.bossId == Bosses.RUST_KING.id) it.copy(botName = getString(R.string.boss_rust_king)) else it
+            }
             rat = loaded.second
 
             val prefs = RatRepository.prefs(this@BattleActivity)
@@ -316,7 +436,13 @@ class BattleActivity : AppCompatActivity() {
             // bindStaticViews' own portrait treatment below and the intro
             // dialog further down, so the two can never disagree about
             // whether this fight is a ceremonial boss.
-            val ceremonialBoss = if (inArena) null else encounter.bossId?.let { Bosses.byId(it) }
+            // The one exception is the Rust King: the Arena's own final boss
+            // gets the full ceremony his ladder cousins do.
+            val ceremonialBoss = when {
+                encounter.bossId == Bosses.RUST_KING.id -> Bosses.RUST_KING
+                inArena -> null
+                else -> encounter.bossId?.let { Bosses.byId(it) }
+            }
 
             bindStaticViews(ceremonialBoss)
             render()
@@ -464,6 +590,7 @@ class BattleActivity : AppCompatActivity() {
         lines += describe(result)
         render()
         animateRound(result)
+        calloutFor(result)
 
         if (battle.outcome != BattleOutcome.ONGOING) finishBattle()
     }
@@ -744,12 +871,16 @@ class BattleActivity : AppCompatActivity() {
             ""
         }
         // Intents mode's own events, each on its own line like the rest.
-        val intentLine = when {
-            r.parried -> "\n" + getString(R.string.battle_parry, battle.ratName, r.counterDamage)
-            r.botRepaired > 0 -> "\n" + getString(R.string.battle_repaired, battle.botName, r.botRepaired)
-            r.botIntent == BotIntent.REPAIR && r.damageDealt > 0 ->
-                "\n" + getString(R.string.battle_repair_interrupted)
-            else -> ""
+        // A parry and a boss's rage can land on the same round, so these
+        // stack rather than compete.
+        val intentLine = buildString {
+            if (r.parried) append("\n").append(getString(R.string.battle_parry, battle.ratName, r.counterDamage))
+            if (r.botRepaired > 0) {
+                append("\n").append(getString(R.string.battle_repaired, battle.botName, r.botRepaired))
+            } else if (r.botIntent == BotIntent.REPAIR && r.damageDealt > 0) {
+                append("\n").append(getString(R.string.battle_repair_interrupted))
+            }
+            if (r.botEnragedNow) append("\n").append(getString(R.string.battle_enraged, battle.botName))
         }
         return "Round ${r.round}: $subject$reply$intentLine$dot$enemyDot$factionSpecial$buffHeal"
     }
@@ -794,7 +925,7 @@ class BattleActivity : AppCompatActivity() {
     }
 
     private fun render() {
-        botStats.text = getString(R.string.battle_stats, battle.botPower, battle.botHp, battle.botMaxHp)
+        botStats.text = getString(R.string.battle_stats, battle.botCurrentPower, battle.botHp, battle.botMaxHp)
         ratStats.text = getString(R.string.battle_stats, battle.attackDamage(), battle.ratHp, battle.ratMaxHp)
         lastBotHpShown = animateHpBar(botHpBar, battle.botHp, lastBotHpShown)
         lastRatHpShown = animateHpBar(ratHpBar, battle.ratHp, lastRatHpShown)
@@ -809,6 +940,7 @@ class BattleActivity : AppCompatActivity() {
             if (!battle.botCharging && battle.botDotActive) View.VISIBLE else View.GONE
         ratDotIcon.visibility = if (battle.ratDotActive) View.VISIBLE else View.GONE
         renderIntent()
+        renderHeartbeat()
 
         // Stays hidden until there is something to read, so the screen never
         // shows an empty card. Driven by the lines actually about to be drawn
@@ -838,6 +970,29 @@ class BattleActivity : AppCompatActivity() {
      */
     private fun renderIntent() {
         val intent = battle.botIntent
+
+        // A HEAVY throbs until it lands - the one announcement worth the
+        // motion. Anything else stands still.
+        if (intent == BotIntent.HEAVY) {
+            if (intentPulse == null) {
+                intentPulse = ObjectAnimator.ofPropertyValuesHolder(
+                    botIntentText,
+                    android.animation.PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.05f),
+                    android.animation.PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.05f)
+                ).apply {
+                    duration = 420
+                    repeatCount = ValueAnimator.INFINITE
+                    repeatMode = ValueAnimator.REVERSE
+                    start()
+                }
+            }
+        } else {
+            intentPulse?.cancel()
+            intentPulse = null
+            botIntentText.scaleX = 1f
+            botIntentText.scaleY = 1f
+        }
+
         if (intent == null) {
             botIntentText.visibility = View.GONE
             return
@@ -944,11 +1099,13 @@ class BattleActivity : AppCompatActivity() {
                 }
                 if (practice) lines += getString(R.string.bootcamp_battle_done)
                 render()
+                showCallout(R.string.callout_victory, R.drawable.ic_star)
             } else {
                 GameSounds.play(this@BattleActivity, GameSounds.Cue.DEFEAT)
                 Haptics.play(this@BattleActivity, Haptics.Cue.DEFEAT)
                 lines += EncounterResolver.lossMessage(this@BattleActivity, resolution)
                 render()
+                showCallout(R.string.callout_defeat, R.drawable.ic_rustbot_silhouette)
             }
 
             when {
@@ -1019,9 +1176,17 @@ class BattleActivity : AppCompatActivity() {
             }
         }
 
-        outcome.milestoneFightNewlyEarned?.let { fight ->
+        // The badge line also carries fight 15's Champion's Banner, the
+        // first time through - see ArenaRun.CHAMPION_FIGHT.
+        val badgeLine = outcome.milestoneFightNewlyEarned?.let { fight ->
+            getString(R.string.arena_milestone_earned, getString(arenaMilestoneNameRes(fight)))
+        }
+        val frameLine = outcome.cosmeticFrame?.let { frame ->
+            getString(R.string.arena_cleared_cosmetic, getString(frame.nameRes))
+        }
+        listOfNotNull(badgeLine, frameLine).takeIf { it.isNotEmpty() }?.let { parts ->
             dialog.findViewById<TextView>(R.id.arenaBreatherMilestone).apply {
-                text = getString(R.string.arena_milestone_earned, getString(arenaMilestoneNameRes(fight)))
+                text = parts.joinToString("\n")
                 visibility = View.VISIBLE
             }
         }

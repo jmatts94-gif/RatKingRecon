@@ -142,7 +142,9 @@ data class RoundResult(
     /** The parry's counter-hit, already included in [botHp]. */
     val counterDamage: Int = 0,
     /** HP the Rustbot patched back on a [BotIntent.REPAIR] round. */
-    val botRepaired: Int = 0
+    val botRepaired: Int = 0,
+    /** Whether a boss dropped into its second phase this round - see [Battle.botEnraged]. */
+    val botEnragedNow: Boolean = false
 )
 
 /**
@@ -407,8 +409,28 @@ class Battle(
         // Bosses keep their tuned 1.5x - their named moves carry their own
         // bonuses on top, and the ladder was balanced around that number.
         val multiplier = if (intents && bossId == null) HEAVY_MULTIPLIER else SPECIAL_MULTIPLIER
-        return (botPower * multiplier).roundToInt()
+        return (hitPower * multiplier).roundToInt()
     }
+
+    /**
+     * Whether a boss with a second phase has dropped into it - see
+     * [BossMoves.enrageThresholdFor]. Always false for everyone else.
+     */
+    val botEnraged: Boolean
+        get() {
+            val threshold = bossId?.let { BossMoves.enrageThresholdFor(it) } ?: return false
+            return botHp > 0 && botHp <= botMaxHp * threshold
+        }
+
+    /** What the bot actually swings with - its Power, raised while enraged. */
+    private val hitPower: Int
+        get() = if (botEnraged) (botPower * BossMoves.ENRAGE_POWER_MULTIPLIER).roundToInt() else botPower
+
+    /** [botPower] as it stands right now, rage included - for the screen. */
+    val botCurrentPower: Int get() = hitPower
+
+    /** So the rage is announced once, on the round it starts. */
+    private var enrageAnnounced = false
 
     /**
      * Whether [forRound] is one of an ordinary Rustbot's REPAIR rounds.
@@ -453,7 +475,7 @@ class Battle(
         botCharging -> 0
         isRepairRound(round + 1) -> 0
         botSpecialReady -> botSpecialDamage()
-        else -> botPower
+        else -> hitPower
     }
 
     /** Whether any Corrosive Charge stack is still ticking against the bot. */
@@ -665,7 +687,7 @@ class Battle(
             }
 
             if (!isChargeRound) {
-                val base = if (botSpecial) botSpecialDamage() else botPower
+                val base = if (botSpecial) botSpecialDamage() else hitPower
                 botBonusHit = move != null && BossMoves.bonusApplies(move, ratFaction)
                 val bonused = if (botBonusHit) (base * BossMoves.BONUS_MULTIPLIER).roundToInt() else base
 
@@ -725,6 +747,14 @@ class Battle(
             }
         }
 
+        // A second phase starts the round the boss is knocked under its
+        // threshold - announced once, and in force from the next swing.
+        var enragedNow = false
+        if (!enrageAnnounced && botEnraged) {
+            enrageAnnounced = true
+            enragedNow = true
+        }
+
         outcome = when {
             botHp <= 0 -> BattleOutcome.PLAYER_WON
             ratHp <= 0 -> BattleOutcome.PLAYER_LOST
@@ -756,7 +786,8 @@ class Battle(
             botIntent = announced,
             parried = parried,
             counterDamage = counter,
-            botRepaired = repaired
+            botRepaired = repaired,
+            botEnragedNow = enragedNow
         ).also { log += it }
     }
 

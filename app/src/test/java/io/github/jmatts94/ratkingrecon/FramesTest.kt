@@ -144,7 +144,9 @@ class FramesTest {
      */
     @Test
     fun `only a two-colour style carries a second accent`() {
-        val twoColour = setOf(FrameStyle.PULSE, FrameStyle.SCARRED, FrameStyle.LIGHTNING, FrameStyle.RADIANT)
+        val twoColour = setOf(
+            FrameStyle.PULSE, FrameStyle.SCARRED, FrameStyle.LIGHTNING, FrameStyle.RADIANT, FrameStyle.MANTLE
+        )
         for (frame in Frames.all) {
             if (frame.style in twoColour) {
                 assertTrue(

@@ -212,7 +212,7 @@
     <string name="coach_steps_today">Today\'s walking, and roughly how far that adds up to. This one resets every morning.</string>
     <string name="coach_streak">Your daily streak. Tap the lantern for today\'s quest — it burns brighter the longer you keep it going.</string>
     <string name="coach_arena_tile">Your deepest Battle Arena run, and the badges earned along the way. Tap to see them on the Achievements screen.</string>
-    <string name="coach_battle_arena">The Battle Arena: an escalating 15-fight gauntlet for your strongest rat, no healing between fights, with an exclusive reward for clearing it.</string>
+    <string name="coach_battle_arena">The Battle Arena: an escalating 20-fight gauntlet for your strongest rat, no healing between fights, with the Rust King waiting at the end.</string>
 
     <!-- ArenaSelectActivity's own walkthrough - see ArenaCoachMarks. -->
     <string name="coach_arena_select_grid">Pick the one rat this run is built around — no swapping once the run starts.</string>
@@ -468,7 +468,7 @@ RARE DROP: %2$s</string>
     <!-- The Battle Arena's entry flow: a landing screen, a champion picker, then prep -->
     <string name="btn_battle_arena">Battle Arena</string>
     <string name="arena_landing_title">The Battle Arena</string>
-    <string name="arena_landing_flavor">Fifteen fights. One rat. No safety net until the very end.</string>
+    <string name="arena_landing_flavor">Twenty fights. One rat. And the Rust King waiting at the end.</string>
     <string name="btn_select_champion">Select a Champion</string>
     <string name="arena_leave">Not Now</string>
 
@@ -516,6 +516,7 @@ RARE DROP: %2$s</string>
     <string name="arena_milestone_5_name">Arena Contender</string>
     <string name="arena_milestone_10_name">Arena Veteran</string>
     <string name="arena_milestone_15_name">Arena Champion</string>
+    <string name="arena_milestone_20_name">Kingslayer</string>
 
     <!-- Boss Rustbots. Names are display only; the ids behind them live in Boss.kt. -->
     <string name="boss_junk_golem">The Junk Golem</string>
@@ -523,6 +524,7 @@ RARE DROP: %2$s</string>
     <string name="boss_boiler_baron">The Boiler Baron</string>
     <string name="boss_circuit_reaper">Circuit Reaper</string>
     <string name="boss_rustbringer">The Rustbringer</string>
+    <string name="boss_rust_king">The Rust King</string>
     <!-- boss name -->
     <string name="boss_arrived">%1$s has been tracking you. The fight is on.</string>
     <!-- boss name -->
@@ -533,6 +535,8 @@ RARE DROP: %2$s</string>
     <string name="boss_move_rusty_rake">Rusty Rake</string>
     <string name="boss_move_steam_jet">Steam Jet</string>
     <string name="boss_move_wire_mesh">Wire Mesh</string>
+    <string name="boss_move_crown_crush">Crown Crush</string>
+    <string name="boss_move_rust_tide">Rust Tide</string>
 
     <!-- Boss intro/result screens -->
     <string name="boss_intro_title">Boss Encounter</string>
@@ -706,6 +710,15 @@ RARE DROP: %2$s</string>
     <!-- bot name, HP healed -->
     <string name="battle_repaired">%1$s patches itself up for %2$d HP.</string>
     <string name="battle_repair_interrupted">Repair interrupted!</string>
+    <!-- bot name -->
+    <string name="battle_enraged">%1$s rages! Every hit now lands 30%% harder.</string>
+
+    <!-- The big word that pops over the fight - see BattleActivity.showCallout. -->
+    <string name="callout_parry">PARRY!</string>
+    <string name="callout_interrupted">INTERRUPTED!</string>
+    <string name="callout_enraged">ENRAGED!</string>
+    <string name="callout_victory">VICTORY!</string>
+    <string name="callout_defeat">DEFEATED</string>
 
     <!-- Boot Camp: the starter rat and the practice fight on a fresh save. -->
     <string name="bootcamp_title">Your starter egg cracked open!</string>
@@ -782,6 +795,8 @@ RARE DROP: %2$s</string>
 
     <string name="shop_name_frame_rustbringer">Rustbringer\'s Seal</string>
     <string name="shop_desc_frame_rustbringer">A copper border cycling through scarred iron, aether blue and a hot flare, like the boss itself still sparking. Earned by defeating the Rustbringer. Animated.</string>
+    <string name="shop_name_frame_rust_king">Rust King\'s Mantle</string>
+    <string name="shop_desc_frame_rust_king">Two golden comets race round a copper border while embers rise from below. Taken from the Rust King himself, at the end of all twenty Arena fights. Animated.</string>
 
     <string name="shop_name_frame_supporter">Supporter\'s Mark</string>
     <string name="shop_desc_frame_supporter">A warm gold border breathing into cream, for the ones who chipped in to keep the game going. Purely a thank-you. Animated.</string>
@@ -896,6 +911,9 @@ RARE DROP: %2$s</string>
     <string name="flavour_rustbringer_1">%1$s arrives, and the rust spreads out ahead of it.</string>
     <string name="flavour_rustbringer_2">The tunnel walls flake orange. %1$s has come for the rest.</string>
     <string name="flavour_rustbringer_3">%1$s does not hurry. It has never once needed to.</string>
+    <string name="flavour_rust_king_1">%1$s rises from a throne of scrap. There can only be one king down here.</string>
+    <string name="flavour_rust_king_2">Every Rustbot you beat today was his. %1$s has come to collect.</string>
+    <string name="flavour_rust_king_3">%1$s adjusts a crown welded from old gears. \"Kneel, rat.\"</string>
 
     <!-- Empty states, for a Ledger and a Trader that have not started yet -->
     <string name="ledger_empty_title">No rats yet — go for a walk!</string>
