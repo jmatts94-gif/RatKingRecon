@@ -531,7 +531,24 @@ class BattleActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
 
-        dialog.findViewById<ImageView>(R.id.bossIntroArt).setImageResource(spec.badgeRes)
+        val art = dialog.findViewById<ImageView>(R.id.bossIntroArt)
+        val portrait = spec.portraitRes
+        if (portrait != null) {
+            // A painted boss gets the room to be seen: the portrait replaces
+            // the badge icon and fills a much bigger space.
+            val size = (160 * resources.displayMetrics.density).roundToInt()
+            (art.parent as View).layoutParams = (art.parent as View).layoutParams.apply {
+                width = size
+                height = size
+            }
+            art.layoutParams = art.layoutParams.apply {
+                width = size
+                height = size
+            }
+            art.setImageResource(portrait)
+        } else {
+            art.setImageResource(spec.badgeRes)
+        }
         dialog.findViewById<TextView>(R.id.bossIntroName).text = getString(spec.nameRes)
         dialog.findViewById<TextView>(R.id.bossIntroFlavor).text = flavourLine
         dialog.findViewById<MaterialButton>(R.id.bossIntroBeginButton).setOnClickListener {
@@ -608,6 +625,9 @@ class BattleActivity : AppCompatActivity() {
             width = frameSize
             height = frameSize
         }
+
+        // A boss with its own painting wears it; everyone else, the silhouette.
+        botImage.setImageResource(spec?.portraitRes ?: R.drawable.ic_rustbot_silhouette)
 
         if (spec == null) {
             bossGlow.visibility = View.GONE

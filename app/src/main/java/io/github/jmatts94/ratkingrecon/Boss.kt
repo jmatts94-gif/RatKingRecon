@@ -49,7 +49,13 @@ data class BossSpec(
     val maxLevel: Int,
     val powerMult: Double,
     val hpMult: Double,
-    val rewardMult: Int
+    val rewardMult: Int,
+    /**
+     * A painted portrait, shown in place of the plain Rustbot silhouette
+     * and the badge icon on the intro. Null keeps both as they were - only
+     * the Rust King has one so far.
+     */
+    @param:DrawableRes val portraitRes: Int? = null
 ) {
     fun coversLevel(level: Int): Boolean = level in minLevel..maxLevel
 }
@@ -91,7 +97,8 @@ object Bosses {
         nameRes = R.string.boss_rust_king,
         badgeRes = R.drawable.ic_crown,
         minLevel = Int.MAX_VALUE, maxLevel = Int.MAX_VALUE,
-        powerMult = 1.0, hpMult = 1.0, rewardMult = 10
+        powerMult = 1.0, hpMult = 1.0, rewardMult = 10,
+        portraitRes = R.drawable.rust_king_portrait
     )
 
     val all: List<BossSpec> = listOf(
