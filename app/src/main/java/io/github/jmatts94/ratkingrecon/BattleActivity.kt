@@ -231,21 +231,21 @@ class BattleActivity : AppCompatActivity() {
         callout.setCompoundDrawablesRelative(icon, null, null, null)
         callout.setText(textRes)
 
+        // Every stage sets its own start delay: a ViewPropertyAnimator keeps
+        // the last one it was given, so a callout cut off mid-hold would
+        // otherwise make the next one wait before it even appeared.
         callout.animate().cancel()
         callout.alpha = 0f
         callout.scaleX = 0.6f
         callout.scaleY = 0.6f
         callout.visibility = View.VISIBLE
         callout.animate()
-            .alpha(1f).scaleX(1.08f).scaleY(1.08f).setDuration(170)
+            .alpha(1f).scaleX(1.08f).scaleY(1.08f).setStartDelay(0).setDuration(170)
             .withEndAction {
-                callout.animate().scaleX(1f).scaleY(1f).setDuration(130)
+                callout.animate().scaleX(1f).scaleY(1f).setStartDelay(0).setDuration(130)
                     .withEndAction {
                         callout.animate().alpha(0f).setStartDelay(650).setDuration(260)
-                            .withEndAction {
-                                callout.visibility = View.GONE
-                                callout.animate().setStartDelay(0)
-                            }
+                            .withEndAction { callout.visibility = View.GONE }
                     }
             }
     }
@@ -1096,6 +1096,12 @@ class BattleActivity : AppCompatActivity() {
                     bossSpec?.let {
                         lines += getString(R.string.boss_badge_earned, getString(it.nameRes))
                     }
+                }
+                // A little credit for reading the fight well.
+                val parries = battle.log.count { it.parried }
+                val interrupts = battle.log.count { it.botIntent == BotIntent.REPAIR && it.damageDealt > 0 }
+                if (parries + interrupts > 0) {
+                    lines += getString(R.string.battle_read_summary, parries, interrupts)
                 }
                 if (practice) lines += getString(R.string.bootcamp_battle_done)
                 render()
