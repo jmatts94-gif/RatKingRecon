@@ -17,7 +17,13 @@ data class CoachMark(
      * revision it was first written in would be saying the wording was tidied
      * rather than that the thing it describes changed.
      */
-    val revisedIn: Int = 1
+    val revisedIn: Int = 1,
+    /**
+     * A stop the player has to act on: no Next button, and the only way on
+     * is tapping the highlighted view itself, which then does what it always
+     * does. Boot Camp's guided practice fight is built from these.
+     */
+    val mustTap: Boolean = false
 )
 
 /**

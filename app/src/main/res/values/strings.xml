@@ -730,7 +730,16 @@ RARE DROP: %2$s</string>
     <string name="bootcamp_fight">Practice Fight</string>
     <string name="bootcamp_later">Maybe Later</string>
     <string name="bootcamp_bot_name">Training Bot</string>
-    <string name="bootcamp_battle_hint">Practice round. Watch the line under the Training Bot: it tells you its next move. Defend a HEAVY hit to parry it, and hit hard when it repairs.</string>
+    <!-- Boot Camp's guided practice fight - see BattleActivity.showPracticeStage. -->
+    <string name="guide_bot_health">This bar is the Training Bot\'s health. Knock it down to zero to win.</string>
+    <string name="guide_rat_health">This is your rat\'s health. If it reaches zero, your rat is knocked out and needs a rest.</string>
+    <string name="guide_intent">This line tells you what the bot will do next. Check it every turn.</string>
+    <string name="guide_attack">It\'s only going to strike. Tap Attack to hit it!</string>
+    <string name="guide_attack_again">Nice hit! Tap Attack again.</string>
+    <string name="guide_special">Nice hit! Your Special is ready. It hits harder, then needs a few turns to recharge. Tap Special!</string>
+    <string name="guide_heavy">Look out! A HEAVY hit is coming. This is the one to watch for.</string>
+    <string name="guide_defend">Tap Defend to parry it. You take less damage, hit back, and your Special recharges faster.</string>
+    <string name="guide_finish">That\'s everything! Finish the fight your way.</string>
     <string name="bootcamp_battle_done">Boot Camp done! Now get walking. Your next rat hatches at 250 steps.</string>
     <!-- rat name, bot name, recovery in whole minutes (scales with roster size) -->
     <string name="battle_lost">%1$s was beaten by the %2$s and needs %3$d minutes to recover.</string>

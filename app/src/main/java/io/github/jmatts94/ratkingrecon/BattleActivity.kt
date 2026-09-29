@@ -38,6 +38,9 @@ class BattleActivity : AppCompatActivity() {
         /** How long after the Rustbot's HEAVY the parry's counter-hit plays. */
         const val PARRY_COUNTER_DELAY_MS = 420L
 
+        /** The pause between a guided round and the next lesson. */
+        const val PRACTICE_STAGE_DELAY_MS = 1_400L
+
         /** The bot portrait frame's plain size, matching activity_battle.xml's own default. */
         const val PLAIN_PORTRAIT_DP = 64
         /** How much bigger a ceremonial boss's own portrait frame stands next to that - see [bindBossPortrait]. */
@@ -112,6 +115,12 @@ class BattleActivity : AppCompatActivity() {
      * one.
      */
     private var bossGlowAnimator: ObjectAnimator? = null
+
+    /** Whether this is Boot Camp's practice fight, still being walked through. */
+    private var practiceGuide = false
+
+    /** Which lesson of the guided fight is next - see [showPracticeStage]. */
+    private var practiceStage = 0
 
     /** The big centred word that pops over the fight - see [showCallout]. */
     private lateinit var callout: TextView
@@ -248,6 +257,49 @@ class BattleActivity : AppCompatActivity() {
                             .withEndAction { callout.visibility = View.GONE }
                     }
             }
+    }
+
+    /**
+     * Boot Camp's guided practice fight, one lesson per round.
+     *
+     * Round 1 explains the two health bars and the next-move line, then has
+     * the player tap Attack. Round 2 is Special, round 3 the parry - the
+     * Training Bot's HEAVY always lands on round 3, and at its size it cannot
+     * go down before then (see [BootCamp.raisePracticeFight]). After that the
+     * fight is theirs. Skip ends the guide for the rest of the fight.
+     */
+    private fun showPracticeStage() {
+        val steps = when (practiceStage) {
+            0 -> listOf(
+                CoachMark(R.id.botHpBar, R.string.guide_bot_health),
+                CoachMark(R.id.ratHpBar, R.string.guide_rat_health),
+                CoachMark(R.id.botIntentText, R.string.guide_intent),
+                CoachMark(R.id.btnAttack, R.string.guide_attack, mustTap = true)
+            )
+            1 -> if (battle.specialAvailable) {
+                listOf(CoachMark(R.id.btnSpecial, R.string.guide_special, mustTap = true))
+            } else {
+                listOf(CoachMark(R.id.btnAttack, R.string.guide_attack_again, mustTap = true))
+            }
+            2 -> if (battle.botIntent == BotIntent.HEAVY) {
+                listOf(
+                    CoachMark(R.id.botIntentText, R.string.guide_heavy),
+                    CoachMark(R.id.btnDefend, R.string.guide_defend, mustTap = true)
+                )
+            } else {
+                emptyList()
+            }
+            3 -> listOf(CoachMark(R.id.btnAttack, R.string.guide_finish))
+            else -> emptyList()
+        }
+        if (practiceStage >= 3) practiceGuide = false
+        CoachMarkOverlay.showIfDue(
+            activity = this,
+            shouldShow = steps.isNotEmpty(),
+            steps = steps,
+            onFinish = {},
+            onSkip = { practiceGuide = false }
+        )
     }
 
     /** The one callout a round earns, if any - rarest moment first. */
@@ -425,7 +477,8 @@ class BattleActivity : AppCompatActivity() {
             // rather than drawing a second one, so the two never disagree.
             val opening = getString(RustbotFlavour.openingFor(encounter), battle.botName)
             lines += opening
-            if (practice) lines += getString(R.string.bootcamp_battle_hint)
+            practiceGuide = practice
+            practiceStage = 0
 
             // Null for an ordinary Rustbot and for an Arena milestone fight
             // alike, even though the latter carries a real bossId too (see
@@ -446,6 +499,7 @@ class BattleActivity : AppCompatActivity() {
 
             bindStaticViews(ceremonialBoss)
             render()
+            if (practiceGuide) showPracticeStage()
 
             // The intro replaces the normal drop straight into combat, and only
             // for a boss - an ordinary Rustbot falls straight through to the
@@ -591,6 +645,15 @@ class BattleActivity : AppCompatActivity() {
         render()
         animateRound(result)
         calloutFor(result)
+
+        // Boot Camp's guided fight: the next lesson waits for this round's
+        // hits and callout to play out first.
+        if (practiceGuide && battle.outcome == BattleOutcome.ONGOING) {
+            practiceStage += 1
+            botCard.postDelayed({
+                if (!isFinishing && !isDestroyed && battle.outcome == BattleOutcome.ONGOING) showPracticeStage()
+            }, PRACTICE_STAGE_DELAY_MS)
+        }
 
         if (battle.outcome != BattleOutcome.ONGOING) finishBattle()
     }
@@ -957,7 +1020,9 @@ class BattleActivity : AppCompatActivity() {
 
         // Special doubles as its own cooldown readout.
         btnSpecial.isEnabled = !over && battle.specialAvailable
-        btnSpecial.text = if (battle.specialAvailable) {
+        // Once the fight is over there is no cooldown to count down, and
+        // "Special (0)" read as a bug.
+        btnSpecial.text = if (battle.specialAvailable || over || battle.specialCooldownRemaining == 0) {
             getString(R.string.battle_special)
         } else {
             getString(R.string.battle_special_cooldown, battle.specialCooldownRemaining)
