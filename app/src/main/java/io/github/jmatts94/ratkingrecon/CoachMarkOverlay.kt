@@ -256,6 +256,15 @@ class CoachMarkOverlay private constructor(
             if (!shouldShow || steps.isEmpty()) return
 
             val host = activity.findViewById<ViewGroup>(android.R.id.content) ?: return
+
+            // One walkthrough at a time. A system dialog - the permission
+            // prompt after the first-launch splash - pauses and resumes the
+            // screen, and each resume used to add a second copy under the
+            // first: finish one, and the same tour was still waiting.
+            for (i in 0 until host.childCount) {
+                if (host.getChildAt(i) is CoachMarkOverlay) return
+            }
+
             val overlay = CoachMarkOverlay(activity, steps, onFinish)
             host.addView(
                 overlay,
