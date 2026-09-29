@@ -80,7 +80,7 @@
 
     <string name="shop_name_supporter_pack">Supporter Pack</string>
     <string name="shop_desc_supporter_pack">A one-time thank-you: %1$d Scrap and the exclusive Supporter\'s Mark frame, yours forever. Purely cosmetic — nothing here is a shortcut.</string>
-    <string name="shop_supporter_price_fallback">$2.99</string>
+    <string name="shop_supporter_price_fallback">£2.99</string>
     <string name="shop_purchased">Purchased</string>
     <string name="shop_supporter_thanks">Thank you for supporting Rat King Recon!</string>
     <string name="shop_name_revive">Revive Token</string>
