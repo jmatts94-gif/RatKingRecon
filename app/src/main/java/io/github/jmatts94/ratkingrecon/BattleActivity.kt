@@ -975,11 +975,9 @@ class BattleActivity : AppCompatActivity() {
         // motion. Anything else stands still.
         if (intent == BotIntent.HEAVY) {
             if (intentPulse == null) {
-                intentPulse = ObjectAnimator.ofPropertyValuesHolder(
-                    botIntentText,
-                    android.animation.PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.05f),
-                    android.animation.PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.05f)
-                ).apply {
+                // Alpha, not scale: the pill is full width, and growing it
+                // pushed its edge past the card on a real phone.
+                intentPulse = ObjectAnimator.ofFloat(botIntentText, View.ALPHA, 1f, 0.55f).apply {
                     duration = 420
                     repeatCount = ValueAnimator.INFINITE
                     repeatMode = ValueAnimator.REVERSE
@@ -989,8 +987,7 @@ class BattleActivity : AppCompatActivity() {
         } else {
             intentPulse?.cancel()
             intentPulse = null
-            botIntentText.scaleX = 1f
-            botIntentText.scaleY = 1f
+            botIntentText.alpha = 1f
         }
 
         if (intent == null) {
