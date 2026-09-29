@@ -498,6 +498,11 @@ class BattleActivity : AppCompatActivity() {
             }
 
             bindStaticViews(ceremonialBoss)
+            // An Arena milestone fight borrows a ladder boss's kit without its
+            // ceremony - it still wears that boss's face, though.
+            if (ceremonialBoss == null) {
+                encounter.bossId?.let { Bosses.byId(it)?.portraitRes }?.let { botImage.setImageResource(it) }
+            }
             render()
             if (practiceGuide) showPracticeStage()
 
