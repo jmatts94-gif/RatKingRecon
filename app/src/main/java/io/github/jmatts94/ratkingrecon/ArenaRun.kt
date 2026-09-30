@@ -189,8 +189,17 @@ object ArenaRun {
             MAX_RATIO + LATE_RATIO_PER_FIGHT * (fight - CHAMPION_FIGHT)
         }
 
-    /** How much harder each fight past 15 gets - a creep, not a slope. */
-    private const val LATE_RATIO_PER_FIGHT = 0.01
+    /**
+     * How much harder each fight past 15 gets. 0.01 at first, but once the
+     * early curve was eased a fully kitted rat (gear, Rusted Fang, Iron
+     * Boots) won all 20 every time. Aimed at roughly a 60-70% win rate for
+     * a well-kitted rat with a couple of each item, so a loss is a near miss
+     * worth coming back for.
+     */
+    private const val LATE_RATIO_PER_FIGHT = 0.05
+
+    /** The Rust King's own extra bulk, on top of [BOSS_RATIO_BONUS] - see [LATE_RATIO_PER_FIGHT]. */
+    private const val RUST_KING_RATIO_BONUS = 0.15
 
     /**
      * Share of the rat's own max HP topped up after every fight cleared -
@@ -272,7 +281,9 @@ object ArenaRun {
      * it. An ordinary Rustbot's Power stops at parity; this one does not.
      */
     fun rustbotFor(fight: Int, rat: RatEntity): Rustbot {
-        val ratio = ratioFor(fight) + if (bossIdFor(fight) != null) BOSS_RATIO_BONUS else 0.0
+        val ratio = ratioFor(fight) +
+            (if (bossIdFor(fight) != null) BOSS_RATIO_BONUS else 0.0) +
+            (if (fight == FINAL_FIGHT) RUST_KING_RATIO_BONUS else 0.0)
         val dominant = max(rat.power, rat.toughness)
         return Rustbot(
             name = RustbotFactory.randomVariantName(),

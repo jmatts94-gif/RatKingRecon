@@ -31,9 +31,9 @@ class ArenaTwentyTest {
     }
 
     @Test
-    fun `fights past 15 only creep harder`() {
-        assertEquals(1.16, ArenaRun.ratioFor(16), 1e-9)
-        assertEquals(1.20, ArenaRun.ratioFor(20), 1e-9)
+    fun `fights past 15 climb towards the Rust King`() {
+        assertEquals(1.20, ArenaRun.ratioFor(16), 1e-9)
+        assertEquals(1.40, ArenaRun.ratioFor(20), 1e-9)
         assertTrue(ArenaRun.relicChanceFor(20) <= 0.60)
     }
 
