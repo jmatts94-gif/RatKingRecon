@@ -38,8 +38,8 @@
 
     <!-- What each faction is worth to a Scrap Run or Ledger Task, shown beside
          the faction line above and in the Ledger Task rat picker. See TaskBonuses. -->
-    <string name="task_bonus_smugglers">+15% Scrap on completion</string>
-    <string name="task_bonus_scavengers">10% shorter jobs</string>
+    <string name="task_bonus_smugglers" formatted="false">+15% Scrap on completion</string>
+    <string name="task_bonus_scavengers" formatted="false">10% shorter jobs</string>
     <string name="task_bonus_tinkerers">+8% relic chance</string>
     <string name="task_bonus_brawlers">small chance to finish instantly</string>
     <string name="task_bonus_foundry_born">a little bonus EXP</string>
@@ -212,7 +212,7 @@
     <string name="coach_steps_today">Today\'s walking, and roughly how far that adds up to. This one resets every morning.</string>
     <string name="coach_streak">Your daily streak. Tap the lantern for today\'s quest — it burns brighter the longer you keep it going.</string>
     <string name="coach_arena_tile">Your deepest Battle Arena run, and the badges earned along the way. Tap to see them on the Achievements screen.</string>
-    <string name="coach_battle_arena">The Battle Arena: an escalating 15-fight gauntlet for your strongest rat, no healing between fights, with an exclusive reward for clearing it.</string>
+    <string name="coach_battle_arena">The Battle Arena: an escalating 20-fight gauntlet for your strongest rat, no healing between fights, with the Rust King waiting at the end.</string>
 
     <!-- ArenaSelectActivity's own walkthrough - see ArenaCoachMarks. -->
     <string name="coach_arena_select_grid">Pick the one rat this run is built around — no swapping once the run starts.</string>
@@ -249,7 +249,7 @@
     <string name="onboarding_fight_body">Feed two weak rats to the Fusion Pot to mint a stronger mutant. Out walking, Rustbots will block your path — fight one yourself, or settle it straight from the notification.</string>
 
     <string name="onboarding_ready_title">Ready to Roll</string>
-    <string name="onboarding_ready_body">That is everything. Get walking, and your first rat will not be far off.</string>
+    <string name="onboarding_ready_body">That is everything. Your starter egg is waiting in the workshop. Let\'s crack it open.</string>
 
     <!-- Settings: alerts -->
     <string name="settings_cat_alerts">Alerts</string>
@@ -443,6 +443,7 @@ RARE DROP: %2$s</string>
 
     <!-- The Items panel on the Battle screen -->
     <string name="battle_items">Items</string>
+    <string name="battle_items_used">Item used</string>
     <string name="battle_items_title">Use an Item</string>
     <string name="battle_use">Use</string>
     <!-- item name, number held -->
@@ -468,7 +469,7 @@ RARE DROP: %2$s</string>
     <!-- The Battle Arena's entry flow: a landing screen, a champion picker, then prep -->
     <string name="btn_battle_arena">Battle Arena</string>
     <string name="arena_landing_title">The Battle Arena</string>
-    <string name="arena_landing_flavor">Fifteen fights. One rat. No safety net until the very end.</string>
+    <string name="arena_landing_flavor">Twenty fights. One rat. And the Rust King waiting at the end.</string>
     <string name="btn_select_champion">Select a Champion</string>
     <string name="arena_leave">Not Now</string>
 
@@ -480,6 +481,7 @@ RARE DROP: %2$s</string>
 
     <string name="arena_prep_title">Prepare for the Arena</string>
     <string name="arena_prep_items_title">Battle Items</string>
+    <string name="arena_prep_items_rule">You can use 1 item in each fight.</string>
     <string name="btn_arena_visit_shop">Need More? Visit the Shop</string>
     <!-- the flat entry cost, Arena.ENTRY_COST -->
     <string name="arena_prep_cost">Entry Cost: %1$d Scrap</string>
@@ -487,6 +489,8 @@ RARE DROP: %2$s</string>
     <string name="btn_enter_arena">Enter the Arena</string>
     <string name="arena_prep_rat_gone">That rat is no longer available.</string>
     <string name="arena_prep_busy">Finish your current fight first.</string>
+    <string name="arena_prep_rat_recovering">This rat is still recovering. Pick another champion.</string>
+    <string name="arena_prep_walk_fight_first">A Rustbot from your walk is waiting. Beat it first, then enter the Arena.</string>
 
     <!-- Multi-fight run progression - see ArenaRun and BattleActivity's Arena
          handling. Scrap/relic amounts and the fight number are filled in from
@@ -516,6 +520,7 @@ RARE DROP: %2$s</string>
     <string name="arena_milestone_5_name">Arena Contender</string>
     <string name="arena_milestone_10_name">Arena Veteran</string>
     <string name="arena_milestone_15_name">Arena Champion</string>
+    <string name="arena_milestone_20_name">Kingslayer</string>
 
     <!-- Boss Rustbots. Names are display only; the ids behind them live in Boss.kt. -->
     <string name="boss_junk_golem">The Junk Golem</string>
@@ -523,6 +528,7 @@ RARE DROP: %2$s</string>
     <string name="boss_boiler_baron">The Boiler Baron</string>
     <string name="boss_circuit_reaper">Circuit Reaper</string>
     <string name="boss_rustbringer">The Rustbringer</string>
+    <string name="boss_rust_king">The Rust King</string>
     <!-- boss name -->
     <string name="boss_arrived">%1$s has been tracking you. The fight is on.</string>
     <!-- boss name -->
@@ -533,6 +539,8 @@ RARE DROP: %2$s</string>
     <string name="boss_move_rusty_rake">Rusty Rake</string>
     <string name="boss_move_steam_jet">Steam Jet</string>
     <string name="boss_move_wire_mesh">Wire Mesh</string>
+    <string name="boss_move_crown_crush">Crown Crush</string>
+    <string name="boss_move_rust_tide">Rust Tide</string>
 
     <!-- Boss intro/result screens -->
     <string name="boss_intro_title">Boss Encounter</string>
@@ -644,7 +652,7 @@ RARE DROP: %2$s</string>
     <string name="buff_collectors_instinct_name">Collector\'s Instinct</string>
     <string name="buff_collectors_instinct_effect">+10% Rare/Legendary odds at the Fusion Pot</string>
     <string name="buff_steadfast_momentum_name">Steadfast Momentum</string>
-    <string name="buff_steadfast_momentum_effect">+15% Scrap and EXP from walking</string>
+    <string name="buff_steadfast_momentum_effect" formatted="false">+15% Scrap and EXP from walking</string>
     <string name="buff_rusted_fang_name">Rusted Fang</string>
     <string name="buff_rusted_fang_effect">10% of damage dealt healed back in every fight</string>
     <string name="buff_iron_boots_name">Iron Boots</string>
@@ -694,6 +702,49 @@ RARE DROP: %2$s</string>
     <!-- The floating "-12" that pops over whichever side just took a hit. -->
     <string name="battle_damage_popup">-%1$d</string>
     <string name="battle_won">Victory! %1$s scrapped the %2$s. +%3$d Scrap.</string>
+
+    <!-- Announced Rustbot moves - see Battle.botIntent. -->
+    <string name="battle_intent_strike">Next: Strike for %1$d</string>
+    <string name="battle_intent_heavy">Next: HEAVY hit for %1$d. Defend to parry!</string>
+    <string name="battle_intent_heavy_boss">Next: SPECIAL MOVE. Defend to parry!</string>
+    <string name="battle_intent_charging">Next: Winding up. Nothing to block.</string>
+    <string name="battle_intent_repair">Next: Repairing. Hit it to stop it!</string>
+    <!-- rat name, counter damage -->
+    <string name="battle_parry">Parried! %1$s counters for %2$d, and Special recharges faster.</string>
+    <!-- bot name, HP healed -->
+    <string name="battle_repaired">%1$s patches itself up for %2$d HP.</string>
+    <string name="battle_repair_interrupted">Repair interrupted!</string>
+    <!-- bot name -->
+    <string name="battle_enraged">%1$s rages! Every hit now lands 30%% harder.</string>
+
+    <!-- parries, repairs interrupted - shown on a win -->
+    <string name="battle_read_summary">Well read! Parries: %1$d  ·  Repairs stopped: %2$d</string>
+
+    <!-- The big word that pops over the fight - see BattleActivity.showCallout. -->
+    <string name="callout_parry">PARRY!</string>
+    <string name="callout_interrupted">INTERRUPTED!</string>
+    <string name="callout_enraged">ENRAGED!</string>
+    <string name="callout_victory">VICTORY!</string>
+    <string name="callout_defeat">DEFEATED</string>
+
+    <!-- Boot Camp: the starter rat and the practice fight on a fresh save. -->
+    <string name="bootcamp_title">Your starter egg cracked open!</string>
+    <string name="bootcamp_stats">Power %1$d  ·  Toughness %2$d</string>
+    <string name="bootcamp_body">A Training Bot has wandered into the workshop. Want to show it who\'s boss?</string>
+    <string name="bootcamp_fight">Practice Fight</string>
+    <string name="bootcamp_later">Maybe Later</string>
+    <string name="bootcamp_bot_name">Training Bot</string>
+    <!-- Boot Camp's guided practice fight - see BattleActivity.showPracticeStage. -->
+    <string name="guide_bot_health">This bar is the Training Bot\'s health. Knock it down to zero to win.</string>
+    <string name="guide_rat_health">This is your rat\'s health. If it reaches zero, your rat is knocked out and needs a rest.</string>
+    <string name="guide_intent">This line tells you what the bot will do next. Check it every turn.</string>
+    <string name="guide_attack">It\'s only going to strike. Tap Attack to hit it!</string>
+    <string name="guide_attack_again">Nice hit! Tap Attack again.</string>
+    <string name="guide_special">Nice hit! Your Special is ready. It hits harder, then needs a few turns to recharge. Tap Special!</string>
+    <string name="guide_heavy">Look out! A HEAVY hit is coming. This is the one to watch for.</string>
+    <string name="guide_defend">Tap Defend to parry it. You take less damage, hit back, and your Special recharges faster.</string>
+    <string name="guide_finish">That\'s everything! Finish the fight your way.</string>
+    <string name="bootcamp_battle_done">Boot Camp done! Now get walking. Your next rat hatches at 250 steps.</string>
     <!-- rat name, bot name, recovery in whole minutes (scales with roster size) -->
     <string name="battle_lost">%1$s was beaten by the %2$s and needs %3$d minutes to recover.</string>
     <!-- rat name, bot name - the Revive Token path, where there is no wait to quote -->
@@ -760,6 +811,8 @@ RARE DROP: %2$s</string>
 
     <string name="shop_name_frame_rustbringer">Rustbringer\'s Seal</string>
     <string name="shop_desc_frame_rustbringer">A copper border cycling through scarred iron, aether blue and a hot flare, like the boss itself still sparking. Earned by defeating the Rustbringer. Animated.</string>
+    <string name="shop_name_frame_rust_king">Rust King\'s Mantle</string>
+    <string name="shop_desc_frame_rust_king">Two golden comets race round a copper border while embers rise from below. Taken from the Rust King himself, at the end of all twenty Arena fights. Animated.</string>
 
     <string name="shop_name_frame_supporter">Supporter\'s Mark</string>
     <string name="shop_desc_frame_supporter">A warm gold border breathing into cream, for the ones who chipped in to keep the game going. Purely a thank-you. Animated.</string>
@@ -874,6 +927,9 @@ RARE DROP: %2$s</string>
     <string name="flavour_rustbringer_1">%1$s arrives, and the rust spreads out ahead of it.</string>
     <string name="flavour_rustbringer_2">The tunnel walls flake orange. %1$s has come for the rest.</string>
     <string name="flavour_rustbringer_3">%1$s does not hurry. It has never once needed to.</string>
+    <string name="flavour_rust_king_1">%1$s rises from a throne of scrap. There can only be one king down here.</string>
+    <string name="flavour_rust_king_2">Every Rustbot you beat today was his. %1$s has come to collect.</string>
+    <string name="flavour_rust_king_3">%1$s adjusts a crown welded from old gears. \"Kneel, rat.\"</string>
 
     <!-- Empty states, for a Ledger and a Trader that have not started yet -->
     <string name="ledger_empty_title">No rats yet — go for a walk!</string>

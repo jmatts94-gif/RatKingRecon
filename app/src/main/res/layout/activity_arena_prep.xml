@@ -121,6 +121,15 @@
                 android:textSize="15sp"
                 android:textStyle="bold" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/arena_prep_items_rule"
+                android:textColor="@color/cream"
+                android:alpha="0.8"
+                android:textSize="13sp" />
+
             <LinearLayout
                 android:id="@+id/arenaPrepItemsContainer"
                 android:layout_width="match_parent"

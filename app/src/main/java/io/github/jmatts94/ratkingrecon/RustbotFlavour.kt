@@ -50,6 +50,11 @@ object RustbotFlavour {
             R.string.flavour_rustbringer_1,
             R.string.flavour_rustbringer_2,
             R.string.flavour_rustbringer_3
+        ),
+        "rust_king" to intArrayOf(
+            R.string.flavour_rust_king_1,
+            R.string.flavour_rust_king_2,
+            R.string.flavour_rust_king_3
         )
     )
 

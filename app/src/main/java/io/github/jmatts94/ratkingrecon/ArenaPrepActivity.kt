@@ -133,13 +133,36 @@ class ArenaPrepActivity : AppCompatActivity() {
             // the fight already raised instead - the same one this same button
             // would otherwise refuse to replace - at no extra Scrap cost.
             if (Encounter.isPending(prefs)) {
-                Toast.makeText(this@ArenaPrepActivity, R.string.arena_prep_busy, Toast.LENGTH_SHORT).show()
+                if (ArenaRun.isActive(prefs)) {
+                    Toast.makeText(this@ArenaPrepActivity, R.string.arena_prep_busy, Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this@ArenaPrepActivity, BattleActivity::class.java))
+                    finish()
+                    return@launch
+                }
+                // A Rustbot from a walk is waiting (often raised while the app
+                // was closed). Launch playtest: this used to open that fight
+                // as if it were Arena fight 1 - no run begun, no Scrap taken -
+                // so winning it dropped the player back on the rat picker.
+                // Now it says so, and this screen stays put underneath so
+                // Leave comes straight back here to enter for real.
+                Toast.makeText(this@ArenaPrepActivity, R.string.arena_prep_walk_fight_first, Toast.LENGTH_LONG).show()
                 startActivity(Intent(this@ArenaPrepActivity, BattleActivity::class.java))
-                finish()
                 return@launch
             }
 
             val dao = RatRepository.dao(this@ArenaPrepActivity)
+
+            // The walk fight above can knock this very rat out on the way back
+            // here - the picker only turned knocked-out rats away before that.
+            val recovering = withContext(Dispatchers.IO) {
+                dao.byId(ratId)?.isRecovering(System.currentTimeMillis()) == true
+            }
+            if (recovering) {
+                Toast.makeText(this@ArenaPrepActivity, R.string.arena_prep_rat_recovering, Toast.LENGTH_LONG).show()
+                finish()
+                return@launch
+            }
+
             val encounter = withContext(Dispatchers.IO) {
                 Arena.raiseFirstFight(dao, prefs, GameEngine.levelOf(prefs), ratId)
             }

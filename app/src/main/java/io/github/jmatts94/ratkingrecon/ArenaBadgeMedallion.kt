@@ -37,6 +37,7 @@ object ArenaBadgeMedallion {
 
         icon.setImageResource(milestone.iconRes)
         icon.rotation = 0f
+        icon.translationY = 0f
 
         if (earned) {
             icon.imageTintList = ContextCompat.getColorStateList(context, milestone.tierColorRes)
@@ -75,11 +76,21 @@ object ArenaBadgeMedallion {
         val icon = root.findViewById<ImageView>(R.id.medallionIcon)
         val animators = mutableListOf<ObjectAnimator>()
 
-        animators += ObjectAnimator.ofFloat(icon, View.ROTATION, 0f, 360f).apply {
-            duration = SPIN_MS
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = LinearInterpolator()
-            start()
+        animators += if (milestone.spins) {
+            ObjectAnimator.ofFloat(icon, View.ROTATION, 0f, 360f).apply {
+                duration = SPIN_MS
+                repeatCount = ValueAnimator.INFINITE
+                interpolator = LinearInterpolator()
+                start()
+            }
+        } else {
+            // A crown does not spin - it bobs, a little proud of itself.
+            ObjectAnimator.ofFloat(icon, View.TRANSLATION_Y, 0f, -icon.resources.displayMetrics.density * 1.5f).apply {
+                duration = GLOW_CYCLE_MS
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.REVERSE
+                start()
+            }
         }
 
         if (milestone.glowAlpha > 0) {

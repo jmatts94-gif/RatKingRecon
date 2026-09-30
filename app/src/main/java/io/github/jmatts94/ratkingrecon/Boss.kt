@@ -49,7 +49,13 @@ data class BossSpec(
     val maxLevel: Int,
     val powerMult: Double,
     val hpMult: Double,
-    val rewardMult: Int
+    val rewardMult: Int,
+    /**
+     * A painted portrait, shown in place of the plain Rustbot silhouette
+     * and the badge icon on the intro. Null keeps both as they were - only
+     * the Rust King has one so far.
+     */
+    @param:DrawableRes val portraitRes: Int? = null
 ) {
     fun coversLevel(level: Int): Boolean = level in minLevel..maxLevel
 }
@@ -77,6 +83,24 @@ object Bosses {
     private const val KEY_BANKED = "BOSS_BANKED_ID"
     private const val KEY_DEFEATED_PREFIX = "BOSS_DEFEATED_"
 
+    /**
+     * The Arena's own final boss - fight 20, and nowhere else. Kept out of
+     * [all] on purpose: [all] is the level ladder, and the Rust King is not
+     * on it. Nothing banks him, no level covers him, and his fight is sized
+     * by [ArenaRun.rustbotFor] like every other Arena fight, so the level
+     * range and multipliers here are never read.
+     *
+     * The Rat King's rival: a king of scrap who crowned himself.
+     */
+    val RUST_KING = BossSpec(
+        id = "rust_king",
+        nameRes = R.string.boss_rust_king,
+        badgeRes = R.drawable.ic_crown,
+        minLevel = Int.MAX_VALUE, maxLevel = Int.MAX_VALUE,
+        powerMult = 1.0, hpMult = 1.0, rewardMult = 10,
+        portraitRes = R.drawable.rust_king_portrait
+    )
+
     val all: List<BossSpec> = listOf(
         BossSpec(
             id = "junk_golem",
@@ -92,28 +116,32 @@ object Bosses {
             // one thing this rung of the ladder exists to allow. Its weight
             // comes from a name, a badge and triple salvage; the escalation
             // comes from the four bosses above it.
-            powerMult = 1.02, hpMult = 1.02, rewardMult = 3
+            powerMult = 1.02, hpMult = 1.02, rewardMult = 3,
+            portraitRes = R.drawable.junk_golem_portrait
         ),
         BossSpec(
             id = "old_ironclaw",
             nameRes = R.string.boss_old_ironclaw,
             badgeRes = R.drawable.ic_toughness,
             minLevel = 20, maxLevel = 25,
-            powerMult = 1.16, hpMult = 1.16, rewardMult = 4
+            powerMult = 1.16, hpMult = 1.16, rewardMult = 4,
+            portraitRes = R.drawable.old_ironclaw_portrait
         ),
         BossSpec(
             id = "boiler_baron",
             nameRes = R.string.boss_boiler_baron,
             badgeRes = R.drawable.ic_flask,
             minLevel = 30, maxLevel = 35,
-            powerMult = 1.20, hpMult = 1.24, rewardMult = 5
+            powerMult = 1.20, hpMult = 1.24, rewardMult = 5,
+            portraitRes = R.drawable.boiler_baron_portrait
         ),
         BossSpec(
             id = "circuit_reaper",
             nameRes = R.string.boss_circuit_reaper,
             badgeRes = R.drawable.ic_power,
             minLevel = 40, maxLevel = 45,
-            powerMult = 1.24, hpMult = 1.32, rewardMult = 6
+            powerMult = 1.24, hpMult = 1.32, rewardMult = 6,
+            portraitRes = R.drawable.circuit_reaper_portrait
         ),
         BossSpec(
             id = "rustbringer",
@@ -121,7 +149,8 @@ object Bosses {
             badgeRes = R.drawable.ic_star,
             // Open-ended: the last boss stays available for the rest of the game.
             minLevel = 50, maxLevel = Int.MAX_VALUE,
-            powerMult = 1.32, hpMult = 1.40, rewardMult = 8
+            powerMult = 1.32, hpMult = 1.40, rewardMult = 8,
+            portraitRes = R.drawable.rustbringer_portrait
         )
     )
 

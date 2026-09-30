@@ -52,7 +52,15 @@ enum class FrameStyle {
      * itself rather than staying lit - a courier's own footprints, not a
      * machine part running a fixed track.
      */
-    PAWS
+    PAWS,
+
+    /**
+     * Two golden comets chasing each other round the border, trailing fire,
+     * with embers rising off the bottom edge - see
+     * [FrameOverlayDrawable.drawMantle]. Reserved for the Rust King's own
+     * frame, the reward for clearing all twenty Arena fights.
+     */
+    MANTLE
 }
 
 /**
@@ -455,10 +463,31 @@ object Frames {
         iapOnly = true
     )
 
+    /**
+     * Guaranteed the first time a run clears all twenty Arena fights and
+     * beats the Rust King - see [ArenaRun.recordWin]. The only
+     * [FrameStyle.MANTLE] frame: gold comets over a copper border on
+     * scarred iron, the Rust King's own colours. Never sold, never in the
+     * repeat-clear pool, and the most valuable frame in the game.
+     */
+    val RUST_KINGS_MANTLE = CardFrame(
+        id = "rust_kings_mantle",
+        nameRes = R.string.shop_name_frame_rust_king,
+        descRes = R.string.shop_desc_frame_rust_king,
+        strokeColorRes = R.color.scarred_iron,
+        accentColorRes = R.color.shiny_gold,
+        accentAltColorRes = R.color.copper,
+        style = FrameStyle.MANTLE,
+        price = 1200,
+        baseTier = false,
+        sellable = false,
+        arenaPool = false
+    )
+
     val all: List<CardFrame> = listOf(
         BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL,
         ARENA_CHAMPION, IRON_GRIP, NATURALISTS_COMPENDIUM, RAT_KINGS_CROWN, CHIMERAS_WEAVE,
-        RUSTBRINGERS_SEAL, SUPPORTERS_MARK
+        RUSTBRINGERS_SEAL, SUPPORTERS_MARK, RUST_KINGS_MANTLE
     )
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }

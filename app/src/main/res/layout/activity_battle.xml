@@ -232,6 +232,29 @@
                         android:layout_width="match_parent"
                         android:layout_height="12dp"
                         android:progressDrawable="@drawable/progress_amber" />
+
+                    <!--
+                      What the Rustbot does next - see Battle.botIntent. Icon plus
+                      words, never colour alone: swords = strike, warning = heavy,
+                      gear = repair, sparkle = winding up.
+                    -->
+                    <TextView
+                        android:id="@+id/botIntentText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_pill_tan"
+                        android:drawablePadding="6dp"
+                        android:gravity="center_vertical"
+                        android:paddingStart="8dp"
+                        android:paddingTop="4dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="4dp"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:visibility="gone"
+                        tools:text="Next: Heavy hit for 12. Defend to parry!"
+                        tools:visibility="visible" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>

@@ -291,6 +291,7 @@ object Shop {
                     FrameStyle.LIGHTNING -> R.drawable.ic_power
                     FrameStyle.RADIANT -> R.drawable.ic_lantern
                     FrameStyle.PAWS -> R.drawable.ic_footprint
+                    FrameStyle.MANTLE -> R.drawable.ic_crown
                 }
             )
         }

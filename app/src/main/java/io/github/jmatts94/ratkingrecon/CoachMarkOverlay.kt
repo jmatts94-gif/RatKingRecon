@@ -44,7 +44,9 @@ import com.google.android.material.button.MaterialButton
 class CoachMarkOverlay private constructor(
     private val activity: AppCompatActivity,
     private val steps: List<CoachMark>,
-    private val onFinish: () -> Unit
+    private val onFinish: () -> Unit,
+    /** Skip, as opposed to finishing - null where the two mean the same. */
+    private val onSkip: (() -> Unit)? = null
 ) : FrameLayout(activity) {
 
     private val density = resources.displayMetrics.density
@@ -131,11 +133,34 @@ class CoachMarkOverlay private constructor(
         skipButton = card.findViewById(R.id.coachSkipButton)
 
         nextButton.setOnClickListener { advance() }
-        skipButton.setOnClickListener { finish() }
+        skipButton.setOnClickListener {
+            onSkip?.invoke()
+            finish()
+        }
     }
 
     private fun advance() {
         if (index == steps.lastIndex) finish() else showStep(index + 1)
+    }
+
+    /**
+     * On a [CoachMark.mustTap] stop, a tap inside the hole is passed to the
+     * real view underneath, and a tap anywhere else does nothing - the whole
+     * point is that the player presses the thing. Every other stop keeps the
+     * tap-anywhere-to-advance it always had.
+     */
+    override fun onTouchEvent(event: android.view.MotionEvent): Boolean {
+        val step = steps.getOrNull(index)
+        if (step?.mustTap != true) return super.onTouchEvent(event)
+
+        if (event.actionMasked == android.view.MotionEvent.ACTION_UP && holeReady &&
+            hole.contains(event.x, event.y)
+        ) {
+            val target = activity.findViewById<View>(step.targetId)
+            advance()
+            target?.performClick()
+        }
+        return true
     }
 
     private fun showStep(position: Int) {
@@ -154,10 +179,14 @@ class CoachMarkOverlay private constructor(
         counter.text = context.getString(
             R.string.coach_step_counter, position + 1, steps.size
         )
+        // "1 / 1" counts nothing - a single stop needs no counter.
+        counter.visibility = if (steps.size > 1) View.VISIBLE else View.GONE
         nextButton.setText(
             if (position == steps.lastIndex) R.string.coach_done
             else R.string.onboarding_next
         )
+        // On a tap-the-thing stop the button would be a way round the lesson.
+        nextButton.visibility = if (step.mustTap) View.GONE else View.VISIBLE
 
         // On a short screen the lantern sits below the fold, and a spotlight on
         // something off-screen is just a dark rectangle. Ask for it first, then
@@ -251,7 +280,8 @@ class CoachMarkOverlay private constructor(
             activity: AppCompatActivity,
             shouldShow: Boolean,
             steps: List<CoachMark>,
-            onFinish: () -> Unit
+            onFinish: () -> Unit,
+            onSkip: (() -> Unit)? = null
         ) {
             if (!shouldShow || steps.isEmpty()) return
 
@@ -265,7 +295,7 @@ class CoachMarkOverlay private constructor(
                 if (host.getChildAt(i) is CoachMarkOverlay) return
             }
 
-            val overlay = CoachMarkOverlay(activity, steps, onFinish)
+            val overlay = CoachMarkOverlay(activity, steps, onFinish, onSkip)
             host.addView(
                 overlay,
                 LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)

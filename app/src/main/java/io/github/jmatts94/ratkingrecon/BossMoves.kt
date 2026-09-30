@@ -57,6 +57,21 @@ object BossMoves {
     val STEAM_JET = BossMove("steam_jet", R.string.boss_move_steam_jet, Roster.SCAVENGERS)
     val WIRE_MESH = BossMove("wire_mesh", R.string.boss_move_wire_mesh, Roster.BRAWLERS)
 
+    // The Rust King's own pair, alternating - no faction is safe from either.
+    val CROWN_CRUSH = BossMove("crown_crush", R.string.boss_move_crown_crush, null)
+    val RUST_TIDE = BossMove("rust_tide", R.string.boss_move_rust_tide, null, appliesDot = true)
+    private val RUST_KING_ROTATION = listOf(CROWN_CRUSH, RUST_TIDE)
+
+    /**
+     * Bosses with a second phase: below this share of max HP they rage, and
+     * every hit they throw is [ENRAGE_POWER_MULTIPLIER] harder. Only the
+     * Rust King, for now.
+     */
+    private val ENRAGE_AT: Map<String, Double> = mapOf("rust_king" to 0.5)
+    const val ENRAGE_POWER_MULTIPLIER = 1.3
+
+    fun enrageThresholdFor(bossId: String): Double? = ENRAGE_AT[bossId]
+
     /** Every named move, in the fixed order Rustbringer cycles through them. */
     private val ROTATION = listOf(GEAR_SMASH, RUSTY_RAKE, STEAM_JET, WIRE_MESH)
 
@@ -83,12 +98,11 @@ object BossMoves {
      * [RustbotFlavour.openingFor] uses - a strange thing to meet, not a
      * reason to crash the fight.
      */
-    fun forBoss(bossId: String, useNumber: Int): BossMove? =
-        if (bossId == "rustbringer") {
-            RUSTBRINGER_ROTATION[(useNumber - 1).mod(RUSTBRINGER_ROTATION.size)]
-        } else {
-            SINGLE[bossId]
-        }
+    fun forBoss(bossId: String, useNumber: Int): BossMove? = when (bossId) {
+        "rustbringer" -> RUSTBRINGER_ROTATION[(useNumber - 1).mod(RUSTBRINGER_ROTATION.size)]
+        "rust_king" -> RUST_KING_ROTATION[(useNumber - 1).mod(RUST_KING_ROTATION.size)]
+        else -> SINGLE[bossId]
+    }
 
     /** Whether [move]'s bonus lands on a rat of [ratFaction]. */
     fun bonusApplies(move: BossMove, ratFaction: String?): Boolean =
