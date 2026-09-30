@@ -86,6 +86,9 @@ object ArenaRun {
     /** The Arena's own final boss, met at fight 20 and nowhere else. */
     const val FINAL_FIGHT = TOTAL_FIGHTS
 
+    /** Items a rat may use in each Arena fight - see [Battle.itemLimit]. */
+    const val ITEMS_PER_FIGHT = 1
+
     /** The old finish line, which still hands out Champion's Banner. */
     const val CHAMPION_FIGHT = 15
 

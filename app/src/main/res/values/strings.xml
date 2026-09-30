@@ -443,6 +443,7 @@ RARE DROP: %2$s</string>
 
     <!-- The Items panel on the Battle screen -->
     <string name="battle_items">Items</string>
+    <string name="battle_items_used">Item used</string>
     <string name="battle_items_title">Use an Item</string>
     <string name="battle_use">Use</string>
     <!-- item name, number held -->
@@ -480,6 +481,7 @@ RARE DROP: %2$s</string>
 
     <string name="arena_prep_title">Prepare for the Arena</string>
     <string name="arena_prep_items_title">Battle Items</string>
+    <string name="arena_prep_items_rule">You can use 1 item in each fight.</string>
     <string name="btn_arena_visit_shop">Need More? Visit the Shop</string>
     <!-- the flat entry cost, Arena.ENTRY_COST -->
     <string name="arena_prep_cost">Entry Cost: %1$d Scrap</string>

@@ -222,7 +222,13 @@ class Battle(
      * on stays exactly as it was; [Encounter.toBattle] switches it on for
      * real fights.
      */
-    val intents: Boolean = false
+    val intents: Boolean = false,
+    /**
+     * Most items this fight may use, or null for no limit. The Arena sets 1:
+     * simulated runs showed 5 HP Tonics in one fight carried a rat through
+     * the Rust King whatever the curve did.
+     */
+    val itemLimit: Int? = null
 ) {
 
     companion object {
@@ -352,6 +358,13 @@ class Battle(
 
     /** Whether a Regenerative Tonic has been drunk this fight. Once true, stays true. */
     private var tonicActive = false
+
+    /** Items used so far this fight - see [itemLimit]. */
+    var itemsUsed = 0
+        private set
+
+    /** False once [itemLimit] is reached. */
+    val itemsAllowed: Boolean get() = itemLimit == null || itemsUsed < itemLimit
 
     val log = mutableListOf<RoundResult>()
 
@@ -530,6 +543,7 @@ class Battle(
         val action = when {
             requested == BattleAction.SPECIAL && !specialAvailable -> BattleAction.ATTACK
             requested == BattleAction.USE_ITEM && item == null -> BattleAction.ATTACK
+            requested == BattleAction.USE_ITEM && !itemsAllowed -> BattleAction.ATTACK
             else -> requested
         }
 
@@ -555,6 +569,7 @@ class Battle(
             }
             BattleAction.DEFEND -> 0
             BattleAction.USE_ITEM -> {
+                itemsUsed += 1
                 applyItem(item!!)
                 0
             }

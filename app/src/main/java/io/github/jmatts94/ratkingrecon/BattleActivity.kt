@@ -461,7 +461,8 @@ class BattleActivity : AppCompatActivity() {
                 incomingDamageReduction = if (inArena) PermanentBuffs.arenaDamageReductionFor(prefs) else 0.0,
                 specialMultiplierBonus = gearFactionBonuses.specialMultiplierBonus,
                 windfallChanceBonus = gearFactionBonuses.windfallChanceBonus,
-                blockChanceBonus = gearFactionBonuses.blockChanceBonus
+                blockChanceBonus = gearFactionBonuses.blockChanceBonus,
+                itemLimit = if (inArena) ArenaRun.ITEMS_PER_FIGHT else null
             )
 
             // Cleared rather than left standing - reloaded in place, this is
@@ -870,8 +871,9 @@ class BattleActivity : AppCompatActivity() {
                 getString(R.string.battle_item_row, getString(nameRes), held)
 
             val useButton = row.findViewById<MaterialButton>(R.id.battleItemUseButton)
-            useButton.isEnabled = held > 0
+            useButton.isEnabled = held > 0 && battle.itemsAllowed
             useButton.setOnClickListener {
+                if (!battle.itemsAllowed) return@setOnClickListener
                 ShopEffects.spendCharge(prefs, key)
                 dialog.dismiss()
                 play(BattleAction.USE_ITEM, item)
@@ -1041,7 +1043,9 @@ class BattleActivity : AppCompatActivity() {
         val over = battle.outcome != BattleOutcome.ONGOING
         btnAttack.isEnabled = !over
         btnDefend.isEnabled = !over
-        btnItems.isEnabled = !over
+        // Arena: one item per fight. Worded, not just greyed out.
+        btnItems.isEnabled = !over && battle.itemsAllowed
+        btnItems.text = getString(if (battle.itemsAllowed || over) R.string.battle_items else R.string.battle_items_used)
 
         // Special doubles as its own cooldown readout.
         btnSpecial.isEnabled = !over && battle.specialAvailable
