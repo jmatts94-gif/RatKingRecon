@@ -144,8 +144,12 @@ object ArenaRun {
 
     // ---- difficulty curve ------------------------------------------------
 
-    /** Where the curve begins - already past what a typical early ordinary encounter risks. */
-    private const val START_RATIO = 0.90
+    /**
+     * Where the curve begins. Launch playtest: at 0.90, every fight cost a
+     * rat ~70% of its HP and a 7/6 rat fell at fight 2, so the early fights
+     * are now a warm-up that ramps into the real test.
+     */
+    private const val START_RATIO = 0.60
 
     /**
      * Where the curve ends, at fight 15.
@@ -154,7 +158,7 @@ object ArenaRun {
      * win rate), and playtesting past that ceiling confirmed why it was too
      * low for the Arena specifically: fight 15 is fought on the rat's
      * *effective* stats (rarity bonus, any Shop Loadout) against a bot still
-     * sized off the ratio alone, and every fight in between hands back 30% of
+     * sized off the ratio alone, and every fight in between hands back half of
      * max HP (see [ARENA_RELIEF_FRACTION]) - both deliberately, but together
      * they left a well-prepared rat with real runway left at 1.20. Past that
      * documented data now, but the win rate fell smoothly rather than in
@@ -163,7 +167,7 @@ object ArenaRun {
      * genuine coin flip even for a rat carrying every edge the mode gives it,
      * not just the average pairing the old ceiling was tuned against.
      */
-    private const val MAX_RATIO = 1.35
+    private const val MAX_RATIO = 1.15
 
     /**
      * How close to - or past - the rat's own stats [fight] gets.
@@ -209,7 +213,7 @@ object ArenaRun {
      * longer stacks silently on top of the last one.
      */
     private const val RELIEF_EVERY_N_FIGHTS = 1
-    const val ARENA_RELIEF_FRACTION = 0.30
+    const val ARENA_RELIEF_FRACTION = 0.50
 
     /**
      * The extra ratio a milestone fight (5/10/15) adds on top of [ratioFor].
@@ -503,7 +507,7 @@ object ArenaRun {
                 cosmeticFrame = Frames.ARENA_CHAMPION
             }
 
-            // Every fight cleared, the rat gets a breather: 30% of its own
+            // Every fight cleared, the rat gets a breather: half of its own
             // max HP topped up before the next fight starts, on top of
             // whatever it carried out of this one. Capped at the rat's own
             // true max - not the next fight's, which a Loadout could inflate -

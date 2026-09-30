@@ -487,6 +487,8 @@ RARE DROP: %2$s</string>
     <string name="btn_enter_arena">Enter the Arena</string>
     <string name="arena_prep_rat_gone">That rat is no longer available.</string>
     <string name="arena_prep_busy">Finish your current fight first.</string>
+    <string name="arena_prep_rat_recovering">This rat is still recovering. Pick another champion.</string>
+    <string name="arena_prep_walk_fight_first">A Rustbot from your walk is waiting. Beat it first, then enter the Arena.</string>
 
     <!-- Multi-fight run progression - see ArenaRun and BattleActivity's Arena
          handling. Scrap/relic amounts and the fight number are filled in from

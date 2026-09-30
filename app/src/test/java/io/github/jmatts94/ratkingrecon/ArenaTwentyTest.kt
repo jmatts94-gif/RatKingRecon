@@ -23,17 +23,17 @@ class ArenaTwentyTest {
     }
 
     @Test
-    fun `fights 1 to 15 keep the old curve`() {
-        assertEquals(0.90, ArenaRun.ratioFor(1), 1e-9)
-        assertEquals(1.35, ArenaRun.ratioFor(15), 1e-9)
+    fun `fights 1 to 15 ramp from warm-up to the old finish line`() {
+        assertEquals(0.60, ArenaRun.ratioFor(1), 1e-9)
+        assertEquals(1.15, ArenaRun.ratioFor(15), 1e-9)
         assertEquals(3.0, ArenaRun.scrapMultiplierFor(15), 1e-9)
         assertEquals(0.50, ArenaRun.relicChanceFor(15), 1e-9)
     }
 
     @Test
     fun `fights past 15 only creep harder`() {
-        assertEquals(1.36, ArenaRun.ratioFor(16), 1e-9)
-        assertEquals(1.40, ArenaRun.ratioFor(20), 1e-9)
+        assertEquals(1.16, ArenaRun.ratioFor(16), 1e-9)
+        assertEquals(1.20, ArenaRun.ratioFor(20), 1e-9)
         assertTrue(ArenaRun.relicChanceFor(20) <= 0.60)
     }
 
