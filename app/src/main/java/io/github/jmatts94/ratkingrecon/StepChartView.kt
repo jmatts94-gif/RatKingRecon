@@ -25,6 +25,7 @@ class StepChartView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     private var days: List<StepHistory.Day> = emptyList()
+    private var goal = 0
 
     private val density = resources.displayMetrics.density
     private val scaledDensity = resources.displayMetrics.scaledDensity
@@ -51,10 +52,18 @@ class StepChartView @JvmOverloads constructor(
         typeface = lexend
     }
 
+    private val goalLine = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.text_primary)
+        style = Paint.Style.STROKE
+        strokeWidth = 1.5f * density
+        pathEffect = android.graphics.DashPathEffect(floatArrayOf(6f * density, 4f * density), 0f)
+    }
+
     private val bar = RectF()
 
-    fun setDays(newDays: List<StepHistory.Day>) {
+    fun setDays(newDays: List<StepHistory.Day>, newGoal: Int = 0) {
         days = newDays
+        goal = newGoal
         contentDescription = newDays.joinToString(", ") { day ->
             context.getString(R.string.chart_day_description, labelFor(day), day.steps)
         }
@@ -83,8 +92,16 @@ class StepChartView @JvmOverloads constructor(
         val countBand = countPaint.fontSpacing + 4f * density
         val baseline = height - labelBand
         val tallest = baseline - countBand
-        val best = days.maxOf { it.steps }.coerceAtLeast(1)
+        // The goal counts towards the scale, so its line is always on the chart.
+        val best = maxOf(days.maxOf { it.steps }, goal).coerceAtLeast(1)
         val minimumBar = 3f * density
+
+        // Dashed, and named in the text under the chart, so it reads without
+        // colour. Drawn first so the bars and their numbers sit on top of it.
+        if (goal > 0) {
+            val y = baseline - tallest * goal / best
+            canvas.drawLine(0f, y, width.toFloat(), y, goalLine)
+        }
 
         days.forEachIndexed { index, day ->
             val centre = columnWidth * (index + 0.5f)
@@ -101,5 +118,6 @@ class StepChartView @JvmOverloads constructor(
             dayPaint.isFakeBoldText = isToday
             canvas.drawText(labelFor(day), centre, height - 4f * density, dayPaint)
         }
+
     }
 }

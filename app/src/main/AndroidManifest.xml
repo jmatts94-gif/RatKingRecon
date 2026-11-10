@@ -78,6 +78,11 @@
             android:name=".StreakReminderReceiver"
             android:exported="false" />
 
+        <!-- Sunday evening step summary; internal only. -->
+        <receiver
+            android:name=".WeeklySummaryReceiver"
+            android:exported="false" />
+
         <activity
             android:name=".ShopActivity"
             android:exported="false"

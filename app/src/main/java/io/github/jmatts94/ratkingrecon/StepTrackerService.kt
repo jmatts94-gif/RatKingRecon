@@ -187,6 +187,8 @@ class StepTrackerService : Service(), SensorEventListener {
 
         prefs = getSharedPreferences("SaveData", Context.MODE_PRIVATE)
         createChannels()
+        // Runs after a reboot too, which clears every alarm.
+        WeeklySummary.schedule(this)
         startInForeground()
 
         sensorThread = HandlerThread("step-sensor").apply { start() }
@@ -260,6 +262,9 @@ class StepTrackerService : Service(), SensorEventListener {
         // gate themselves on the notifications switch inside DailyAlerts.
         if (outcome.bossTeaser) DailyAlerts.postBossTeaser(this)
         if (outcome.winterComplete) DailyAlerts.postWinterComplete(this)
+        if (outcome.goalReward > 0) {
+            DailyAlerts.postGoalReached(this, StepGoal.goalOf(prefs), outcome.goalReward)
+        }
         outcome.contractPaidName?.let {
             DailyAlerts.postContractPaid(this, it, outcome.bountyReward)
         }

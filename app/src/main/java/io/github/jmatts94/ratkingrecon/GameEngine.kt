@@ -161,6 +161,8 @@ object GameEngine {
         val bossTeaser: Boolean = false,
         /** True on the one batch of steps that finishes Winter Recon. */
         val winterComplete: Boolean = false,
+        /** Scrap paid on the batch of steps that first reaches today's step goal. */
+        val goalReward: Int = 0,
         /** The contract that paid out on these steps, for the alert. */
         val contractPaidName: String? = null,
         val changed: Boolean = false
@@ -306,6 +308,7 @@ object GameEngine {
         }
 
         val winterComplete = WinterEvent.advance(prefs, gained)
+        val goalReward = StepGoal.advance(prefs, stepsToday)
 
         // Rolled after EXP is banked so a hatch and an encounter can both land
         // from one batch of steps without competing for it.
@@ -330,6 +333,7 @@ object GameEngine {
             questReward = questReward,
             bossTeaser = teaser,
             winterComplete = winterComplete,
+            goalReward = goalReward,
             contractPaidName = contractName?.takeIf { bounty.first > 0 },
             changed = true
         )

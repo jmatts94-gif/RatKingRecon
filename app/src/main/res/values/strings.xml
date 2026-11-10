@@ -174,7 +174,7 @@
       per release; the bullets are literal characters and the breaks are \n.
     -->
     <string name="whats_new_title">What\'s New</string>
-    <string name="whats_new_body">• Winter Recon: walk 25,000 steps by 11 January for the limited Frostbound frame\n• Tap today\'s steps on the home screen for your 7-day chart\n• New home-screen widget: today\'s steps and your next hatch\n• Hatches stop getting slower after level 20\n• Easier to read: the Lexend font and bigger small text\n• New Rustbot alerts switch in Settings\n• Lost a fight? You can watch an optional ad to wake your rat\n• Fixed: swiping away a Rustbot alert could stop new ones appearing</string>
+    <string name="whats_new_body">• Winter Recon: walk 25,000 steps by 11 January for the limited Frostbound frame\n• Set your own daily step goal and watch the ring fill. Reach it for a little Scrap\n• A short Sunday summary of your week\'s steps (switch it off in Settings)\n• Tap today\'s steps on the home screen for your 7-day chart\n• New home-screen widget: today\'s steps and your next hatch\n• Hatches stop getting slower after level 20\n• Easier to read: the Lexend font and bigger small text\n• New Rustbot alerts switch in Settings\n• Lost a fight? You can watch an optional ad to wake your rat\n• Fixed: swiping away a Rustbot alert could stop new ones appearing</string>
     <string name="btn_got_it">Got it</string>
 
     <!-- Seven-day step chart -->
@@ -182,6 +182,36 @@
     <!-- total steps, already formatted -->
     <string name="chart_total">%1$s steps in total</string>
     <string name="chart_today">Today</string>
+    <!-- total steps, days the goal was hit -->
+    <string name="chart_total_goal">%1$s steps in total · goal hit on %2$d of 7 days</string>
+    <!-- goal, formatted -->
+    <string name="chart_goal_legend">Dashed line: your daily goal of %1$s steps</string>
+
+    <!-- Daily step goal -->
+    <string name="goal_change">Change goal</string>
+    <string name="goal_picker_title">Your daily step goal</string>
+    <!-- steps, formatted -->
+    <string name="goal_option">%1$s steps</string>
+    <string name="goal_settings">Daily step goal</string>
+    <string name="goal_settings_sub">Tap to change. Reach it each day for a little Scrap.</string>
+    <!-- steps today, goal -->
+    <string name="tile_goal_description">%1$s of %2$s steps today. Tap for your last 7 days.</string>
+    <string name="tile_goal_met_description">%1$s steps today. Goal of %2$s reached. Tap for your last 7 days.</string>
+    <string name="notif_goal_title">Step goal reached!</string>
+    <!-- goal, Scrap -->
+    <string name="notif_goal_text">You walked %1$s steps today. +%2$d Scrap.</string>
+
+    <!-- Sunday summary -->
+    <string name="toggle_weekly">Sunday summary</string>
+    <string name="toggle_weekly_sub">A short look back at your week\'s steps, every Sunday evening.</string>
+    <string name="notif_weekly_title">Your week of walking</string>
+    <!-- steps, formatted -->
+    <string name="notif_weekly_total">%1$s steps this week.</string>
+    <string name="notif_weekly_best">Your best week yet!</string>
+    <plurals name="notif_weekly_goal_days">
+        <item quantity="one">You hit your goal on 1 day.</item>
+        <item quantity="other">You hit your goal on %d days.</item>
+    </plurals>
     <!-- day name, steps; read aloud by screen readers -->
     <string name="chart_day_description">%1$s: %2$d steps</string>
 
@@ -190,8 +220,11 @@
     <string name="widget_description">Today\'s steps and your next hatch</string>
     <!-- steps, already formatted -->
     <string name="widget_steps_label">steps today</string>
+    <!-- goal, formatted -->
+    <string name="widget_goal_of">of %1$s today</string>
+    <string name="widget_goal_met">steps · goal reached!</string>
     <!-- steps today, already formatted; read aloud by screen readers -->
-    <string name="widget_spoken">%1$s steps today. %2$s</string>
+    <string name="widget_spoken">%1$s steps today, %2$s. %3$s</string>
     <!-- steps, already formatted -->
     <string name="widget_steps_left">%1$s to next hatch</string>
     <string name="widget_preview_today">3,120 steps today</string>

@@ -302,6 +302,7 @@ class MainActivity : AppCompatActivity() {
         // single slot and setting it again just moves it.
         DailyQuest.ensureToday(sharedPreferences)
         DailyAlerts.scheduleStreakReminder(this)
+        WeeklySummary.schedule(this)
 
         // 5. Button Listeners
         //
@@ -717,11 +718,27 @@ class MainActivity : AppCompatActivity() {
         dialog.setContentView(R.layout.dialog_step_chart)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
-        dialog.findViewById<StepChartView>(R.id.stepChart).setDays(days)
-        dialog.findViewById<TextView>(R.id.stepChartTotal).text = getString(
-            R.string.chart_total,
-            java.text.NumberFormat.getInstance().format(days.sumOf { it.steps })
-        )
+        val chart = dialog.findViewById<StepChartView>(R.id.stepChart)
+        val total = dialog.findViewById<TextView>(R.id.stepChartTotal)
+        val legend = dialog.findViewById<TextView>(R.id.stepChartGoal)
+        fun showGoal() {
+            val goal = StepGoal.goalOf(sharedPreferences)
+            chart.setDays(days, goal)
+            total.text = getString(
+                R.string.chart_total_goal,
+                StepGoal.format(days.sumOf { it.steps }),
+                StepGoal.daysMet(days, goal)
+            )
+            legend.text = getString(R.string.chart_goal_legend, StepGoal.format(goal))
+        }
+        showGoal()
+        dialog.findViewById<Button>(R.id.stepChartChangeGoal).setOnClickListener {
+            StepGoal.showPicker(this, sharedPreferences) {
+                showGoal()
+                updateStepDisplays()
+                HatchWidgetProvider.refresh(this)
+            }
+        }
         dialog.findViewById<Button>(R.id.stepChartClose).setOnClickListener { dialog.dismiss() }
         // After it closes, so Google's card never lands on top of the chart.
         dialog.setOnDismissListener {
@@ -750,6 +767,13 @@ class MainActivity : AppCompatActivity() {
             R.string.tile_distance,
             Milestones.distanceFor(sharedPreferences, stepsToday.toLong()),
             Milestones.distanceUnit(sharedPreferences)
+        )
+        val goal = StepGoal.goalOf(sharedPreferences)
+        findViewById<StepGoalRing>(R.id.stepGoalRing).setProgress(stepsToday, goal)
+        findViewById<View>(R.id.stepsTile).contentDescription = getString(
+            if (StepGoal.isMet(stepsToday, goal)) R.string.tile_goal_met_description else R.string.tile_goal_description,
+            StepGoal.format(stepsToday),
+            StepGoal.format(goal)
         )
     }
 

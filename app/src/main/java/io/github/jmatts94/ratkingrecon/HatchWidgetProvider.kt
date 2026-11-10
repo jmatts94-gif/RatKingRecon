@@ -57,8 +57,13 @@ class HatchWidgetProvider : AppWidgetProvider() {
                 )
             }
 
-            val stepsLabel = context.getString(R.string.widget_steps_label)
-            val spoken = context.getString(R.string.widget_spoken, stepsToday, hatchLine)
+            val goal = StepGoal.goalOf(prefs)
+            val stepsLabel = if (StepGoal.isMet(DailySteps.today(prefs), goal)) {
+                context.getString(R.string.widget_goal_met)
+            } else {
+                context.getString(R.string.widget_goal_of, StepGoal.format(goal))
+            }
+            val spoken = context.getString(R.string.widget_spoken, stepsToday, stepsLabel, hatchLine)
 
             // Only set what a layout has: a RemoteViews call on a missing view
             // breaks the whole widget.

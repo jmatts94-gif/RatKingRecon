@@ -372,11 +372,11 @@
                     android:outlineSpotShadowColor="@color/shadow_warm"
                     tools:targetApi="28">
 
-                    <ImageView
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_footprint"
+                    <!-- Fills as today's steps near the player's goal; a tick once it is met. -->
+                    <io.github.jmatts94.ratkingrecon.StepGoalRing
+                        android:id="@+id/stepGoalRing"
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
                         android:importantForAccessibility="no" />
 
                     <LinearLayout

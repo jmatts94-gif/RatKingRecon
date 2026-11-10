@@ -35,6 +35,8 @@ object DailyAlerts {
     private const val NOTIF_STREAK = 32
     private const val NOTIF_QUEST_PAID = 33
     private const val NOTIF_WINTER = 34
+    private const val NOTIF_GOAL = 35
+    private const val NOTIF_WEEKLY = 36
 
     /** Hour of the local evening the streak reminder is aimed at. */
     private const val STREAK_REMINDER_HOUR = 19
@@ -62,6 +64,36 @@ object DailyAlerts {
             context.getString(R.string.notif_winter_title),
             context.getString(R.string.notif_winter_text, WinterEvent.SCRAP_REWARD),
             R.drawable.ic_snowflake
+        )
+    }
+
+    /** Today's step goal was reached. Covered by the notifications switch, like other daily rewards. */
+    fun postGoalReached(context: Context, goal: Int, reward: Int) {
+        post(
+            context,
+            NOTIF_GOAL,
+            context.getString(R.string.notif_goal_title),
+            context.getString(R.string.notif_goal_text, StepGoal.format(goal), reward),
+            R.drawable.ic_check
+        )
+    }
+
+    /** Sunday evening's look back. Has its own switch, so it ignores the hatch alerts one. */
+    fun postWeeklySummary(context: Context, summary: WeeklySummary.Summary) {
+        val parts = mutableListOf(context.getString(R.string.notif_weekly_total, StepGoal.format(summary.total)))
+        if (summary.goalDays > 0) {
+            parts += context.resources.getQuantityString(
+                R.plurals.notif_weekly_goal_days, summary.goalDays, summary.goalDays
+            )
+        }
+        if (summary.bestYet) parts += context.getString(R.string.notif_weekly_best)
+        post(
+            context,
+            NOTIF_WEEKLY,
+            context.getString(R.string.notif_weekly_title),
+            parts.joinToString(" "),
+            R.drawable.ic_footprint,
+            respectNotificationsSwitch = false
         )
     }
 
@@ -113,10 +145,11 @@ object DailyAlerts {
         id: Int,
         title: String,
         body: String,
-        iconRes: Int
+        iconRes: Int,
+        respectNotificationsSwitch: Boolean = true
     ) {
         val prefs = RatRepository.prefs(context)
-        if (!GameSettings.notificationsEnabled(prefs)) return
+        if (respectNotificationsSwitch && !GameSettings.notificationsEnabled(prefs)) return
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
 
         createChannels(context)

@@ -112,6 +112,25 @@ class SettingsActivity : AppCompatActivity() {
             prefs.edit().putBoolean(GameSettings.KEY_RUSTBOT_ALERTS, on).apply()
         }
 
+        val weekly = findViewById<MaterialSwitch>(R.id.weeklySummarySwitch)
+        weekly.isChecked = WeeklySummary.isEnabled(prefs)
+        weekly.setOnCheckedChangeListener { _, on ->
+            prefs.edit().putBoolean(WeeklySummary.KEY_ENABLED, on).apply()
+            if (on) WeeklySummary.schedule(this)
+        }
+
+        val goalValue = findViewById<TextView>(R.id.stepGoalValue)
+        fun showGoal() {
+            goalValue.text = StepGoal.format(StepGoal.goalOf(prefs))
+        }
+        showGoal()
+        findViewById<View>(R.id.stepGoalRow).setOnClickListener {
+            StepGoal.showPicker(this, prefs) {
+                showGoal()
+                HatchWidgetProvider.refresh(this)
+            }
+        }
+
         val sound = findViewById<MaterialSwitch>(R.id.soundSwitch)
         sound.isChecked = GameSettings.soundEnabled(prefs)
         sound.setOnCheckedChangeListener { _, on ->
