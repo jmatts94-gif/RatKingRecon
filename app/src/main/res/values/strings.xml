@@ -186,6 +186,7 @@
     <string name="chart_day_description">%1$s: %2$d steps</string>
 
     <!-- Home-screen widget -->
+    <string name="widget_label">Next hatch</string>
     <string name="widget_description">Steps to your next hatch</string>
     <!-- steps, already formatted -->
     <string name="widget_steps_left">%1$s steps to next hatch</string>

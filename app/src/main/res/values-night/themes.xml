@@ -21,6 +21,8 @@
         <item name="android:windowLightStatusBar">false</item>
         <!-- Kept in step with the light theme, which this deliberately mirrors. -->
         <item name="materialButtonStyle">@style/Widget.RatKing.Button</item>
+        <!-- Lexend, sentence case and dark button text in every pop-up. -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.RatKing.Dialog</item>
         <item name="android:windowAnimationStyle">@style/Animation.RatKing.Screen</item>
         <item name="android:navigationBarColor">@color/app_bg_end</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>

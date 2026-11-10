@@ -142,6 +142,7 @@
         <!-- Home-screen widget: steps to the next hatch. -->
         <receiver
             android:name=".HatchWidgetProvider"
+            android:label="@string/widget_label"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

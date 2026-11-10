@@ -23,6 +23,8 @@
         <item name="android:windowLightStatusBar">true</item>
         <!-- Warm shadows on every button; see values-v28/styles.xml. -->
         <item name="materialButtonStyle">@style/Widget.RatKing.Button</item>
+        <!-- Lexend, sentence case and dark button text in every pop-up. -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.RatKing.Dialog</item>
         <!-- Screen transitions, for every Activity at once. -->
         <item name="android:windowAnimationStyle">@style/Animation.RatKing.Screen</item>
         <item name="android:navigationBarColor">@color/app_bg_end</item>
@@ -52,5 +54,22 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:navigationBarColor">@color/arena_bg_deep</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+    </style>
+
+    <!-- Pop-ups: amber button text on cream was hard to read, and caps are harder for dyslexic readers. -->
+    <style name="ThemeOverlay.RatKing.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:fontFamily">@font/lexend</item>
+        <item name="fontFamily">@font/lexend</item>
+        <item name="colorSurface">@color/card_white</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.RatKing.DialogButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.RatKing.DialogButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.RatKing.DialogButton</item>
+    </style>
+
+    <style name="Widget.RatKing.DialogButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@font/lexend</item>
     </style>
 </resources>

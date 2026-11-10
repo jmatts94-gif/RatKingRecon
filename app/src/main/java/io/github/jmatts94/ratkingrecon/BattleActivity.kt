@@ -61,6 +61,7 @@ class BattleActivity : AppCompatActivity() {
     private lateinit var botDotIcon: ImageView
     private lateinit var botChargingIcon: ImageView
     private lateinit var botIntentText: TextView
+    private var botIntentFont: android.graphics.Typeface? = null
     private lateinit var ratName: TextView
     private lateinit var ratStats: TextView
     private lateinit var ratHpBar: ProgressBar
@@ -148,6 +149,7 @@ class BattleActivity : AppCompatActivity() {
         botDotIcon = findViewById(R.id.botDotIcon)
         botChargingIcon = findViewById(R.id.botChargingIcon)
         botIntentText = findViewById(R.id.botIntentText)
+        botIntentFont = botIntentText.typeface
         ratName = findViewById(R.id.ratName)
         ratStats = findViewById(R.id.ratStats)
         ratHpBar = findViewById(R.id.ratHpBar)
@@ -1111,7 +1113,11 @@ class BattleActivity : AppCompatActivity() {
         botIntentText.text = text
         // A HEAVY is the one worth stopping for, so it reads bold as well as
         // carrying its own warning icon.
-        botIntentText.setTypeface(null, if (intent == BotIntent.HEAVY) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        // From the layout's own font, not null: null swaps Lexend for the phone's default.
+        botIntentText.typeface = android.graphics.Typeface.create(
+            botIntentFont,
+            if (intent == BotIntent.HEAVY) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL
+        )
         botIntentText.visibility = View.VISIBLE
     }
 
@@ -1485,7 +1491,7 @@ class BattleActivity : AppCompatActivity() {
         val prefs = RatRepository.prefs(this)
         val cost = RustbotFactory.reviveCost(GameEngine.levelOf(prefs))
 
-        val dialog = android.app.AlertDialog.Builder(this)
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
             .setTitle(R.string.notif_result_title_loss)
             .setMessage(EncounterResolver.lossMessage(this, resolution))
             .setPositiveButton(getString(R.string.battle_revive, cost)) { _, _ ->
