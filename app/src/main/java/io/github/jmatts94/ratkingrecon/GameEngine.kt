@@ -93,6 +93,15 @@ object GameEngine {
      */
     private const val EXP_PER_LEVEL = 250
 
+    /**
+     * The level where a hatch stops costing more: 5,000 steps from here on.
+     *
+     * Without this, a level 30 hatch took 7,500 steps, which is two days of
+     * ordinary walking and a long wait for the game's main reward. Level 50
+     * now takes 197,500 steps in total instead of 306,250.
+     */
+    private const val EXP_COST_STOPS_RISING_AT = 20
+
     // --- combat encounters, entirely separate from hatching ---
 
     /** Per-step chance of meeting a Rustbot; ~1 encounter per 400 steps. */
@@ -161,7 +170,7 @@ object GameEngine {
     fun expOf(prefs: SharedPreferences): Int = prefs.getInt(KEY_EXP, 0)
     fun scrapOf(prefs: SharedPreferences): Int = prefs.getInt(KEY_SCRAP, 0)
     fun totalStepsOf(prefs: SharedPreferences): Float = prefs.getFloat(KEY_TOTAL_STEPS, 0f)
-    fun maxExpFor(level: Int): Int = level * EXP_PER_LEVEL
+    fun maxExpFor(level: Int): Int = minOf(level, EXP_COST_STOPS_RISING_AT) * EXP_PER_LEVEL
 
     /** Base steps left before the next hatch, ignoring any temporary EXP boosts. */
     fun stepsToNextHatch(prefs: SharedPreferences): Int =

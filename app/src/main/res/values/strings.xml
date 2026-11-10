@@ -174,7 +174,7 @@
       per release; the bullets are literal characters and the breaks are \n.
     -->
     <string name="whats_new_title">What\'s New</string>
-    <string name="whats_new_body">• Winter Recon: walk 25,000 steps by 11 January for the limited Frostbound frame\n• Tap today\'s steps on the home screen for your 7-day chart\n• New home-screen widget: steps to your next hatch\n• Easier to read: the Lexend font and bigger small text\n• New Rustbot alerts switch in Settings\n• Lost a fight? You can watch an optional ad to wake your rat\n• Fixed: swiping away a Rustbot alert could stop new ones appearing</string>
+    <string name="whats_new_body">• Winter Recon: walk 25,000 steps by 11 January for the limited Frostbound frame\n• Tap today\'s steps on the home screen for your 7-day chart\n• New home-screen widget: steps to your next hatch\n• Hatches stop getting slower after level 20\n• Easier to read: the Lexend font and bigger small text\n• New Rustbot alerts switch in Settings\n• Lost a fight? You can watch an optional ad to wake your rat\n• Fixed: swiping away a Rustbot alert could stop new ones appearing</string>
     <string name="btn_got_it">Got it</string>
 
     <!-- Seven-day step chart -->
