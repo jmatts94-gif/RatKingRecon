@@ -163,6 +163,10 @@ object GameEngine {
     fun totalStepsOf(prefs: SharedPreferences): Float = prefs.getFloat(KEY_TOTAL_STEPS, 0f)
     fun maxExpFor(level: Int): Int = level * EXP_PER_LEVEL
 
+    /** Base steps left before the next hatch, ignoring any temporary EXP boosts. */
+    fun stepsToNextHatch(prefs: SharedPreferences): Int =
+        max(0, maxExpFor(levelOf(prefs)) - expOf(prefs))
+
     fun lifetimeStepsOf(prefs: SharedPreferences): Long = prefs.getLong(KEY_LIFETIME_STEPS, 0L)
 
     fun lifetimeHatchesOf(prefs: SharedPreferences): Long = prefs.getLong(KEY_LIFETIME_HATCHES, 0L)

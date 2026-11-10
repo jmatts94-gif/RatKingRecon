@@ -99,6 +99,9 @@ class StepTrackerService : Service(), SensorEventListener {
          */
         private const val STEP_POST_MIN_GAP_MS = 1_000L
 
+        /** Often enough to feel live on a walk, without redrawing on every sensor event. */
+        private const val WIDGET_MIN_GAP_MS = 30_000L
+
         const val ACTION_STATE_CHANGED = "io.github.jmatts94.ratkingrecon.STATE_CHANGED"
 
         // Carried so a visible Activity can react in-app rather than re-deriving
@@ -167,6 +170,9 @@ class StepTrackerService : Service(), SensorEventListener {
 
     /** When the step count was last posted; see [STEP_POST_MIN_GAP_MS]. */
     private var lastStepPostAt = 0L
+
+    /** When the home-screen widget was last redrawn; see [WIDGET_MIN_GAP_MS]. */
+    private var lastWidgetRefreshAt = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -260,6 +266,7 @@ class StepTrackerService : Service(), SensorEventListener {
         outcome.questReward?.let { DailyAlerts.postQuestPaid(this, it) }
 
         notifyStepsToday(outcome.stepsToday)
+        refreshWidget(force = outcome.hatched != null)
 
         sendBroadcast(
             Intent(ACTION_STATE_CHANGED)
@@ -272,6 +279,13 @@ class StepTrackerService : Service(), SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+    private fun refreshWidget(force: Boolean) {
+        val now = SystemClock.elapsedRealtime()
+        if (!force && now - lastWidgetRefreshAt < WIDGET_MIN_GAP_MS) return
+        lastWidgetRefreshAt = now
+        HatchWidgetProvider.refresh(this)
+    }
 
     // ---- notifications -------------------------------------------------------
 

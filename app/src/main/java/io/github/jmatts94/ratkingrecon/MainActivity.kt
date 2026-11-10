@@ -378,6 +378,7 @@ class MainActivity : AppCompatActivity() {
             R.string.tooltip_steps_title,
             R.string.tooltip_steps_body
         )
+        findViewById<View>(R.id.stepsTile).setOnClickListener { showStepChart() }
 
         findViewById<Button>(R.id.achievementsButton).setOnClickListener {
             startActivity(android.content.Intent(this, AchievementsActivity::class.java))
@@ -707,6 +708,28 @@ class MainActivity : AppCompatActivity() {
      * visible on the Achievements screen, despite being the one that never goes
      * backwards and the one the milestones are measured against.
      */
+    /** The last seven days of walking, opened from the steps tile. */
+    private fun showStepChart() {
+        if (isFinishing || isDestroyed) return
+        val days = StepHistory.lastDays(sharedPreferences)
+
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_step_chart)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setWindowAnimations(R.style.Animation_RatKing_Dialog)
+        dialog.findViewById<StepChartView>(R.id.stepChart).setDays(days)
+        dialog.findViewById<TextView>(R.id.stepChartTotal).text = getString(
+            R.string.chart_total,
+            java.text.NumberFormat.getInstance().format(days.sumOf { it.steps })
+        )
+        dialog.findViewById<Button>(R.id.stepChartClose).setOnClickListener { dialog.dismiss() }
+        dialog.show()
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.92f).toInt(),
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+    }
+
     private fun updateStepDisplays() {
         updateWinterBanner()
         stepCountText.text = GameEngine.lifetimeStepsOf(sharedPreferences).toString()
@@ -835,6 +858,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        // Catches what the service cannot see: Shop hatches, task EXP, save imports.
+        HatchWidgetProvider.refresh(this)
 
         // The service owns the sensor now, so all we do is listen for its updates
         // and re-read whatever it has already written.

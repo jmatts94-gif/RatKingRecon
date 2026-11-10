@@ -91,6 +91,13 @@ object DailySteps {
         now: Long = System.currentTimeMillis()
     ): Int {
         val updated = today(prefs, now) + gained
+
+        // The day just ended is about to be overwritten: keep it for the chart.
+        val storedDay = prefs.getInt(KEY_DAY, 0)
+        if (storedDay != 0 && storedDay != dayStamp(now)) {
+            StepHistory.bank(prefs, editor, storedDay, prefs.getInt(KEY_STEPS, 0))
+        }
+
         editor.putInt(KEY_DAY, dayStamp(now)).putInt(KEY_STEPS, updated)
         return updated
     }
