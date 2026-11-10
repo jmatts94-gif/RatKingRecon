@@ -723,6 +723,12 @@ class MainActivity : AppCompatActivity() {
             java.text.NumberFormat.getInstance().format(days.sumOf { it.steps })
         )
         dialog.findViewById<Button>(R.id.stepChartClose).setOnClickListener { dialog.dismiss() }
+        // After it closes, so Google's card never lands on top of the chart.
+        dialog.setOnDismissListener {
+            if (!isFinishing && !isDestroyed) {
+                RatingPrompt.askIfDue(this, sharedPreferences, RatingPrompt.chartIsDue(days))
+            }
+        }
         dialog.show()
         dialog.window?.setLayout(
             (resources.displayMetrics.widthPixels * 0.92f).toInt(),
