@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Two or more rows high: everything stacked, the step count big. -->
+<!-- android:tint, not app:tint: the launcher draws this, not AppCompat. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widgetHatchRoot"
+    tools:ignore="UseAppTint"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_pill_tan"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="6dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_footprint" />
+
+    <ImageView
+            android:id="@+id/widgetStepsNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:importantForAccessibility="no"
+            android:scaleType="fitStart"
+            android:tint="@color/text_primary" />
+
+    <ImageView
+            android:id="@+id/widgetStepsLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:importantForAccessibility="no"
+            android:scaleType="fitStart"
+            android:tint="@color/text_primary" />
+
+    <ImageView
+            android:id="@+id/widgetHatchLine"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:importantForAccessibility="no"
+            android:scaleType="fitStart"
+            android:tint="@color/text_muted"
+            android:layout_marginTop="10dp" />
+
+    <ProgressBar
+        android:id="@+id/widgetHatchBar"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="6dp"
+        android:max="100"
+        android:progress="40"
+        android:progressDrawable="@drawable/progress_widget" />
+</LinearLayout>

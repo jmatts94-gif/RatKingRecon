@@ -189,7 +189,9 @@
     <string name="widget_label">Steps today</string>
     <string name="widget_description">Today\'s steps and your next hatch</string>
     <!-- steps, already formatted -->
-    <string name="widget_steps_today">%1$s steps today</string>
+    <string name="widget_steps_label">steps today</string>
+    <!-- steps today, already formatted; read aloud by screen readers -->
+    <string name="widget_spoken">%1$s steps today. %2$s</string>
     <!-- steps, already formatted -->
     <string name="widget_steps_left">%1$s to next hatch</string>
     <string name="widget_preview_today">3,120 steps today</string>
