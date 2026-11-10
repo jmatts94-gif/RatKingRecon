@@ -125,6 +125,60 @@
             android:progress="0"
             android:layout_marginBottom="20dp" />
 
+        <!-- Winter Recon. Shown by MainActivity only while the event runs. -->
+        <LinearLayout
+            android:id="@+id/winterBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_card_white"
+            android:elevation="4dp"
+            android:padding="14dp"
+            android:layout_marginBottom="20dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="12dp"
+                android:src="@drawable/ic_snowflake"
+                android:importantForAccessibility="no" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/winter_title"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/winterProgressText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_muted"
+                    android:textSize="14sp"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="6dp" />
+
+                <ProgressBar
+                    android:id="@+id/winterProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="10dp"
+                    android:progressDrawable="@drawable/progress_amber" />
+            </LinearLayout>
+        </LinearLayout>
+
         <!--
           Egg. The artwork itself changes stage as EXP fills.
 
@@ -292,7 +346,7 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:textColor="@color/text_primary"
-                        android:textSize="13sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
                         android:text="@string/tile_expedition_idle" />
                 </LinearLayout>
@@ -340,7 +394,7 @@
                             android:maxLines="1"
                             android:ellipsize="end"
                             android:textColor="@color/text_primary"
-                            android:textSize="13sp"
+                            android:textSize="14sp"
                             android:textStyle="bold"
                             tools:text="1240 steps" />
 
@@ -352,7 +406,7 @@
                             android:maxLines="1"
                             android:ellipsize="end"
                             android:textColor="@color/text_muted"
-                            android:textSize="11sp"
+                            android:textSize="13sp"
                             tools:text="0.9 km" />
                     </LinearLayout>
                 </LinearLayout>
@@ -510,7 +564,7 @@
                         android:maxLines="1"
                         android:ellipsize="end"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
                         tools:text="Fight 10 cleared" />
 
@@ -730,7 +784,7 @@
                 android:gravity="center"
                 android:maxLines="2"
                 android:ellipsize="end"
-                android:textSize="11sp"
+                android:textSize="13sp"
                 android:textColor="@color/text_muted"
                 tools:text="Battle Rats can't go on Expeditions while designated." />
 

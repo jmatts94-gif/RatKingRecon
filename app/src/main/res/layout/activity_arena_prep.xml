@@ -69,7 +69,7 @@
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="6dp"
                     android:textColor="@color/arena_text_muted"
-                    android:textSize="13sp" />
+                    android:textSize="14sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -128,7 +128,7 @@
                 android:text="@string/arena_prep_items_rule"
                 android:textColor="@color/cream"
                 android:alpha="0.8"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
             <LinearLayout
                 android:id="@+id/arenaPrepItemsContainer"
@@ -143,7 +143,7 @@
                 android:layout_marginTop="14dp"
                 android:text="@string/btn_arena_visit_shop"
                 android:textAllCaps="false"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textColor="@color/cream"
                 app:backgroundTint="@color/shadow_warm"
                 app:strokeColor="@color/copper"
@@ -175,7 +175,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textColor="@color/arena_text_muted"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 tools:text="You Have: 1400 Scrap" />
         </LinearLayout>
 
@@ -214,7 +214,7 @@
             android:padding="8dp"
             android:text="@string/arena_leave"
             android:textColor="@color/arena_text_muted"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:background="?attr/selectableItemBackground" />
 
     </LinearLayout>

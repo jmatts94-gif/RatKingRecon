@@ -495,6 +495,45 @@ class MainActivity : AppCompatActivity() {
      * there is no room for a halo that grows dramatically - and a glow reaching
      * past the pill would read as a drawing error, not as more light.
      */
+    private fun updateWinterBanner() {
+        val banner = findViewById<View>(R.id.winterBanner)
+        if (!WinterEvent.isRunning()) {
+            banner.visibility = View.GONE
+            return
+        }
+        banner.visibility = View.VISIBLE
+
+        val steps = WinterEvent.steps(sharedPreferences)
+        val format = java.text.NumberFormat.getIntegerInstance()
+        findViewById<TextView>(R.id.winterProgressText).text =
+            if (WinterEvent.isDone(sharedPreferences)) {
+                getString(R.string.winter_done)
+            } else {
+                getString(
+                    R.string.winter_progress,
+                    format.format(steps),
+                    format.format(WinterEvent.GOAL_STEPS)
+                )
+            }
+        findViewById<ProgressBar>(R.id.winterProgressBar).apply {
+            max = WinterEvent.GOAL_STEPS
+            progress = steps
+        }
+        banner.setOnClickListener {
+            android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.winter_title)
+                .setMessage(
+                    getString(
+                        R.string.winter_info,
+                        format.format(WinterEvent.GOAL_STEPS),
+                        WinterEvent.SCRAP_REWARD
+                    )
+                )
+                .setPositiveButton(R.string.btn_close, null)
+                .show()
+        }
+    }
+
     private fun updateStreakTile() {
         DailyQuest.ensureToday(sharedPreferences)
 
@@ -669,6 +708,7 @@ class MainActivity : AppCompatActivity() {
      * backwards and the one the milestones are measured against.
      */
     private fun updateStepDisplays() {
+        updateWinterBanner()
         stepCountText.text = GameEngine.lifetimeStepsOf(sharedPreferences).toString()
 
         // The tile beside the egg shows the same total the header does, with

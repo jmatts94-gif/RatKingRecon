@@ -51,7 +51,7 @@
             android:background="@drawable/bg_pill_tan"
             android:paddingHorizontal="8dp"
             android:paddingVertical="3dp"
-            android:textSize="11sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             android:textColor="@color/text_muted"
             tools:text="Tool" />
@@ -72,7 +72,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:textSize="13sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@color/text_primary"
         tools:text="Costs 4 × ⚙️ Rusted Gear   ·   you hold 2" />

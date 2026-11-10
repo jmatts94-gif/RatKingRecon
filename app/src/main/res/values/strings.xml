@@ -174,7 +174,7 @@
       per release; the bullets are literal characters and the breaks are \n.
     -->
     <string name="whats_new_title">What\'s New</string>
-    <string name="whats_new_body">• Arena battles hit harder: animated HP bars and bigger bosses\n• A new, earlier step milestone for lighter walkers\n• Distance in miles: switch it on in Settings\n• Tap a greyed-out rat in Splicing to see why it can\'t be picked\n• The Scrap Run tile lights up when it\'s ready to collect</string>
+    <string name="whats_new_body">• Winter Recon: walk 25,000 steps by 11 January for the limited Frostbound frame\n• Easier to read: the Lexend font and bigger small text\n• New Rustbot alerts switch in Settings\n• Lost a fight? You can watch an optional ad to wake your rat\n• Fixed: swiping away a Rustbot alert could stop new ones appearing</string>
     <string name="btn_got_it">Got it</string>
 
     <!-- Settings and save transfer -->
@@ -254,6 +254,19 @@
     <!-- Settings: alerts -->
     <string name="settings_cat_alerts">Alerts</string>
     <string name="settings_cat_alerts_sub">The ongoing step-counter notification is required by Android and cannot be turned off.</string>
+    <string name="toggle_rustbots">Rustbot alerts</string>
+    <string name="toggle_rustbots_sub">Turn this off and Rustbots won\'t stop you on walks. Bosses still find you.</string>
+    <string name="battle_wake_ad">Watch Ad to Wake (%1$d left)</string>
+    <string name="battle_wake_ad_none">No reward this time, so your rat is still resting.</string>
+    <string name="battle_wake_done">%1$s is awake and ready.</string>
+    <string name="winter_title">Winter Recon</string>
+    <string name="winter_progress">%1$s / %2$s steps. Ends 11 Jan.</string>
+    <string name="winter_done">Complete! Frostbound frame earned.</string>
+    <string name="winter_info">Walk %1$s steps by 11 January to earn the Frostbound card frame and %2$d Scrap. This frame won\'t come back after this winter.</string>
+    <string name="notif_winter_title">Winter Recon complete</string>
+    <string name="notif_winter_text">You earned the Frostbound frame and %1$d Scrap.</string>
+    <string name="shop_name_frame_frostbound">Frostbound</string>
+    <string name="shop_desc_frame_frostbound">Earned in Winter Recon. Winter 2026 only.</string>
     <string name="toggle_notifications">Notifications</string>
     <string name="toggle_notifications_sub">Tell me about hatches, finished tasks, and daily rewards while the app is closed. A Rustbot blocking your path always alerts you, since that notification is the only way to fight it.</string>
     <string name="toggle_sound">Sound and vibration</string>

@@ -34,6 +34,7 @@ object DailyAlerts {
     private const val NOTIF_CONTRACT_PAID = 31
     private const val NOTIF_STREAK = 32
     private const val NOTIF_QUEST_PAID = 33
+    private const val NOTIF_WINTER = 34
 
     /** Hour of the local evening the streak reminder is aimed at. */
     private const val STREAK_REMINDER_HOUR = 19
@@ -54,6 +55,16 @@ object DailyAlerts {
     }
 
     /** A contract crossed its step target and paid out while the app was away. */
+    fun postWinterComplete(context: Context) {
+        post(
+            context,
+            NOTIF_WINTER,
+            context.getString(R.string.notif_winter_title),
+            context.getString(R.string.notif_winter_text, WinterEvent.SCRAP_REWARD),
+            R.drawable.ic_snowflake
+        )
+    }
+
     fun postContractPaid(context: Context, name: String, reward: Int) {
         post(
             context,

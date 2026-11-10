@@ -68,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textColor="@color/text_muted"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:text="Species" />
 
             <!-- Flavor only, same artKey lookup as the species line above it. -->
@@ -78,7 +78,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textColor="@color/text_muted"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:text="Faction"
                 android:layout_marginBottom="14dp" />
 
@@ -278,7 +278,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textColor="@color/text_muted"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:layout_marginBottom="12dp"
                 android:visibility="gone"
                 tools:text="On Ledger Task: The Toxic Warehouse — 82m left"

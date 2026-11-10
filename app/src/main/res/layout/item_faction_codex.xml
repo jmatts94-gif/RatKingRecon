@@ -35,7 +35,7 @@
         android:layout_marginBottom="12dp"
         android:textColor="@color/text_muted"
         android:textStyle="italic"
-        android:textSize="13sp"
+        android:textSize="14sp"
         tools:text="Fast hands, faster exits." />
 
     <TextView
@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:text="@string/codex_label_task"
         android:textColor="@color/copper"
-        android:textSize="11sp"
+        android:textSize="13sp"
         android:textStyle="bold" />
 
     <TextView
@@ -53,7 +53,7 @@
         android:layout_marginTop="1dp"
         android:layout_marginBottom="10dp"
         android:textColor="@color/text_primary"
-        android:textSize="13sp"
+        android:textSize="14sp"
         tools:text="+15% Scrap on completion" />
 
     <TextView
@@ -61,7 +61,7 @@
         android:layout_height="wrap_content"
         android:text="@string/codex_label_boss"
         android:textColor="@color/copper"
-        android:textSize="11sp"
+        android:textSize="13sp"
         android:textStyle="bold" />
 
     <TextView
@@ -71,7 +71,7 @@
         android:layout_marginTop="1dp"
         android:layout_marginBottom="10dp"
         android:textColor="@color/text_primary"
-        android:textSize="13sp"
+        android:textSize="14sp"
         tools:text="Deals bonus Special damage against Old Ironclaw. Takes bonus damage from The Junk Golem." />
 
     <TextView
@@ -79,7 +79,7 @@
         android:layout_height="wrap_content"
         android:text="@string/codex_label_special"
         android:textColor="@color/copper"
-        android:textSize="11sp"
+        android:textSize="13sp"
         android:textStyle="bold" />
 
     <TextView
@@ -88,7 +88,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="1dp"
         android:textColor="@color/text_primary"
-        android:textSize="13sp"
+        android:textSize="14sp"
         tools:text="1.5× Power, plus 4% of the damage dealt healed straight back." />
 
 </LinearLayout>

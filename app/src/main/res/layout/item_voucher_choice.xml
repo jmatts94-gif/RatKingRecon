@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:text="@string/trade_action"
         android:textAllCaps="false"
-        android:textSize="13sp"
+        android:textSize="14sp"
         android:textColor="@color/text_primary"
         app:backgroundTint="@color/amber"
         app:cornerRadius="14dp" />

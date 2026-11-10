@@ -10,6 +10,8 @@
       light icons, the reverse of the light theme's own.
     -->
     <style name="Base.Theme.RatKingRecon" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:fontFamily">@font/lexend</item>
+        <item name="fontFamily">@font/lexend</item>
         <item name="colorPrimary">@color/amber</item>
         <item name="colorOnPrimary">@color/text_primary</item>
         <item name="colorSurface">@color/app_bg</item>

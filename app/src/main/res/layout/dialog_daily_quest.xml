@@ -48,7 +48,7 @@
         android:layout_height="wrap_content"
         android:text="@string/quest_dialog_title"
         android:textColor="@color/text_muted"
-        android:textSize="12sp"
+        android:textSize="13sp"
         android:letterSpacing="0.08" />
 
     <TextView
@@ -76,7 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:textColor="@color/text_muted"
-        android:textSize="13sp" />
+        android:textSize="14sp" />
 
     <TextView
         android:id="@+id/questStreakText"
@@ -96,7 +96,7 @@
         android:layout_marginTop="4dp"
         android:textAlignment="center"
         android:textColor="@color/text_muted"
-        android:textSize="12sp"
+        android:textSize="13sp"
         tools:text="Reward: 20–40 Scrap, or a relic." />
 
     <com.google.android.material.button.MaterialButton

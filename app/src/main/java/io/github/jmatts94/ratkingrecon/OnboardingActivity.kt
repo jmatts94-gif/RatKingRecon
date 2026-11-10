@@ -76,7 +76,7 @@ class OnboardingActivity : AppCompatActivity() {
         Onboarding.pages.indices.forEach { _ ->
             val dot = TextView(this).apply {
                 text = getString(R.string.onboarding_dot)
-                textSize = 12f
+                textSize = 13f
                 val gap = (6 * resources.displayMetrics.density).toInt()
                 setPadding(gap, 0, gap, 0)
             }

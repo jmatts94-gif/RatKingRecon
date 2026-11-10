@@ -9,7 +9,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@drawable/bg_app_gradient">
+    android:background="@drawable/bg_app_gradient"
+>
 
     <ScrollView
         android:id="@+id/achievementsScroll"
@@ -42,7 +43,7 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="18dp"
                 android:textColor="@color/text_muted"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
             <!-- Combat badges -->
             <TextView
@@ -60,7 +61,7 @@
                 android:layout_marginBottom="10dp"
                 android:text="@string/achievements_combat_sub"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/badgeList"
@@ -85,7 +86,7 @@
                 android:layout_marginBottom="10dp"
                 android:text="@string/achievements_arena_sub"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/arenaBadgeList"
@@ -110,7 +111,7 @@
                 android:layout_marginTop="2dp"
                 android:layout_marginBottom="10dp"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/stepsList"
@@ -135,7 +136,7 @@
                 android:layout_marginTop="2dp"
                 android:layout_marginBottom="10dp"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/rosterList"
@@ -160,7 +161,7 @@
                 android:layout_marginBottom="10dp"
                 android:text="@string/achievements_hatching_sub"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/hatchingList"
@@ -185,7 +186,7 @@
                 android:layout_marginBottom="10dp"
                 android:text="@string/achievements_splicing_sub"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/splicingList"
@@ -210,7 +211,7 @@
                 android:layout_marginBottom="10dp"
                 android:text="@string/achievements_secret_sub"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/secretList"
@@ -235,7 +236,7 @@
                 android:layout_marginBottom="10dp"
                 android:text="@string/achievements_buffs_sub"
                 android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/buffsList"

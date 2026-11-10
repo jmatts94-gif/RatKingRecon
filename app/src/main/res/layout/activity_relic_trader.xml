@@ -93,7 +93,7 @@
             android:text="@string/trader_empty_body"
             android:textAlignment="center"
             android:textColor="@color/text_muted"
-            android:textSize="13sp" />
+            android:textSize="14sp" />
     </LinearLayout>
 
     <ScrollView

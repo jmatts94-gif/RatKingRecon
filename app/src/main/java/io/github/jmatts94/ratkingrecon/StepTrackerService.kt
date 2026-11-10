@@ -236,6 +236,7 @@ class StepTrackerService : Service(), SensorEventListener {
         // decision from the player, unlike a hatch which is just news. That is
         // also why the notifications switch does not cover it - this alert is
         // the only way in to the fight, so hiding it would strand the encounter.
+        // The Rustbot alerts switch works by not raising encounters at all.
         outcome.encounter?.let { notifyEncounter(it) }
 
         // A banked boss follows the hatch rules instead: suppressed when the app
@@ -252,6 +253,7 @@ class StepTrackerService : Service(), SensorEventListener {
         // The two daily-loop alerts that can only be noticed while walking. Both
         // gate themselves on the notifications switch inside DailyAlerts.
         if (outcome.bossTeaser) DailyAlerts.postBossTeaser(this)
+        if (outcome.winterComplete) DailyAlerts.postWinterComplete(this)
         outcome.contractPaidName?.let {
             DailyAlerts.postContractPaid(this, it, outcome.bountyReward)
         }

@@ -90,6 +90,9 @@
 
     <!-- The two ends of the Ember frame's pulse: hot orange down to deep red. -->
     <color name="ember_hot">#FF8C42</color>
+    <color name="frost_stroke">#4A86A8</color>
+    <color name="frost_ice">#7CC8EC</color>
+    <color name="frost_white">#E6F6FF</color>
     <color name="ember_deep">#B3301C</color>
 
     <!--

@@ -169,19 +169,44 @@ class EncounterTriggerTest {
 
     // --- the gates ------------------------------------------------------------
 
-    @Test
-    fun `an unresolved encounter blocks every later one`() {
-        val prefs = FakePrefs()
-        val dao = StubDao(rats = mutableListOf(rat(id = 1)))
+    /** Walks one step at a time until a fight is left pending. Returns the counter. */
+    private fun walkUntilPending(dao: StubDao, prefs: FakePrefs): Float {
         GameEngine.onSteps(dao, prefs, 0f)
-
-        // Walk until one lands, then leave it pending.
         var counter = 0f
         while (!Encounter.isPending(prefs) && counter < 20_000f) {
             counter += 1f
             GameEngine.onSteps(dao, prefs, counter)
         }
         assertTrue("no encounter in 20000 steps", Encounter.isPending(prefs))
+        return counter
+    }
+
+    @Test
+    fun `an unresolved encounter is announced again but never replaced`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(rats = mutableListOf(rat(id = 1)))
+        var counter = walkUntilPending(dao, prefs)
+        val original = requireNotNull(Encounter.load(prefs))
+
+        val start = counter
+        var reminders = 0
+        while (counter < start + 5_000f) {
+            counter += 1f
+            GameEngine.onSteps(dao, prefs, counter).encounter?.let {
+                assertEquals("a reminder must be the same fight", original, it)
+                reminders++
+            }
+        }
+        assertEquals("one reminder per 2000 steps", 2, reminders)
+        assertEquals(original, Encounter.load(prefs))
+    }
+
+    @Test
+    fun `a pending boss is never announced as a Rustbot`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(rats = mutableListOf(rat(id = 1)))
+        var counter = walkUntilPending(dao, prefs)
+        prefs.edit().putString("ENCOUNTER_BOSS_ID", "any_boss").apply()
 
         val start = counter
         var raised = 0
@@ -189,7 +214,24 @@ class EncounterTriggerTest {
             counter += 1f
             if (GameEngine.onSteps(dao, prefs, counter).encounter != null) raised++
         }
-        assertEquals("a pending encounter must suppress new ones", 0, raised)
+        assertEquals(0, raised)
+    }
+
+    @Test
+    fun `the Rustbot switch stops encounters on walks`() {
+        val prefs = FakePrefs()
+        val dao = StubDao(rats = mutableListOf(rat(id = 1)))
+        prefs.edit().putBoolean(GameSettings.KEY_RUSTBOT_ALERTS, false).apply()
+        GameEngine.onSteps(dao, prefs, 0f)
+
+        var counter = 0f
+        var raised = 0
+        while (counter < 20_000f) {
+            counter += 1f
+            if (GameEngine.onSteps(dao, prefs, counter).encounter != null) raised++
+        }
+        assertEquals(0, raised)
+        assertFalse(Encounter.isPending(prefs))
     }
 
     @Test

@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:text="@string/boss_intro_title"
         android:textColor="@color/text_muted"
-        android:textSize="12sp"
+        android:textSize="13sp"
         android:letterSpacing="0.08" />
 
     <TextView

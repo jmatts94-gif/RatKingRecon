@@ -116,6 +116,9 @@ class BattleActivity : AppCompatActivity() {
      */
     private var bossGlowAnimator: ObjectAnimator? = null
 
+    /** A reward ad is loading, so a second tap must not start another. */
+    private var wakeAdBusy = false
+
     /** Whether this is Boot Camp's practice fight, still being walked through. */
     private var practiceGuide = false
 
@@ -1208,9 +1211,13 @@ class BattleActivity : AppCompatActivity() {
             when {
                 arenaFightNumber != null -> finishArenaFight(prefs, resolution, arenaFightNumber)
                 bossSpec != null -> showBossResult(bossSpec, resolution) {
-                    if (!resolution.won) offerRevive(resolution)
+                    if (resolution.won) {
+                        RatingPrompt.askIfDue(this@BattleActivity, prefs, resolution.badgeEarned)
+                    } else {
+                        offerRevive(resolution, allowWakeAd = true)
+                    }
                 }
-                !resolution.won -> offerRevive(resolution)
+                !resolution.won -> offerRevive(resolution, allowWakeAd = !practice)
             }
         }
     }
@@ -1474,12 +1481,11 @@ class BattleActivity : AppCompatActivity() {
     }
 
     /** A loss is not final if the player would rather pay to skip the wait. */
-    private fun offerRevive(resolution: EncounterResolver.Resolution) {
-        val cost = RustbotFactory.reviveCost(
-            GameEngine.levelOf(RatRepository.prefs(this))
-        )
+    private fun offerRevive(resolution: EncounterResolver.Resolution, allowWakeAd: Boolean) {
+        val prefs = RatRepository.prefs(this)
+        val cost = RustbotFactory.reviveCost(GameEngine.levelOf(prefs))
 
-        android.app.AlertDialog.Builder(this)
+        val dialog = android.app.AlertDialog.Builder(this)
             .setTitle(R.string.notif_result_title_loss)
             .setMessage(EncounterResolver.lossMessage(this, resolution))
             .setPositiveButton(getString(R.string.battle_revive, cost)) { _, _ ->
@@ -1503,6 +1509,37 @@ class BattleActivity : AppCompatActivity() {
                 }
             }
             .setNegativeButton(R.string.btn_close, null)
-            .show()
+
+        // Only while the rat is really resting: a Revive Token may have spared it.
+        if (allowWakeAd && resolution.recoveringUntil > 0L && RewardedAds.canWatch(prefs)) {
+            val left = RewardedAds.DAILY_LIMIT - RewardedAds.watchesToday(prefs)
+            dialog.setNeutralButton(getString(R.string.battle_wake_ad, left)) { _, _ ->
+                watchAdToWake()
+            }
+        }
+        dialog.show()
+    }
+
+    /** Never offered unasked: the player has to tap the button in the loss dialog. */
+    private fun watchAdToWake() {
+        if (wakeAdBusy) return
+        wakeAdBusy = true
+
+        RewardedAds.showRewardedAd(this, RatRepository.prefs(this)) { earned ->
+            wakeAdBusy = false
+            if (earned <= 0) {
+                Toast.makeText(this, R.string.battle_wake_ad_none, Toast.LENGTH_SHORT).show()
+                return@showRewardedAd
+            }
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    EncounterResolver.wakeAfterAd(this@BattleActivity, rat.id)
+                }
+                val done = getString(R.string.battle_wake_done, rat.name)
+                lines += done
+                render()
+                Toast.makeText(this@BattleActivity, done, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }

@@ -69,7 +69,7 @@ class GearWorkshopActivity : AppCompatActivity() {
                 background = ContextCompat.getDrawable(this@GearWorkshopActivity, R.drawable.bg_pill_tan)
                 setTextColor(ContextCompat.getColor(this@GearWorkshopActivity, R.color.text_primary))
                 gravity = Gravity.CENTER
-                textSize = 13f
+                textSize = 14f
                 setPadding(8, 12, 8, 12)
                 tag = relic.id
                 setCompoundDrawablesWithIntrinsicBounds(sizedIcon(relic.iconRes, 16), null, null, null)

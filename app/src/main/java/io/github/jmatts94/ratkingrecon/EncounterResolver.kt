@@ -202,6 +202,16 @@ object EncounterResolver {
     }
 
     /**
+     * Wakes a knocked-out rat after a finished reward ad.
+     *
+     * Clears the rest timer only. Unlike [revive] it never reopens the fight, so
+     * an ad can't be used to win one. Blocking, so call it off the main thread.
+     */
+    fun wakeAfterAd(context: Context, ratId: Long) {
+        RatRepository.dao(context.applicationContext).revive(ratId)
+    }
+
+    /**
      * Wakes a knocked-out rat early by spending a held Revive Token.
      *
      * The Arena's own loss screen never offers the Scrap version [revive]

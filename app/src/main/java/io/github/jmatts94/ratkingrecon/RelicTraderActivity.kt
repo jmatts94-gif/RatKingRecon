@@ -78,7 +78,7 @@ class RelicTraderActivity : AppCompatActivity() {
                 background = ContextCompat.getDrawable(this@RelicTraderActivity, R.drawable.bg_pill_tan)
                 setTextColor(ContextCompat.getColor(this@RelicTraderActivity, R.color.text_primary))
                 gravity = Gravity.CENTER
-                textSize = 13f
+                textSize = 14f
                 textAlignment = View.TEXT_ALIGNMENT_CENTER
                 setPadding(8, 12, 8, 12)
                 tag = relic.id

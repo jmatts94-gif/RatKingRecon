@@ -101,7 +101,7 @@
         android:layout_marginTop="6dp"
         android:textAlignment="center"
         android:textColor="@color/copper"
-        android:textSize="13sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         android:visibility="gone"
         tools:visibility="visible"

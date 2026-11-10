@@ -101,7 +101,7 @@
             android:padding="8dp"
             android:text="@string/arena_leave"
             android:textColor="@color/arena_text_muted"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:background="?attr/selectableItemBackground" />
 
     </LinearLayout>

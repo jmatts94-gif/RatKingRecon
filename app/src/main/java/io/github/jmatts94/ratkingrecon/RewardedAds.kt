@@ -54,7 +54,8 @@ object RewardedAds {
     /**
      * Loads and immediately shows a rewarded ad, calling [onResult] exactly
      * once with the Scrap earned (0 for "declined, failed to load, or closed
-     * early").
+     * early"). A caller paying something other than Scrap checks only that
+     * this is above zero, and banks nothing from it.
      *
      * Loads on demand rather than pre-caching, trading a few seconds of
      * spinner for not holding a loaded ad hostage while the player does

@@ -49,8 +49,8 @@ android {
         applicationId = "io.github.jmatts94.ratkingrecon"
         minSdk = 24
         targetSdk = 36
-        versionCode = 14
-        versionName = "0.12"
+        versionCode = 15
+        versionName = "0.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -165,6 +165,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     implementation(libs.play.services.ads)
+    implementation(libs.play.review)
     implementation(libs.user.messaging.platform)
     implementation(libs.billing.ktx)
     testImplementation(libs.junit)

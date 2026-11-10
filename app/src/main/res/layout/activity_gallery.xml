@@ -21,7 +21,7 @@
             android:text="@string/collection_default_text"
             android:textColor="@color/text_muted"
             android:textAlignment="center"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:layout_marginBottom="6dp" />
 
         <ProgressBar
@@ -55,7 +55,7 @@
         android:layout_marginBottom="12dp"
         android:text="@string/fusion_pot_text"
         android:textAllCaps="false"
-        android:textSize="13sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         android:textColor="@color/text_primary"
         app:backgroundTint="@color/amber"
@@ -81,7 +81,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/btn_all"
                 android:textAllCaps="false"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textColor="@color/text_primary"
                 app:backgroundTint="@color/card_white"
                 app:strokeColor="@color/card_border"
@@ -105,7 +105,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/btn_faction_codex"
                 android:textAllCaps="false"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textColor="@color/text_primary"
                 app:backgroundTint="@color/amber"
                 app:cornerRadius="16dp"
@@ -118,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/btn_power"
                 android:textAllCaps="false"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textColor="@color/text_primary"
                 app:backgroundTint="@color/card_white"
                 app:strokeColor="@color/card_border"
@@ -133,7 +133,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/btn_faction"
                 android:textAllCaps="false"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textColor="@color/text_primary"
                 app:backgroundTint="@color/card_white"
                 app:strokeColor="@color/card_border"
@@ -155,7 +155,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/btn_rarity"
                 android:textAllCaps="false"
-                android:textSize="13sp"
+                android:textSize="14sp"
                 android:textColor="@color/text_primary"
                 app:backgroundTint="@color/card_white"
                 app:strokeColor="@color/card_border"
@@ -225,7 +225,7 @@
                 android:layout_marginTop="6dp"
                 android:textAlignment="center"
                 android:textColor="@color/text_muted"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
         </LinearLayout>
     </FrameLayout>
 

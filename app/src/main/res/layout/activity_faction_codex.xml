@@ -38,7 +38,7 @@
                 android:layout_marginBottom="18dp"
                 android:text="@string/faction_codex_subtitle"
                 android:textColor="@color/text_muted"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
             <LinearLayout
                 android:id="@+id/factionCodexContainer"

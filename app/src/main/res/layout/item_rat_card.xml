@@ -25,7 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Mutant"
-            android:textSize="11sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:textAlignment="center"
@@ -168,7 +168,7 @@
                 android:drawableStart="@drawable/ic_power"
                 android:drawablePadding="3dp"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center_vertical" />
 
@@ -185,7 +185,7 @@
                 android:drawableStart="@drawable/ic_toughness"
                 android:drawablePadding="3dp"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:gravity="center_vertical" />
         </LinearLayout>

@@ -103,6 +103,15 @@ object GameEngine {
 
     private const val KEY_LAST_ENCOUNTER_STEPS = "LAST_ENCOUNTER_STEPS"
 
+    /**
+     * Steps before a fight nobody took up is announced again.
+     *
+     * The alert is the only way in to an ordinary encounter, and a pending one
+     * blocks the next. Swiping the alert away, a reboot, or leaving the fight
+     * would otherwise end Rustbots on that save for good.
+     */
+    private const val ENCOUNTER_REMIND_STEPS = 2_000f
+
     // --- the boss teaser, which watches rather than decides -------------------
 
     /**
@@ -141,6 +150,8 @@ object GameEngine {
         val questReward: QuestReward? = null,
         /** True on the one batch of steps that crosses the boss teaser mark. */
         val bossTeaser: Boolean = false,
+        /** True on the one batch of steps that finishes Winter Recon. */
+        val winterComplete: Boolean = false,
         /** The contract that paid out on these steps, for the alert. */
         val contractPaidName: String? = null,
         val changed: Boolean = false
@@ -281,6 +292,8 @@ object GameEngine {
             questReward = DailyQuest.record(prefs, QuestType.HATCH)
         }
 
+        val winterComplete = WinterEvent.advance(prefs, gained)
+
         // Rolled after EXP is banked so a hatch and an encounter can both land
         // from one batch of steps without competing for it.
         val encounter = maybeTriggerEncounter(dao, prefs, totalSteps, gained, level)
@@ -303,6 +316,7 @@ object GameEngine {
             stepsToday = stepsToday,
             questReward = questReward,
             bossTeaser = teaser,
+            winterComplete = winterComplete,
             contractPaidName = contractName?.takeIf { bounty.first > 0 },
             changed = true
         )
@@ -469,9 +483,10 @@ object GameEngine {
         gained: Int,
         playerLevel: Int
     ): Encounter? {
-        if (Encounter.isPending(prefs)) return null
+        if (!GameSettings.rustbotAlertsEnabled(prefs)) return null
 
         val lastAt = prefs.getFloat(KEY_LAST_ENCOUNTER_STEPS, -ENCOUNTER_MIN_GAP_STEPS)
+        if (Encounter.isPending(prefs)) return remindOfPending(prefs, totalSteps, lastAt)
         if (totalSteps - lastAt < ENCOUNTER_MIN_GAP_STEPS) return null
 
         // Probability that at least one of the steps in this batch triggered.
@@ -482,6 +497,24 @@ object GameEngine {
 
         prefs.edit().putFloat(KEY_LAST_ENCOUNTER_STEPS, totalSteps).apply()
         return encounter
+    }
+
+    /**
+     * The pending fight again, once enough steps have passed to announce it.
+     *
+     * Never a boss (MainActivity reopens those), an Arena fight or Boot Camp's
+     * practice fight: each of those has its own way back in.
+     */
+    private fun remindOfPending(
+        prefs: SharedPreferences,
+        totalSteps: Float,
+        lastAt: Float
+    ): Encounter? {
+        if (totalSteps - lastAt < ENCOUNTER_REMIND_STEPS) return null
+        if (ArenaRun.isActive(prefs) || BootCamp.isPracticePending(prefs)) return null
+        val pending = Encounter.load(prefs)?.takeUnless { it.isBoss } ?: return null
+        prefs.edit().putFloat(KEY_LAST_ENCOUNTER_STEPS, totalSteps).apply()
+        return pending
     }
 
     /**

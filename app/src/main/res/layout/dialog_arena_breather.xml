@@ -44,7 +44,7 @@
         android:layout_marginTop="4dp"
         android:textAlignment="center"
         android:textColor="@color/arena_text_muted"
-        android:textSize="13sp"
+        android:textSize="14sp"
         tools:text="Fight 3 of 15 cleared" />
 
     <TextView
@@ -77,7 +77,7 @@
         android:layout_marginTop="10dp"
         android:textAlignment="center"
         android:textColor="@color/copper"
-        android:textSize="13sp"
+        android:textSize="14sp"
         android:textStyle="bold"
         android:visibility="gone"
         tools:visibility="visible"

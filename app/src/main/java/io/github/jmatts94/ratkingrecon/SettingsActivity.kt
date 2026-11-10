@@ -106,6 +106,12 @@ class SettingsActivity : AppCompatActivity() {
             prefs.edit().putBoolean(GameSettings.KEY_NOTIFICATIONS, on).apply()
         }
 
+        val rustbots = findViewById<MaterialSwitch>(R.id.rustbotAlertsSwitch)
+        rustbots.isChecked = GameSettings.rustbotAlertsEnabled(prefs)
+        rustbots.setOnCheckedChangeListener { _, on ->
+            prefs.edit().putBoolean(GameSettings.KEY_RUSTBOT_ALERTS, on).apply()
+        }
+
         val sound = findViewById<MaterialSwitch>(R.id.soundSwitch)
         sound.isChecked = GameSettings.soundEnabled(prefs)
         sound.setOnCheckedChangeListener { _, on ->
@@ -194,6 +200,7 @@ class SettingsActivity : AppCompatActivity() {
 
             val minted = withContext(Dispatchers.IO) {
                 val dao = RatRepository.dao(this@SettingsActivity)
+                WinterEvent.debugNearlyDone(prefs)
                 val newRats = List(DEBUG_RATS) { GameEngine.mintRat(dao, prefs) }
 
                 // TimeTail is excluded from GameEngine.mintRat's own roll on

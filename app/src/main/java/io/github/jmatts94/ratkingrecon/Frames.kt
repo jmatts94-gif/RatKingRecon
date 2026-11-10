@@ -484,10 +484,25 @@ object Frames {
         arenaPool = false
     )
 
+    /** Winter Recon's reward. Limited to the event, and never sold. */
+    val FROSTBOUND = CardFrame(
+        id = "frostbound",
+        nameRes = R.string.shop_name_frame_frostbound,
+        descRes = R.string.shop_desc_frame_frostbound,
+        strokeColorRes = R.color.frost_stroke,
+        accentColorRes = R.color.frost_ice,
+        accentAltColorRes = R.color.frost_white,
+        style = FrameStyle.PULSE,
+        price = 600,
+        baseTier = false,
+        sellable = false,
+        arenaPool = false
+    )
+
     val all: List<CardFrame> = listOf(
         BRASS, EMBER, RIVETED_COPPER, CLOCKWORK, BOILER, AETHER_COIL,
         ARENA_CHAMPION, IRON_GRIP, NATURALISTS_COMPENDIUM, RAT_KINGS_CROWN, CHIMERAS_WEAVE,
-        RUSTBRINGERS_SEAL, SUPPORTERS_MARK, RUST_KINGS_MANTLE
+        RUSTBRINGERS_SEAL, SUPPORTERS_MARK, RUST_KINGS_MANTLE, FROSTBOUND
     )
 
     fun byId(id: String?): CardFrame? = id?.let { key -> all.firstOrNull { it.id == key } }

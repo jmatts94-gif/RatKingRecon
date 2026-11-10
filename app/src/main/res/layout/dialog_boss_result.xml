@@ -79,7 +79,7 @@
         android:layout_marginTop="10dp"
         android:textAlignment="center"
         android:textColor="@color/text_muted"
-        android:textSize="12sp"
+        android:textSize="13sp"
         android:visibility="gone"
         tools:visibility="visible"
         tools:text="Badge earned: The Junk Golem defeated for the first time." />

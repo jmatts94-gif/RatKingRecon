@@ -25,16 +25,22 @@ object GameSettings {
      * look, not a behaviour a save written before it existed should suddenly
      * start applying.
      */
+    /** Off: no new Rustbots are raised on walks, so no alert is ever owed. Bosses are unaffected. */
+    const val KEY_RUSTBOT_ALERTS = "rustbot_alerts_enabled"
+
     const val KEY_DARK_STEAMPUNK = "dark_steampunk_enabled"
 
     /**
      * Whether a hatch, banked boss, Ledger Task, or daily-loop alert may raise a
      * notification at all.
      *
-     * Deliberately does not cover the Rustbot encounter alert - see
-     * [StepTrackerService.notifyEncounter]'s own comment on why that one is the
-     * single exception.
+     * Deliberately does not cover the Rustbot encounter alert: that alert is
+     * the only way in to the fight. [rustbotAlertsEnabled] stops the encounters
+     * themselves instead, so turning it off cannot strand one.
      */
+    fun rustbotAlertsEnabled(prefs: SharedPreferences): Boolean =
+        prefs.getBoolean(KEY_RUSTBOT_ALERTS, true)
+
     fun notificationsEnabled(prefs: SharedPreferences): Boolean =
         prefs.getBoolean(KEY_NOTIFICATIONS, true)
 
