@@ -9,11 +9,13 @@ import android.widget.RemoteViews
 import java.text.NumberFormat
 
 /**
- * Home-screen widget: steps to the next hatch.
+ * Home-screen widget: today's steps first, then the next hatch.
  *
- * Android's own timer for widgets runs at most every 30 minutes, so the system
- * only draws this when it is placed. [StepTrackerService] and the home screen
- * push every later update through [refresh].
+ * Steps lead because many players open the game only to check them.
+ *
+ * Android's own 30-minute timer only matters after midnight, so yesterday's
+ * count does not sit there until the first step. [StepTrackerService] and the
+ * home screen push every other update through [refresh].
  */
 class HatchWidgetProvider : AppWidgetProvider() {
 
@@ -36,13 +38,17 @@ class HatchWidgetProvider : AppWidgetProvider() {
             val needed = GameEngine.maxExpFor(level)
             val exp = GameEngine.expOf(prefs).coerceIn(0, needed)
             val left = GameEngine.stepsToNextHatch(prefs)
+            val numbers = NumberFormat.getInstance()
 
             val views = RemoteViews(context.packageName, R.layout.widget_hatch)
             views.setTextViewText(
                 R.id.widgetHatchTitle,
-                context.getString(R.string.widget_steps_left, NumberFormat.getInstance().format(left))
+                context.getString(R.string.widget_steps_today, numbers.format(DailySteps.today(prefs)))
             )
-            views.setTextViewText(R.id.widgetHatchLevel, context.getString(R.string.widget_level, level))
+            views.setTextViewText(
+                R.id.widgetHatchLine,
+                context.getString(R.string.widget_steps_left, numbers.format(left))
+            )
             views.setProgressBar(R.id.widgetHatchBar, needed, exp, false)
 
             // The normal launch route, so onboarding still comes first on a new save.

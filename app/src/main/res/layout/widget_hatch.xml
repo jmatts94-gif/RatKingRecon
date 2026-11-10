@@ -15,7 +15,7 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:importantForAccessibility="no"
-        android:src="@drawable/ic_egg" />
+        android:src="@drawable/ic_footprint" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -31,31 +31,31 @@
             android:ellipsize="end"
             android:fontFamily="@font/lexend"
             android:maxLines="1"
-            android:text="@string/widget_preview_steps"
+            android:text="@string/widget_preview_today"
             android:textColor="@color/text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 
-        <ProgressBar
-            android:id="@+id/widgetHatchBar"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginBottom="5dp"
-            android:max="100"
-            android:progress="40"
-            android:progressDrawable="@drawable/progress_amber" />
 
         <TextView
-            android:id="@+id/widgetHatchLevel"
+            android:id="@+id/widgetHatchLine"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:fontFamily="@font/lexend"
             android:maxLines="1"
-            android:text="@string/widget_preview_level"
+            android:text="@string/widget_preview_hatch"
             android:textColor="@color/text_muted"
             android:textSize="13sp" />
+        <ProgressBar
+            android:id="@+id/widgetHatchBar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="0dp"
+            android:max="100"
+            android:progress="40"
+            android:progressDrawable="@drawable/progress_amber" />
     </LinearLayout>
 </LinearLayout>
